@@ -34,6 +34,24 @@ export const stackOptions = [
   { id: 'postgres', label: 'Postgres', short: 'PG', tone: '#336791' },
 ]
 
+export const frameworkOptions = [
+  { id: 'swift', label: 'Swift', short: 'SW', tone: '#f05138' },
+  { id: 'swiftui', label: 'SwiftUI', short: 'SU', tone: '#0a84ff' },
+  { id: 'uikit', label: 'UIKit', short: 'UI', tone: '#5ac8fa' },
+  { id: 'xcode', label: 'Xcode', short: 'XC', tone: '#147efb' },
+  { id: 'combine', label: 'Combine', short: 'CB', tone: '#ff375f' },
+  { id: 'coredata', label: 'Core Data', short: 'CD', tone: '#8e8e93' },
+  { id: 'widgetkit', label: 'WidgetKit', short: 'WK', tone: '#34c759' },
+  { id: 'storekit', label: 'StoreKit', short: 'SK', tone: '#ff9f0a' },
+  { id: 'firebase', label: 'Firebase', short: 'FB', tone: '#ffca28' },
+  { id: 'supabase-ios', label: 'Supabase', short: 'SB', tone: '#3ecf8e' },
+  { id: 'react-native', label: 'React Native', short: 'RN', tone: '#61dafb' },
+  { id: 'flutter', label: 'Flutter', short: 'FL', tone: '#47c5fb' },
+  { id: 'expo', label: 'Expo', short: 'EX', tone: '#f7faf4' },
+  { id: 'fastlane', label: 'Fastlane', short: 'FA', tone: '#8b5cf6' },
+  { id: 'testflight', label: 'TestFlight', short: 'TF', tone: '#0a84ff' },
+]
+
 export const seedApps = [
   {
     id: 'signal-deck',
@@ -49,6 +67,7 @@ export const seedApps = [
     accent: '#c2ff29',
     published: true,
     stacks: ['Supabase', 'React', 'Prompt Systems', 'Internal Ops'],
+    frameworks: ['SwiftUI', 'Supabase', 'Xcode'],
     socialLinks: [
       { label: 'Website', url: '#' },
       { label: 'X', url: 'https://x.com/creainetwork' },
@@ -72,6 +91,7 @@ export const seedApps = [
     accent: '#9adf5b',
     published: true,
     stacks: ['React', 'Design Systems', 'AI Briefing', 'Client Workflow'],
+    frameworks: ['SwiftUI', 'UIKit', 'StoreKit'],
     socialLinks: [{ label: 'Instagram', url: 'https://www.instagram.com/creainetwork/' }],
     storeLinks: [{ label: 'Web App', url: '#' }],
   },
@@ -89,6 +109,7 @@ export const seedApps = [
     accent: '#b8ff7d',
     published: true,
     stacks: ['Dashboarding', 'Operations', 'Internal Tracking'],
+    frameworks: ['Swift', 'Core Data', 'Combine'],
     socialLinks: [],
     storeLinks: [],
   },
@@ -106,6 +127,7 @@ export const seedApps = [
     accent: '#8fd14f',
     published: false,
     stacks: ['Prototype', 'Editorial UI', 'Exploration'],
+    frameworks: ['React Native', 'Expo'],
     socialLinks: [],
     storeLinks: [],
   },

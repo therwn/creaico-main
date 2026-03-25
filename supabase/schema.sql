@@ -9,6 +9,7 @@ create table if not exists public.apps (
   summary text not null,
   audience text not null,
   stacks text[] not null default '{}',
+  frameworks text[] not null default '{}',
   social_links jsonb not null default '[]'::jsonb,
   store_links jsonb not null default '[]'::jsonb,
   url text,

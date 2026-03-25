@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
-import { appCategories, brandContent, seedApps, stackOptions } from './content'
+import { appCategories, brandContent, frameworkOptions, seedApps, stackOptions } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import CreaiLogo from './CreaiLogo'
 
@@ -12,6 +12,7 @@ const initialForm = {
   summary: '',
   audience: 'Public',
   stacks: [],
+  frameworks: [],
   url: '',
   website: '',
   x: '',
@@ -27,7 +28,7 @@ const initialForm = {
 
 const staticAdminUsername = 'root-admin'
 const staticAdminEmail = 'root-admin@creai.co'
-const adminSections = ['App Library', 'Publishing', 'Account']
+const adminSections = ['Dashboard', 'Add a New App', 'Update Apps']
 
 const socialIcons = {
   Instagram: (
@@ -56,9 +57,10 @@ const socialIcons = {
 }
 
 const stackMeta = Object.fromEntries(stackOptions.map((item) => [item.label, item]))
+const frameworkMeta = Object.fromEntries(frameworkOptions.map((item) => [item.label, item]))
 
-function StackGlyph({ label }) {
-  const meta = stackMeta[label] || { short: label.slice(0, 2).toUpperCase(), tone: '#c2ff29' }
+function TokenGlyph({ label, registry = stackMeta }) {
+  const meta = registry[label] || { short: label.slice(0, 2).toUpperCase(), tone: '#c2ff29' }
 
   return (
     <span className="stack-glyph" style={{ '--stack-tone': meta.tone }} aria-hidden="true">
@@ -67,25 +69,25 @@ function StackGlyph({ label }) {
   )
 }
 
-function StackMultiSelect({ value, onChange }) {
+function MultiSelect({ value, onChange, options, registry, emptyLabel, countLabel = 'selected' }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const toggleStack = (label) => {
+  const toggleValue = (label) => {
     onChange(value.includes(label) ? value.filter((item) => item !== label) : [...value, label])
   }
 
   return (
     <div className={`stack-selector ${isOpen ? 'is-open' : ''}`}>
       <button type="button" className="stack-selector-trigger" onClick={() => setIsOpen((current) => !current)}>
-        <span>{value.length ? `${value.length} stack selected` : 'Select stacks'}</span>
+        <span>{value.length ? `${value.length} ${countLabel}` : emptyLabel}</span>
         <strong>{isOpen ? 'Close' : 'Choose'}</strong>
       </button>
 
       {value.length ? (
         <div className="stack-selection-row">
           {value.map((item) => (
-            <button key={item} type="button" className="stack-selection-chip" onClick={() => toggleStack(item)}>
-              <StackGlyph label={item} />
+            <button key={item} type="button" className="stack-selection-chip" onClick={() => toggleValue(item)}>
+              <TokenGlyph label={item} registry={registry} />
               <span>{item}</span>
             </button>
           ))}
@@ -94,17 +96,96 @@ function StackMultiSelect({ value, onChange }) {
 
       {isOpen ? (
         <div className="stack-selector-menu">
-          {stackOptions.map((item) => (
+          {options.map((item) => (
             <button
               key={item.id}
-              type="button"
               className={`stack-option ${value.includes(item.label) ? 'is-selected' : ''}`}
-              onClick={() => toggleStack(item.label)}
+              type="button"
+              onClick={() => toggleValue(item.label)}
             >
-              <StackGlyph label={item.label} />
+              <TokenGlyph label={item.label} registry={registry} />
               <span>{item.label}</span>
             </button>
           ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function SingleSelect({ value, onChange, options, placeholder = 'Choose an option' }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className={`single-select ${isOpen ? 'is-open' : ''}`}>
+      <button type="button" className="single-select-trigger" onClick={() => setIsOpen((current) => !current)}>
+        <span>{value || placeholder}</span>
+        <strong>{isOpen ? 'Close' : 'Choose'}</strong>
+      </button>
+      {isOpen ? (
+        <div className="single-select-menu">
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={`single-select-option ${value === option ? 'is-selected' : ''}`}
+              onClick={() => {
+                onChange(option)
+                setIsOpen(false)
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function CategorySelect({ value, onChange, categories, onAddCategory }) {
+  const [draft, setDraft] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+
+  const submitCategory = () => {
+    const next = draft.trim()
+    if (!next) return
+    onAddCategory(next)
+    onChange(next)
+    setDraft('')
+    setIsOpen(false)
+  }
+
+  return (
+    <div className={`single-select ${isOpen ? 'is-open' : ''}`}>
+      <button type="button" className="single-select-trigger" onClick={() => setIsOpen((current) => !current)}>
+        <span>{value || 'Select category'}</span>
+        <strong>{isOpen ? 'Close' : 'Choose'}</strong>
+      </button>
+      {isOpen ? (
+        <div className="single-select-menu">
+          {categories.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={`single-select-option ${value === option ? 'is-selected' : ''}`}
+              onClick={() => {
+                onChange(option)
+                setIsOpen(false)
+              }}
+            >
+              {option}
+            </button>
+          ))}
+          <div className="category-create-row">
+            <input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="Add category"
+              autoComplete="off"
+            />
+            <button type="button" className="ghost-button" onClick={submitCategory}>Add</button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -156,6 +237,7 @@ const mapAppRow = (row) => ({
   updatedAt: row.updated_at,
   url: row.url,
   stacks: row.stacks || [],
+  frameworks: row.frameworks || [],
   socialLinks: row.social_links || [],
   storeLinks: row.store_links || [],
   featured: row.featured,
@@ -574,6 +656,13 @@ function DetailView({ app, relatedApps, onNavigate }) {
         <div className="stack-row">
           {app.stacks?.length ? app.stacks.map((stack) => <span key={stack} className="stack-chip">{stack}</span>) : <span className="helper-copy">No stack information yet.</span>}
         </div>
+        <div className="panel-heading">
+          <h3>Frameworks</h3>
+          <p>Primary frameworks used across the product build.</p>
+        </div>
+        <div className="stack-row">
+          {app.frameworks?.length ? app.frameworks.map((framework) => <span key={framework} className="stack-chip">{framework}</span>) : <span className="helper-copy">No frameworks listed yet.</span>}
+        </div>
       </section>
 
       <section className="detail-panel">
@@ -659,9 +748,27 @@ function AdminSignIn({ onSignedIn }) {
 
   return (
     <main className="admin-auth-shell">
+      <div className="admin-auth-noise" aria-hidden="true" />
       <div className="admin-auth-ambient admin-auth-ambient-one" aria-hidden="true" />
       <div className="admin-auth-ambient admin-auth-ambient-two" aria-hidden="true" />
+      <div className="admin-auth-ambient admin-auth-ambient-three" aria-hidden="true" />
       <div className="admin-auth-grid" aria-hidden="true" />
+      <div className="admin-auth-line-cluster" aria-hidden="true">
+        {landingScanLines.map((line, index) => (
+          <span
+            key={`auth-${line.left}-${index}`}
+            className="admin-auth-scan-line"
+            style={{
+              '--line-left': line.left,
+              '--line-duration': `${7 + index * 0.9}s`,
+              '--line-delay': `${index * 0.8}s`,
+              '--line-opacity': 0.52 + index * 0.06,
+            }}
+          />
+        ))}
+      </div>
+      <div className="admin-auth-orbit admin-auth-orbit-one" aria-hidden="true" />
+      <div className="admin-auth-orbit admin-auth-orbit-two" aria-hidden="true" />
       <section className="admin-auth-card">
         <div className="panel-heading admin-auth-heading">
           <p className="eyebrow-copy">Admin Access</p>
@@ -674,6 +781,7 @@ function AdminSignIn({ onSignedIn }) {
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
+              placeholder="Username"
               autoComplete="new-password"
               autoCapitalize="none"
               spellCheck="false"
@@ -701,29 +809,44 @@ function AdminSignIn({ onSignedIn }) {
 
 function AdminView({ apps, setApps, session, setSession, loading, error, activeSection }) {
   const [form, setForm] = useState(initialForm)
+  const [selectedAppId, setSelectedAppId] = useState('')
   const [feedback, setFeedback] = useState('')
+  const [customCategories, setCustomCategories] = useState([])
+
+  const categories = useMemo(() => {
+    const catalog = new Set([
+      ...appCategories.filter((item) => item !== 'All'),
+      ...customCategories,
+      ...apps.map((app) => app.category).filter(Boolean),
+    ])
+    return [...catalog]
+  }, [apps, customCategories])
+
+  const selectedApp = useMemo(() => apps.find((app) => app.id === selectedAppId) || null, [apps, selectedAppId])
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
-  const submitForm = async (event) => {
-    event.preventDefault()
-    if (!supabase) return
+  const addCategory = (category) => {
+    setCustomCategories((current) => (current.includes(category) ? current : [...current, category]))
+  }
 
+  const buildPayload = () => {
     const socialLinks = [
       form.website ? { label: 'Website', url: form.website } : null,
       form.x ? { label: 'X', url: form.x } : null,
       form.instagram ? { label: 'Instagram', url: form.instagram } : null,
       form.github ? { label: 'GitHub', url: form.github } : null,
     ].filter(Boolean)
+
     const storeLinks = [
       form.webApp ? { label: 'Web App', url: form.webApp } : null,
       form.appStore ? { label: 'App Store', url: form.appStore } : null,
       form.googlePlay ? { label: 'Google Play', url: form.googlePlay } : null,
     ].filter(Boolean)
 
-    const payload = {
+    return {
       name: form.name,
       slug: form.slug,
       category: form.category,
@@ -731,6 +854,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
       summary: form.summary,
       audience: form.audience,
       stacks: form.stacks,
+      frameworks: form.frameworks,
       social_links: socialLinks,
       store_links: storeLinks,
       url: form.url,
@@ -738,8 +862,37 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
       featured: form.featured,
       published: form.published,
     }
+  }
 
-    const { data, error: insertError } = await supabase.from('apps').insert(payload).select().single()
+  const fillFormFromApp = (app) => {
+    setForm({
+      name: app.name,
+      slug: app.slug,
+      category: app.category,
+      status: app.status,
+      summary: app.summary,
+      audience: app.audience,
+      stacks: app.stacks || [],
+      frameworks: app.frameworks || [],
+      url: app.url || '',
+      website: app.socialLinks?.find((item) => item.label === 'Website')?.url || '',
+      x: app.socialLinks?.find((item) => item.label === 'X')?.url || '',
+      instagram: app.socialLinks?.find((item) => item.label === 'Instagram')?.url || '',
+      github: app.socialLinks?.find((item) => item.label === 'GitHub')?.url || '',
+      webApp: app.storeLinks?.find((item) => item.label === 'Web App')?.url || '',
+      appStore: app.storeLinks?.find((item) => item.label === 'App Store')?.url || '',
+      googlePlay: app.storeLinks?.find((item) => item.label === 'Google Play')?.url || '',
+      accent: app.accent || '#c2ff29',
+      featured: app.featured,
+      published: app.published,
+    })
+  }
+
+  const submitForm = async (event) => {
+    event.preventDefault()
+    if (!supabase) return
+
+    const { data, error: insertError } = await supabase.from('apps').insert(buildPayload()).select().single()
     if (insertError) {
       setFeedback(insertError.message)
       return
@@ -748,6 +901,26 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
     setApps((current) => [mapAppRow(data), ...current])
     setForm(initialForm)
     setFeedback('App created successfully.')
+  }
+
+  const updateApp = async (event) => {
+    event.preventDefault()
+    if (!supabase || !selectedAppId) return
+
+    const { data, error: updateError } = await supabase
+      .from('apps')
+      .update(buildPayload())
+      .eq('id', selectedAppId)
+      .select()
+      .single()
+
+    if (updateError) {
+      setFeedback(updateError.message)
+      return
+    }
+
+    setApps((current) => current.map((app) => (app.id === selectedAppId ? mapAppRow(data) : app)))
+    setFeedback('App updated successfully.')
   }
 
   const toggleField = async (id, field, currentValue) => {
@@ -778,6 +951,10 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
     }
 
     setApps((current) => current.filter((app) => app.id !== id))
+    if (selectedAppId === id) {
+      setSelectedAppId('')
+      setForm(initialForm)
+    }
     setFeedback('App removed successfully.')
   }
 
@@ -800,7 +977,13 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
       <div className="content-hero">
         <div>
           <p className="eyebrow-copy">Admin</p>
-          <h2>{activeSection === 'App Library' ? 'Create and edit app entries.' : activeSection === 'Publishing' ? 'Control visibility and featured states.' : 'Admin session and access state.'}</h2>
+          <h2>
+            {activeSection === 'Dashboard'
+              ? 'Monitor the directory and recent changes.'
+              : activeSection === 'Add a New App'
+                ? 'Create a new app entry with structured metadata.'
+                : 'Update existing apps and their content.'}
+          </h2>
         </div>
         <div className="hero-actions">
           <span className="session-chip">{staticAdminUsername}</span>
@@ -811,58 +994,247 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
       {loading ? <div className="empty-state">Syncing dashboard...</div> : null}
       {error ? <div className="empty-state">{error}</div> : null}
 
-      {activeSection === 'App Library' ? (
-        <div className="admin-layout">
-          <form className="admin-panel form-panel" onSubmit={submitForm}>
+      {activeSection === 'Dashboard' ? (
+        <div className="admin-dashboard-grid">
+          <section className="detail-panel">
             <div className="panel-heading">
-              <h3>Add new app</h3>
-              <p>Create a new directory entry for app.creai.co.</p>
+              <h3>Overview</h3>
+              <p>High-level view of your current app catalog.</p>
+            </div>
+            <div className="stat-stack admin-stat-grid">
+              <article className="mini-stat">
+                <strong>{apps.length}</strong>
+                <span>Total apps</span>
+              </article>
+              <article className="mini-stat">
+                <strong>{apps.filter((app) => app.published).length}</strong>
+                <span>Published</span>
+              </article>
+              <article className="mini-stat">
+                <strong>{apps.filter((app) => app.featured).length}</strong>
+                <span>Featured</span>
+              </article>
+              <article className="mini-stat">
+                <strong>{categories.length}</strong>
+                <span>Categories</span>
+              </article>
+            </div>
+          </section>
+
+          <div className="detail-grid">
+            <section className="detail-panel">
+              <div className="panel-heading">
+                <h3>Recently updated</h3>
+                <p>Latest app records touched in the directory.</p>
+              </div>
+              <div className="stack-list">
+                {[...apps]
+                  .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
+                  .slice(0, 5)
+                  .map((app) => (
+                    <article key={app.id} className="stack-item compact">
+                      <div>
+                        <strong>{app.name}</strong>
+                        <p>{app.category}</p>
+                      </div>
+                      <span>{formatDate(app.updatedAt)}</span>
+                    </article>
+                  ))}
+              </div>
+            </section>
+
+            <section className="detail-panel">
+              <div className="panel-heading">
+                <h3>Quick publishing</h3>
+                <p>Feature or hide apps directly from the dashboard.</p>
+              </div>
+              <div className="admin-list">
+                {apps.map((app) => (
+                  <article key={app.id} className="admin-item admin-item-card">
+                    <div>
+                      <strong>{app.name}</strong>
+                      <p>{app.category} / {app.status}</p>
+                    </div>
+                    <div className="admin-actions">
+                      <button type="button" onClick={() => toggleField(app.id, 'featured', app.featured)} className={app.featured ? 'toggle-active' : ''}>
+                        {app.featured ? 'Featured' : 'Feature'}
+                      </button>
+                      <button type="button" onClick={() => toggleField(app.id, 'published', app.published)} className={app.published ? 'toggle-active' : ''}>
+                        {app.published ? 'Published' : 'Hidden'}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      ) : null}
+
+      {activeSection === 'Add a New App' ? (
+        <form className="admin-panel form-panel" onSubmit={submitForm}>
+          <div className="panel-heading">
+            <h3>Add new app</h3>
+            <p>Create a new directory entry for app.creai.co.</p>
+          </div>
+
+          <label>
+            <span>App name</span>
+            <input value={form.name} onChange={(event) => updateField('name', event.target.value)} required />
+          </label>
+          <label>
+            <span>Slug</span>
+            <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} required />
+          </label>
+          <label>
+            <span>Description</span>
+            <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
+          </label>
+          <label>
+            <span>Stacks</span>
+            <MultiSelect value={form.stacks} onChange={(value) => updateField('stacks', value)} options={stackOptions} registry={stackMeta} emptyLabel="Select stacks" countLabel="stacks selected" />
+          </label>
+          <label>
+            <span>Frameworks</span>
+            <MultiSelect value={form.frameworks} onChange={(value) => updateField('frameworks', value)} options={frameworkOptions} registry={frameworkMeta} emptyLabel="Select frameworks" countLabel="frameworks selected" />
+          </label>
+          <div className="form-split">
+            <label>
+              <span>Category</span>
+              <CategorySelect value={form.category} onChange={(value) => updateField('category', value)} categories={categories} onAddCategory={addCategory} />
+            </label>
+            <label>
+              <span>Status</span>
+              <SingleSelect value={form.status} onChange={(value) => updateField('status', value)} options={['Live', 'Beta', 'Internal', 'Concept']} />
+            </label>
+          </div>
+          <div className="form-split">
+            <label>
+              <span>Audience</span>
+              <SingleSelect value={form.audience} onChange={(value) => updateField('audience', value)} options={['Public', 'Client-facing', 'Internal', 'Studio']} />
+            </label>
+            <label>
+              <span>Accent color</span>
+              <div className="color-field">
+                <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} />
+                <strong>{form.accent}</strong>
+              </div>
+            </label>
+          </div>
+          <label>
+            <span>URL</span>
+            <input value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://app.creai.co/brief-forge" />
+          </label>
+          <div className="social-column">
+            <label>
+              <span>Website</span>
+              <input value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." />
+            </label>
+            <label>
+              <span>X</span>
+              <input value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." />
+            </label>
+            <label>
+              <span>Instagram</span>
+              <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." />
+            </label>
+            <label>
+              <span>GitHub</span>
+              <input value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." />
+            </label>
+          </div>
+          <div className="social-column">
+            <label>
+              <span>Web App badge</span>
+              <input value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." />
+            </label>
+            <label>
+              <span>App Store badge</span>
+              <input value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." />
+            </label>
+            <label>
+              <span>Google Play badge</span>
+              <input value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." />
+            </label>
+          </div>
+          <div className="toggle-row">
+            <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} /> Featured</label>
+            <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} /> Published</label>
+          </div>
+          <button type="submit" className="primary-button admin-primary-button">Create app entry</button>
+          {feedback ? <p className="helper-copy">{feedback}</p> : null}
+        </form>
+      ) : null}
+
+      {activeSection === 'Update Apps' ? (
+        <div className="admin-layout">
+          <div className="admin-panel list-panel">
+            <div className="panel-heading">
+              <h3>Select app</h3>
+              <p>Choose an existing app to edit or remove.</p>
+            </div>
+            <div className="admin-list">
+              {apps.map((app) => (
+                <article key={app.id} className={`admin-item admin-item-card ${selectedAppId === app.id ? 'is-selected' : ''}`}>
+                  <button
+                    type="button"
+                    className="admin-record-button"
+                    onClick={() => {
+                      setSelectedAppId(app.id)
+                      fillFormFromApp(app)
+                    }}
+                  >
+                    <strong>{app.name}</strong>
+                    <p>{app.category} / {app.status} / {app.audience}</p>
+                  </button>
+                  <div className="admin-actions">
+                    <button type="button" onClick={() => deleteApp(app.id)}>Remove</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <form className="admin-panel form-panel" onSubmit={updateApp}>
+            <div className="panel-heading">
+              <h3>Update app</h3>
+              <p>{selectedApp ? `Editing ${selectedApp.name}` : 'Select an app from the list to begin editing.'}</p>
             </div>
 
             <label>
               <span>App name</span>
-              <input value={form.name} onChange={(event) => updateField('name', event.target.value)} required />
+              <input value={form.name} onChange={(event) => updateField('name', event.target.value)} disabled={!selectedApp} required />
             </label>
             <label>
               <span>Slug</span>
-              <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} required />
+              <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} disabled={!selectedApp} required />
             </label>
             <label>
               <span>Description</span>
-              <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
+              <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} disabled={!selectedApp} required />
             </label>
             <label>
               <span>Stacks</span>
-              <StackMultiSelect value={form.stacks} onChange={(value) => updateField('stacks', value)} />
+              <MultiSelect value={form.stacks} onChange={(value) => updateField('stacks', value)} options={stackOptions} registry={stackMeta} emptyLabel="Select stacks" countLabel="stacks selected" />
+            </label>
+            <label>
+              <span>Frameworks</span>
+              <MultiSelect value={form.frameworks} onChange={(value) => updateField('frameworks', value)} options={frameworkOptions} registry={frameworkMeta} emptyLabel="Select frameworks" countLabel="frameworks selected" />
             </label>
             <div className="form-split">
               <label>
                 <span>Category</span>
-                <select value={form.category} onChange={(event) => updateField('category', event.target.value)}>
-                  {appCategories.filter((item) => item !== 'All').map((item) => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </select>
+                <CategorySelect value={form.category} onChange={(value) => updateField('category', value)} categories={categories} onAddCategory={addCategory} />
               </label>
               <label>
                 <span>Status</span>
-                <select value={form.status} onChange={(event) => updateField('status', event.target.value)}>
-                  <option>Live</option>
-                  <option>Beta</option>
-                  <option>Internal</option>
-                  <option>Concept</option>
-                </select>
+                <SingleSelect value={form.status} onChange={(value) => updateField('status', value)} options={['Live', 'Beta', 'Internal', 'Concept']} />
               </label>
             </div>
             <div className="form-split">
               <label>
                 <span>Audience</span>
-                <select value={form.audience} onChange={(event) => updateField('audience', event.target.value)}>
-                  <option>Public</option>
-                  <option>Client-facing</option>
-                  <option>Internal</option>
-                  <option>Studio</option>
-                </select>
+                <SingleSelect value={form.audience} onChange={(value) => updateField('audience', value)} options={['Public', 'Client-facing', 'Internal', 'Studio']} />
               </label>
               <label>
                 <span>Accent color</span>
@@ -872,121 +1244,31 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                 </div>
               </label>
             </div>
-            <label>
-              <span>URL</span>
-              <input value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://app.creai.co/brief-forge" />
-            </label>
-            <div className="form-split">
+            <div className="social-column">
               <label>
                 <span>Website</span>
-                <input value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." />
+                <input value={form.website} onChange={(event) => updateField('website', event.target.value)} disabled={!selectedApp} />
               </label>
               <label>
                 <span>X</span>
-                <input value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." />
+                <input value={form.x} onChange={(event) => updateField('x', event.target.value)} disabled={!selectedApp} />
               </label>
-            </div>
-            <div className="form-split">
               <label>
                 <span>Instagram</span>
-                <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." />
+                <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} disabled={!selectedApp} />
               </label>
               <label>
                 <span>GitHub</span>
-                <input value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." />
+                <input value={form.github} onChange={(event) => updateField('github', event.target.value)} disabled={!selectedApp} />
               </label>
             </div>
-            <div className="form-split">
-              <label>
-                <span>Web App badge</span>
-                <input value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." />
-              </label>
-              <label>
-                <span>App Store badge</span>
-                <input value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." />
-              </label>
-            </div>
-            <label>
-              <span>Google Play badge</span>
-              <input value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." />
-            </label>
             <div className="toggle-row">
-              <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} /> Featured</label>
-              <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} /> Published</label>
+              <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} disabled={!selectedApp} /> Featured</label>
+              <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} disabled={!selectedApp} /> Published</label>
             </div>
-            <button type="submit" className="primary-button admin-primary-button">Create app entry</button>
+            <button type="submit" className="primary-button admin-primary-button" disabled={!selectedApp}>Save changes</button>
             {feedback ? <p className="helper-copy">{feedback}</p> : null}
           </form>
-
-          <div className="admin-panel list-panel">
-            <div className="panel-heading">
-              <h3>App library</h3>
-              <p>All entries currently stored in the directory database.</p>
-            </div>
-            <div className="admin-list">
-              {apps.map((app) => (
-                <article key={app.id} className="admin-item admin-item-card">
-                  <div>
-                    <strong>{app.name}</strong>
-                    <p>{app.category} / {app.status} / {app.audience}</p>
-                  </div>
-                  <div className="admin-actions">
-                    <button type="button" onClick={() => deleteApp(app.id)}>Remove</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {activeSection === 'Publishing' ? (
-        <div className="admin-panel list-panel">
-          <div className="panel-heading">
-            <h3>Publishing controls</h3>
-            <p>Feature, hide, or publish apps from one place.</p>
-          </div>
-          <div className="admin-list">
-            {apps.map((app) => (
-              <article key={app.id} className="admin-item admin-item-card">
-                <div>
-                  <strong>{app.name}</strong>
-                  <p>{app.category} / {app.status} / {app.audience}</p>
-                </div>
-                <div className="admin-actions">
-                  <button type="button" onClick={() => toggleField(app.id, 'featured', app.featured)} className={app.featured ? 'toggle-active' : ''}>
-                    {app.featured ? 'Featured' : 'Feature'}
-                  </button>
-                  <button type="button" onClick={() => toggleField(app.id, 'published', app.published)} className={app.published ? 'toggle-active' : ''}>
-                    {app.published ? 'Published' : 'Hidden'}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {activeSection === 'Account' ? (
-        <div className="admin-panel list-panel">
-          <div className="panel-heading">
-            <h3>Account</h3>
-            <p>Current admin session and backend connection state.</p>
-          </div>
-          <div className="stack-list">
-            <article className="stack-item">
-              <div>
-                <strong>Username</strong>
-                <p>{staticAdminUsername}</p>
-              </div>
-            </article>
-            <article className="stack-item">
-              <div>
-                <strong>Supabase session</strong>
-                <p>{session.user?.email || staticAdminEmail}</p>
-              </div>
-            </article>
-          </div>
         </div>
       ) : null}
     </section>
@@ -997,7 +1279,7 @@ export default function App() {
   const [path, setPath] = useState(() => buildPath())
   const [host, setHost] = useState(() => buildHost())
   const [category, setCategory] = useState('All')
-  const [adminSection, setAdminSection] = useState('App Library')
+  const [adminSection, setAdminSection] = useState('Dashboard')
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
   const route = parsePath(path, host)
 
@@ -1031,7 +1313,7 @@ export default function App() {
   }, [route, apps])
 
   useEffect(() => {
-    const shouldLockScroll = route.view === 'admin' && !session
+    const shouldLockScroll = route.view === 'admin'
     document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
 
     return () => {

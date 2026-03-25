@@ -4,7 +4,7 @@
   --bg-soft: #080b08;
   --panel: rgba(7, 8, 7, 0.92);
   --panel-strong: rgba(8, 10, 8, 0.985);
-  --line: rgba(194, 255, 41, 0.05);
+  --line: rgba(214, 255, 122, 0.1);
   --text: #edf6e7;
   --muted: rgba(237, 246, 231, 0.68);
   --accent: #c2ff29;
@@ -156,7 +156,7 @@ button {
 
 .admin-sidebar-nav .is-active {
   background: rgba(194, 255, 41, 0.09);
-  border-color: rgba(194, 255, 41, 0.18);
+  border-color: rgba(214, 255, 122, 0.24);
   color: var(--text);
 }
 
@@ -650,6 +650,15 @@ textarea {
   gap: 1rem;
 }
 
+.admin-dashboard-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-stat-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .admin-panel {
   padding: 1.35rem;
   border-radius: 1.65rem;
@@ -708,6 +717,23 @@ textarea {
   padding: 1rem 0;
 }
 
+.admin-item-card.is-selected {
+  background: rgba(194, 255, 41, 0.04);
+  border-radius: 1rem;
+  padding-inline: 0.85rem;
+}
+
+.admin-record-button {
+  display: grid;
+  gap: 0.15rem;
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  padding: 0;
+}
+
 .admin-item {
   justify-content: space-between;
   align-items: center;
@@ -747,11 +773,23 @@ textarea {
   overflow: hidden;
 }
 
+.admin-auth-noise,
 .admin-auth-ambient,
-.admin-auth-grid {
+.admin-auth-grid,
+.admin-auth-line-cluster,
+.admin-auth-orbit {
   position: fixed;
   inset: 0;
   pointer-events: none;
+}
+
+.admin-auth-noise {
+  opacity: 0.14;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 4px 4px, 4px 4px;
+  mask-image: radial-gradient(circle at center, black, transparent 76%);
 }
 
 .admin-auth-ambient {
@@ -777,6 +815,15 @@ textarea {
   animation-duration: 18s;
 }
 
+.admin-auth-ambient-three {
+  inset: 18% auto auto 32%;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(214, 255, 122, 0.06), transparent 74%);
+  animation-duration: 10s;
+}
+
 .admin-auth-grid {
   opacity: 0.08;
   background-image:
@@ -784,6 +831,52 @@ textarea {
     linear-gradient(90deg, rgba(194, 255, 41, 0.012) 1px, transparent 1px);
   background-size: 100% 88px, 88px 100%;
   mask-image: radial-gradient(circle at center, black 24%, transparent 78%);
+}
+
+.admin-auth-line-cluster {
+  overflow: hidden;
+}
+
+.admin-auth-scan-line {
+  position: absolute;
+  top: -40%;
+  left: var(--line-left);
+  width: 1px;
+  height: 38%;
+  background: linear-gradient(
+    180deg,
+    rgba(214, 255, 122, 0) 0%,
+    rgba(214, 255, 122, 0.88) 20%,
+    rgba(237, 246, 231, 0.92) 50%,
+    rgba(214, 255, 122, 0.7) 80%,
+    rgba(214, 255, 122, 0) 100%
+  );
+  opacity: var(--line-opacity, 0.7);
+  box-shadow: 0 0 16px rgba(214, 255, 122, 0.4);
+  animation: adminScanFlow var(--line-duration, 8s) linear infinite;
+  animation-delay: var(--line-delay, 0s);
+}
+
+.admin-auth-orbit {
+  display: grid;
+  place-items: center;
+}
+
+.admin-auth-orbit::before {
+  content: '';
+  width: min(74vw, 38rem);
+  height: min(74vw, 38rem);
+  border-radius: 999px;
+  border: 1px solid rgba(214, 255, 122, 0.08);
+  animation: rotateOrbit 22s linear infinite;
+}
+
+.admin-auth-orbit-two::before {
+  width: min(54vw, 26rem);
+  height: min(54vw, 26rem);
+  border-color: rgba(214, 255, 122, 0.04);
+  animation-duration: 16s;
+  animation-direction: reverse;
 }
 
 .admin-auth-card {
@@ -865,6 +958,65 @@ textarea {
   background: rgba(7, 8, 7, 0.92);
 }
 
+.single-select {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.single-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(194, 255, 41, 0.012);
+  color: var(--text);
+}
+
+.single-select-trigger strong {
+  color: var(--accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.single-select-menu {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(7, 8, 7, 0.96);
+}
+
+.single-select-option {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  text-align: left;
+  border-radius: 0.9rem;
+  border: 1px solid var(--line);
+  background: rgba(194, 255, 41, 0.012);
+  color: var(--text);
+}
+
+.single-select-option.is-selected {
+  background: rgba(194, 255, 41, 0.08);
+}
+
+.category-create-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  padding-top: 0.35rem;
+}
+
+.social-column {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .stack-option,
 .stack-selection-chip {
   display: inline-flex;
@@ -932,6 +1084,36 @@ textarea {
   }
 }
 
+@keyframes adminScanFlow {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: var(--line-opacity, 0.7);
+  }
+
+  100% {
+    transform: translateY(440%);
+    opacity: 0;
+  }
+}
+
+@keyframes rotateOrbit {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.04);
+  }
+
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
 @media (max-width: 1120px) {
   .sidebar {
     position: relative;
@@ -961,7 +1143,8 @@ textarea {
 
   .detail-grid,
   .card-grid,
-  .admin-layout {
+  .admin-layout,
+  .admin-stat-grid {
     grid-template-columns: 1fr;
   }
 }
