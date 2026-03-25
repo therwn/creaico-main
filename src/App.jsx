@@ -29,7 +29,21 @@ const initialForm = {
 
 const staticAdminUsername = 'root-admin'
 const staticAdminEmail = 'root-admin@creai.co'
-const adminSections = ['Dashboard', 'Add a New App', 'Update Apps']
+const adminTree = [
+  {
+    label: 'Dashboard',
+    children: [
+      { label: 'Overview', id: 'dashboard-overview' },
+      { label: 'Recent Updates', id: 'dashboard-recent' },
+      { label: 'Categories', id: 'dashboard-categories' },
+      { label: 'Quick Actions', id: 'dashboard-actions' },
+      { label: 'Recent Activity', id: 'dashboard-activity' },
+      { label: 'Activity Timeline', id: 'dashboard-timeline' },
+    ],
+  },
+  { label: 'Add a New App', children: [] },
+  { label: 'Update Apps', children: [] },
+]
 
 const socialIcons = {
   Instagram: (
@@ -355,7 +369,7 @@ function Sidebar({ onNavigate }) {
   )
 }
 
-function AdminSidebar({ activeSection, onSectionChange, onNavigate }) {
+function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, onDashboardBlockChange, onNavigate }) {
   return (
     <aside className="admin-sidebar">
       <button className="brand-lockup" onClick={() => onNavigate('/directory')}>
@@ -367,15 +381,31 @@ function AdminSidebar({ activeSection, onSectionChange, onNavigate }) {
       </button>
 
       <div className="admin-sidebar-nav">
-        {adminSections.map((section) => (
-          <button
-            key={section}
-            type="button"
-            className={activeSection === section ? 'is-active' : ''}
-            onClick={() => onSectionChange(section)}
-          >
-            {section}
-          </button>
+        {adminTree.map((section) => (
+          <div key={section.label} className="admin-tree-group">
+            <button
+              type="button"
+              className={activeSection === section.label ? 'is-active' : ''}
+              onClick={() => onSectionChange(section.label)}
+            >
+              {section.label}
+            </button>
+
+            {section.children.length && activeSection === section.label ? (
+              <div className="admin-tree-children">
+                {section.children.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    className={activeDashboardBlock === child.id ? 'is-active' : ''}
+                    onClick={() => onDashboardBlockChange(child.id)}
+                  >
+                    {child.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         ))}
       </div>
     </aside>
@@ -827,7 +857,7 @@ function AdminSignIn({ onSignedIn }) {
   )
 }
 
-function AdminView({ apps, setApps, session, setSession, loading, error, activeSection }) {
+function AdminView({ apps, setApps, session, setSession, loading, error, activeSection, onDashboardBlockChange, onNavigate }) {
   const [form, setForm] = useState(initialForm)
   const [selectedAppId, setSelectedAppId] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -843,6 +873,15 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
   }, [apps, customCategories])
 
   const selectedApp = useMemo(() => apps.find((app) => app.id === selectedAppId) || null, [apps, selectedAppId])
+  const recentAddedApps = useMemo(() => [...apps].slice(0, 5), [apps])
+  const recentUpdatedApps = useMemo(() => [...apps].sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt)).slice(0, 5), [apps])
+  const categoryBreakdown = useMemo(() => categories.map((name) => ({ name, count: apps.filter((app) => app.category === name).length })).sort((a, b) => b.count - a.count), [apps, categories])
+  const activityFeed = useMemo(() => [...apps].sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt)).slice(0, 8).map((app, index) => ({
+    id: `${app.id}-${index}`,
+    title: index % 2 === 0 ? `${app.name} updated` : `${app.name} reviewed`,
+    detail: `${app.category} / ${app.status}`,
+    date: formatDate(app.updatedAt),
+  })), [apps])
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }))
@@ -1016,7 +1055,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
 
       {activeSection === 'Dashboard' ? (
         <div className="admin-dashboard-grid">
-          <section className="detail-panel">
+          <section id="dashboard-overview" className="detail-panel">
             <div className="panel-heading">
               <h3>Overview</h3>
               <p>High-level view of your current app catalog.</p>
@@ -1042,57 +1081,108 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
           </section>
 
           <div className="detail-grid">
-            <section className="detail-panel">
+            <section id="dashboard-recent" className="detail-panel">
               <div className="panel-heading">
-                <h3>Recently updated</h3>
-                <p>Latest app records touched in the directory.</p>
+                <h3>Recent updates</h3>
+                <p>Latest added and recently updated app records.</p>
               </div>
               <div className="stack-list">
-                {[...apps]
-                  .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
-                  .slice(0, 5)
-                  .map((app) => (
-                    <article key={app.id} className="stack-item compact">
-                      <div>
-                        <strong>{app.name}</strong>
-                        <p>{app.category}</p>
-                      </div>
-                      <span>{formatDate(app.updatedAt)}</span>
-                    </article>
-                  ))}
+                {recentAddedApps.map((app) => (
+                  <article key={`added-${app.id}`} className="stack-item compact">
+                    <div>
+                      <strong>{app.name}</strong>
+                      <p>Added to directory / {app.category}</p>
+                    </div>
+                    <span>{formatDate(app.updatedAt)}</span>
+                  </article>
+                ))}
+                {recentUpdatedApps.map((app) => (
+                  <article key={`updated-${app.id}`} className="stack-item compact">
+                    <div>
+                      <strong>{app.name}</strong>
+                      <p>Last updated / {app.category}</p>
+                    </div>
+                    <span>{formatDate(app.updatedAt)}</span>
+                  </article>
+                ))}
               </div>
             </section>
 
-            <section className="detail-panel">
+            <section id="dashboard-categories" className="detail-panel">
               <div className="panel-heading">
-                <h3>Quick publishing</h3>
-                <p>Feature or hide apps directly from the dashboard.</p>
+                <h3>Category distribution</h3>
+                <p>How apps are distributed across your current taxonomy.</p>
               </div>
-              <div className="admin-list">
-                {apps.map((app) => (
-                  <article key={app.id} className="admin-item admin-item-card">
+              <div className="stack-list">
+                {categoryBreakdown.map((item) => (
+                  <article key={item.name} className="stack-item compact">
                     <div>
-                      <strong>{app.name}</strong>
-                      <p>{app.category} / {app.status}</p>
+                      <strong>{item.name}</strong>
+                      <p>Apps in this category</p>
                     </div>
-                    <div className="admin-actions">
-                      <button type="button" onClick={() => toggleField(app.id, 'featured', app.featured)} className={app.featured ? 'toggle-active' : ''}>
-                        {app.featured ? 'Featured' : 'Feature'}
-                      </button>
-                      <button type="button" onClick={() => toggleField(app.id, 'published', app.published)} className={app.published ? 'toggle-active' : ''}>
-                        {app.published ? 'Published' : 'Hidden'}
-                      </button>
-                    </div>
+                    <span>{item.count}</span>
                   </article>
                 ))}
               </div>
             </section>
           </div>
+
+          <div className="detail-grid">
+            <section id="dashboard-actions" className="detail-panel">
+              <div className="panel-heading">
+                <h3>Quick actions</h3>
+                <p>Jump straight into common admin flows.</p>
+              </div>
+              <div className="sidebar-quick admin-quick-grid">
+                <button type="button" className="ghost-button" onClick={() => onNavigate('/directory')}>Open directory</button>
+                <button type="button" className="ghost-button" onClick={() => onDashboardBlockChange('dashboard-overview')}>Back to overview</button>
+                <button type="button" className="ghost-button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Scroll to top</button>
+              </div>
+            </section>
+
+            <section id="dashboard-activity" className="detail-panel">
+              <div className="panel-heading">
+                <h3>Recent admin actions</h3>
+                <p>A quick feed of the latest content movements.</p>
+              </div>
+              <div className="stack-list">
+                {activityFeed.slice(0, 5).map((item) => (
+                  <article key={item.id} className="stack-item compact">
+                    <div>
+                      <strong>{item.title}</strong>
+                      <p>{item.detail}</p>
+                    </div>
+                    <span>{item.date}</span>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <section id="dashboard-timeline" className="detail-panel">
+            <div className="panel-heading">
+              <h3>Activity timeline</h3>
+              <p>Chronological feed of recent admin-side content events.</p>
+            </div>
+            <div className="timeline-list">
+              {activityFeed.map((item) => (
+                <article key={`timeline-${item.id}`} className="timeline-item">
+                  <span className="timeline-dot" aria-hidden="true" />
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.detail}</p>
+                  </div>
+                  <span>{item.date}</span>
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
       ) : null}
 
       {activeSection === 'Add a New App' ? (
-        <form className="admin-panel form-panel" onSubmit={submitForm}>
+        <div className="admin-form-shell">
+        <form className="admin-panel form-panel admin-editor-panel" onSubmit={submitForm}>
           <div className="panel-heading">
             <h3>Add new app</h3>
             <p>Create a new directory entry for app.creai.co.</p>
@@ -1184,6 +1274,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
           <button type="submit" className="primary-button admin-primary-button">Create app entry</button>
           {feedback ? <p className="helper-copy">{feedback}</p> : null}
         </form>
+        </div>
       ) : null}
 
       {activeSection === 'Update Apps' ? (
@@ -1215,7 +1306,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
             </div>
           </div>
 
-          <form className="admin-panel form-panel" onSubmit={updateApp}>
+          <form className="admin-panel form-panel admin-editor-panel" onSubmit={updateApp}>
             <div className="panel-heading">
               <h3>Update app</h3>
               <p>{selectedApp ? `Editing ${selectedApp.name}` : 'Select an app from the list to begin editing.'}</p>
@@ -1300,6 +1391,7 @@ export default function App() {
   const [host, setHost] = useState(() => buildHost())
   const [category, setCategory] = useState('All')
   const [adminSection, setAdminSection] = useState('Dashboard')
+  const [adminDashboardBlock, setAdminDashboardBlock] = useState('dashboard-overview')
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
   const route = parsePath(path, host)
 
@@ -1341,6 +1433,14 @@ export default function App() {
     }
   }, [route.view, session])
 
+  useEffect(() => {
+    if (route.view !== 'admin' || adminSection !== 'Dashboard') return
+    const target = document.getElementById(adminDashboardBlock)
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [route.view, adminSection, adminDashboardBlock])
+
   const navigate = (nextPath) => {
     if (nextPath === path) return
     window.history.pushState({}, '', nextPath)
@@ -1379,7 +1479,14 @@ export default function App() {
         <div className="ambient ambient-three" aria-hidden="true" />
         <div className="surface-grid" aria-hidden="true" />
 
-        <AdminSidebar activeSection={adminSection} onSectionChange={setAdminSection} onNavigate={navigate} />
+        <AdminSidebar
+          activeSection={adminSection}
+          activeDashboardBlock={adminDashboardBlock}
+          onSectionChange={setAdminSection}
+          onDashboardBlockChange={setAdminDashboardBlock}
+          onNavigate={navigate}
+        />
+
 
         <section className="admin-page-frame">
           <AdminView
@@ -1390,6 +1497,9 @@ export default function App() {
             loading={loading}
             error={error}
             activeSection={adminSection}
+            activeDashboardBlock={adminDashboardBlock}
+            onDashboardBlockChange={setAdminDashboardBlock}
+            onNavigate={navigate}
           />
         </section>
       </main>

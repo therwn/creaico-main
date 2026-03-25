@@ -145,6 +145,18 @@ button {
   gap: 0.65rem;
 }
 
+.admin-tree-group {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-tree-children {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(214, 255, 122, 0.12);
+}
+
 .admin-sidebar-nav button {
   padding: 0.95rem 1rem;
   text-align: left;
@@ -158,6 +170,12 @@ button {
   background: rgba(194, 255, 41, 0.09);
   border-color: rgba(214, 255, 122, 0.24);
   color: var(--text);
+}
+
+.admin-tree-children button {
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.8rem;
+  font-size: 0.92rem;
 }
 
 .brand-lockup {
@@ -655,8 +673,16 @@ textarea {
   gap: 1rem;
 }
 
+.admin-form-shell {
+  width: min(100%, 980px);
+}
+
 .admin-stat-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-editor-panel {
+  max-width: 980px;
 }
 
 .admin-panel {
@@ -1017,6 +1043,42 @@ textarea {
   gap: 0.9rem;
 }
 
+.admin-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.timeline-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: start;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(194, 255, 41, 0.012);
+}
+
+.timeline-item p,
+.timeline-item strong,
+.timeline-item span {
+  margin: 0;
+}
+
+.timeline-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.3rem;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 6px rgba(194, 255, 41, 0.08);
+}
+
 .stack-option,
 .stack-selection-chip {
   display: inline-flex;
@@ -1161,6 +1223,11 @@ textarea {
   .card-grid,
   .admin-layout,
   .admin-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-quick-grid,
+  .timeline-item {
     grid-template-columns: 1fr;
   }
 }
