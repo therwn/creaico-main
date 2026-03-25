@@ -407,28 +407,48 @@ function useSupabaseApps() {
 function Sidebar({ onNavigate, themeMode, onThemeChange }) {
   return (
     <aside className="sidebar">
-      <button className="brand-lockup" onClick={() => onNavigate('/')}>
-        <img src="/creailogo.svg" alt="CREAI" />
-        <span>
-          <strong>CREAI</strong>
-          <small>app.creai.co</small>
-        </span>
-      </button>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
+          <img src="/creailogo.svg" alt="CREAI" />
+          <span>
+            <strong>CREAI</strong>
+            <small>app.creai.co</small>
+          </span>
+        </button>
+        <Divider />
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Badge color="lime">{brandContent.eyebrow}</Badge>
+            <Title>{brandContent.title}</Title>
+            <Text>{brandContent.subtitle}</Text>
+          </div>
+          <div className="grid gap-3">
+            <Button variant="secondary" onClick={() => onNavigate('/directory')}>
+              Browse directory
+            </Button>
+            <Button variant="light" onClick={() => onNavigate('/')}>
+              CREAI landing
+            </Button>
+          </div>
+        </div>
+      </Card>
 
-      <div className="sidebar-block">
-        <p className="sidebar-label">{brandContent.eyebrow}</p>
-        <h1>{brandContent.title}</h1>
-        <p>{brandContent.subtitle}</p>
-      </div>
-
-      <div className="sidebar-footer">
-        <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
-        {brandContent.socialLinks.map((item) => (
-          <a key={item.label} href={item.url} target="_blank" rel="noreferrer" aria-label={item.label}>
-            <span className="social-icon">{socialIcons[item.label]}</span>
-          </a>
-        ))}
-      </div>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <div className="grid gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <Text>Theme</Text>
+            <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
+          </div>
+          <Divider />
+          <div className="flex flex-wrap gap-3">
+            {brandContent.socialLinks.map((item) => (
+              <a key={item.label} href={item.url} target="_blank" rel="noreferrer" aria-label={item.label} className="icon-link-chip">
+                <span className="social-icon">{socialIcons[item.label]}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </Card>
     </aside>
   )
 }
@@ -442,52 +462,68 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
 
   return (
     <aside className="admin-sidebar">
-      <div className="admin-sidebar-top">
-        <button className="brand-lockup" onClick={() => onNavigate('/directory')}>
-          <img src="/creailogo.svg" alt="CREAI" />
-          <span>
-            <strong>CREAI</strong>
-            <small>admin panel</small>
-          </span>
-        </button>
-        <div className="admin-sidebar-search">
-          <span>Quick search...</span>
-          <small>⌘K</small>
-        </div>
-        <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
-      </div>
-
-      <div className="admin-sidebar-nav">
-        {adminTree.map((section) => (
-          <div key={section.label} className="admin-tree-group">
-            <button
-              type="button"
-              className={activeSection === section.label ? 'is-active' : ''}
-              onClick={() => onSectionChange(section.label)}
-            >
-              {(() => {
-                const Icon = sectionIcons[section.label]
-                return Icon ? <Icon size={17} stroke={1.8} /> : null
-              })()}
-              {section.label}
-            </button>
-
-            {section.children.length && activeSection === section.label ? (
-              <div className="admin-tree-children">
-                {section.children.map((child) => (
-                  <button
-                    key={child.id}
-                    type="button"
-                    className={activeDashboardBlock === child.id ? 'is-active' : ''}
-                    onClick={() => onDashboardBlockChange(child.id)}
-                  >
-                    {child.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <div className="grid gap-5">
+          <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
+            <img src="/creailogo.svg" alt="CREAI" />
+            <span>
+              <strong>CREAI</strong>
+              <small>admin workspace</small>
+            </span>
+          </button>
+          <div className="flex items-center justify-between gap-3">
+            <Badge color="lime">Tremor Admin</Badge>
+            <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
           </div>
-        ))}
+          <Divider />
+          <div className="grid gap-3">
+            {adminTree.map((section) => (
+              <div key={section.label} className="grid gap-2">
+                <Button
+                  type="button"
+                  variant={activeSection === section.label ? 'primary' : 'light'}
+                  className="justify-start"
+                  onClick={() => onSectionChange(section.label)}
+                >
+                  {(() => {
+                    const Icon = sectionIcons[section.label]
+                    return Icon ? <Icon size={16} stroke={1.8} /> : null
+                  })()}
+                  <span>{section.label}</span>
+                </Button>
+
+                {section.children.length && activeSection === section.label ? (
+                  <div className="grid gap-2 pl-3">
+                    {section.children.map((child) => (
+                      <Button
+                        key={child.id}
+                        type="button"
+                        variant={activeDashboardBlock === child.id ? 'secondary' : 'light'}
+                        className="justify-start"
+                        onClick={() => onDashboardBlockChange(child.id)}
+                      >
+                        {child.label}
+                      </Button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <Divider />
+          <Button variant="light" onClick={() => onNavigate('/directory')}>
+            Open public directory
+          </Button>
+        </div>
+      </Card>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <div className="grid gap-2">
+          <Text>Workspace status</Text>
+          <Metric>{activeSection === 'Dashboard' ? 'Live' : 'Editing'}</Metric>
+          <Text>Manage apps, categories, stack metadata, and publishing state from one place.</Text>
+        </div>
+      </Card>
+      <div className="admin-sidebar-nav">
       </div>
     </aside>
   )
@@ -497,11 +533,12 @@ function AppSocialLinks({ links }) {
   if (!links?.length) return null
 
   return (
-    <div className="icon-link-row">
+    <div className="flex flex-wrap gap-2">
       {links.map((item) => (
-        <a key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" className="icon-link-chip" aria-label={item.label}>
+        <Button key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" variant="light" size="xs" icon={undefined} aria-label={item.label}>
           <span className="social-icon">{socialIcons[item.label] || socialIcons.Website}</span>
-        </a>
+          <span>{item.label}</span>
+        </Button>
       ))}
     </div>
   )
@@ -511,14 +548,19 @@ function StoreBadges({ links }) {
   if (!links?.length) return null
 
   return (
-    <div className="store-badge-row">
+    <div className="flex flex-wrap gap-2">
       {links.map((item) => (
-        <a key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" className="store-badge">
-          <span>{item.label}</span>
-        </a>
+        <Button key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" variant="secondary" size="sm">
+          {item.label}
+        </Button>
       ))}
     </div>
   )
+}
+
+function AppStatusBadge({ status }) {
+  const tone = status === 'Live' ? 'emerald' : status === 'Beta' ? 'amber' : status === 'Internal' ? 'blue' : 'gray'
+  return <Badge color={tone}>{status}</Badge>
 }
 
 function AdminStatCard({ label, value, tone = 'lime' }) {
@@ -870,7 +912,7 @@ function LandingView() {
   )
 }
 
-function DirectoryView({ apps, category, onCategoryChange, loading }) {
+function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }) {
   const visibleApps = useMemo(() => {
     return apps.filter((app) => {
       const categoryMatch = category === 'All' || app.category === category
@@ -901,93 +943,89 @@ function DirectoryView({ apps, category, onCategoryChange, loading }) {
 
   return (
     <section className="content-shell">
-      <div className="content-hero">
-        <div>
-          <p className="eyebrow-copy">Directory</p>
-          <h2>Launch-ready apps, prototypes, and internal products.</h2>
-        </div>
-        <div className="hero-metrics">
-          <div>
-            <strong>{apps.filter((app) => app.published).length}</strong>
-            <span>Published apps</span>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+          <div className="grid gap-4">
+            <Badge color="lime">Directory</Badge>
+            <Title>Launch-ready apps, prototypes, and internal products.</Title>
+            <Text>Browse the CREAI catalog with a cleaner Tremor-led shell, faster category filtering, and more structured app surfaces.</Text>
+            <div className="flex flex-wrap gap-2">
+              {appCategories.map((item) => (
+                <Button key={item} variant={category === item ? 'primary' : 'light'} size="xs" onClick={() => onCategoryChange(item)}>
+                  {item}
+                </Button>
+              ))}
+            </div>
           </div>
-          <div>
-            <strong>{apps.filter((app) => app.category === 'AI Workspace' && app.published).length}</strong>
-            <span>AI workspaces</span>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+            <AdminStatCard label="Published apps" value={apps.filter((app) => app.published).length} tone="lime" />
+            <AdminStatCard label="AI workspaces" value={apps.filter((app) => app.category === 'AI Workspace' && app.published).length} tone="emerald" />
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="detail-grid">
-        <section className="detail-panel">
-          <div className="panel-heading">
-            <h3>Category map</h3>
-            <p>Browse the public inventory by launch type and operating context.</p>
-          </div>
-          <div className="category-row">
-            {appCategories.map((item) => (
-              <button
-                key={item}
-                className={category === item ? 'is-active' : ''}
-                onClick={() => onCategoryChange(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <div className="stat-stack">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_360px]">
+        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <AdminSectionHeader eyebrow="Directory" title="Category map" description="Browse the public inventory by launch type and operating context." />
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {categoryStats.map((item) => (
-              <article key={item.name} className="mini-stat">
-                <strong>{item.count}</strong>
-                <span>{item.name}</span>
-              </article>
+              <Card key={item.name} className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+                <Text>{item.name}</Text>
+                <Metric>{item.count}</Metric>
+              </Card>
             ))}
           </div>
-        </section>
+        </Card>
 
-        <section className="detail-panel">
-          <div className="panel-heading">
-            <h3>Recently updated</h3>
-            <p>The latest movements across tools, experiments, and internal systems.</p>
-          </div>
-          <div className="stack-list">
+        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <AdminSectionHeader eyebrow="Directory" title="Recently updated" description="The latest movements across tools, experiments, and internal systems." />
+          <div className="grid gap-3">
             {recentApps.map((app) => (
-              <article key={app.id} className="stack-item compact">
-                <div>
-                  <strong>{app.name}</strong>
-                  <p>{app.category}</p>
+              <div key={app.id} className="flex items-start justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--panel-strong)] p-4">
+                <div className="grid gap-1">
+                  <Text>{app.name}</Text>
+                  <Badge color="gray">{app.category}</Badge>
                 </div>
-                <span>{formatDate(app.updatedAt)}</span>
-              </article>
+                <Text>{formatDate(app.updatedAt)}</Text>
+              </div>
             ))}
           </div>
-        </section>
+        </Card>
       </div>
 
       {loading ? <div className="empty-state">Loading app inventory...</div> : null}
 
-      <div className="card-grid">
+      <div className="grid gap-4 xl:grid-cols-2">
         {visibleApps.map((app) => (
-          <article key={app.id} className="app-card" style={{ '--accent-glow': app.accent }}>
-            <div className="card-topline">
-              <span>{app.category}</span>
-              <span className={`status-badge status-${app.status.toLowerCase()}`}>{app.status}</span>
+          <Card key={app.id} className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}18` }}>
+            <div className="grid gap-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <Badge color="gray">{app.category}</Badge>
+                  <AppStatusBadge status={app.status} />
+                  <Badge color="stone">{app.audience}</Badge>
+                </div>
+                {app.featured ? <Badge color="lime">Featured</Badge> : null}
+              </div>
+              <div className="grid gap-2">
+                <Title>{app.name}</Title>
+                <Text>{app.summary}</Text>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {app.stacks?.slice(0, 4).map((stack) => (
+                  <Badge key={stack} color="gray">
+                    {stack}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <Text>Updated {formatDate(app.updatedAt)}</Text>
+                <Button variant="secondary" onClick={() => onNavigate(`/apps/${app.slug}`)}>
+                  View details
+                </Button>
+              </div>
             </div>
-            <div className="card-title-row">
-              <h3>{app.name}</h3>
-              <span className="app-audience">{app.audience}</span>
-            </div>
-            <p>{app.summary}</p>
-            <div className="stack-row">
-              {app.stacks?.slice(0, 3).map((stack) => (
-                <span key={stack} className="stack-chip">{stack}</span>
-              ))}
-            </div>
-            <div className="card-footer">
-              <span>{formatDate(app.updatedAt)}</span>
-              <a href={`/apps/${app.slug}`}>View details</a>
-            </div>
-          </article>
+          </Card>
         ))}
       </div>
     </section>
@@ -1007,64 +1045,78 @@ function DetailView({ app, relatedApps, onNavigate }) {
 
   return (
     <section className="content-shell">
-      <button className="back-button" onClick={() => onNavigate('/')}>Back to directory</button>
+      <div className="flex flex-wrap gap-3">
+        <Button variant="light" onClick={() => onNavigate('/directory')}>
+          Back to directory
+        </Button>
+      </div>
 
-      <article className="detail-hero" style={{ '--accent-glow': app.accent }}>
-        <div className="detail-hero-copy">
-          <p className="eyebrow-copy">{app.category}</p>
-          <AppSocialLinks links={app.socialLinks} />
-          <h2>{app.name}</h2>
-          <p>{app.summary}</p>
-          <StoreBadges links={app.storeLinks} />
-          <div className="featured-meta">
-            <span>{app.status}</span>
-            <span>{app.audience}</span>
-            <span>Updated {formatDate(app.updatedAt)}</span>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}22` }}>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_340px]">
+          <div className="grid gap-4">
+            <div className="flex flex-wrap gap-2">
+              <Badge color="gray">{app.category}</Badge>
+              <AppStatusBadge status={app.status} />
+              <Badge color="stone">{app.audience}</Badge>
+            </div>
+            <Title>{app.name}</Title>
+            <Text>{app.summary}</Text>
+            <AppSocialLinks links={app.socialLinks} />
+            <StoreBadges links={app.storeLinks} />
+          </div>
+          <div className="grid gap-4">
+            <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+              <Text>Last updated</Text>
+              <Metric>{formatDate(app.updatedAt)}</Metric>
+            </Card>
+            <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+              <Text>Published stack items</Text>
+              <Metric>{app.stacks?.length || 0}</Metric>
+            </Card>
           </div>
         </div>
-      </article>
+      </Card>
 
-      <section className="detail-panel">
-        <div className="panel-heading">
-          <h3>Stack</h3>
-          <p>The tools and systems behind this app.</p>
-        </div>
-        <div className="stack-row">
-          {app.stacks?.length ? app.stacks.map((stack) => <span key={stack} className="stack-chip">{stack}</span>) : <span className="helper-copy">No stack information yet.</span>}
-        </div>
-        <div className="panel-heading">
-          <h3>Frameworks</h3>
-          <p>Primary frameworks used across the product build.</p>
-        </div>
-        <div className="stack-row">
-          {app.frameworks?.length ? app.frameworks.map((framework) => <span key={framework} className="stack-chip">{framework}</span>) : <span className="helper-copy">No frameworks listed yet.</span>}
-        </div>
-      </section>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <AdminSectionHeader eyebrow="App Detail" title="Stack" description="The tools and systems behind this app." />
+          <div className="flex flex-wrap gap-2">
+            {app.stacks?.length ? app.stacks.map((stack) => <Badge key={stack} color="gray">{stack}</Badge>) : <Text>No stack information yet.</Text>}
+          </div>
+        </Card>
+        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <AdminSectionHeader eyebrow="App Detail" title="Frameworks" description="Primary frameworks used across the product build." />
+          <div className="flex flex-wrap gap-2">
+            {app.frameworks?.length ? app.frameworks.map((framework) => <Badge key={framework} color="gray">{framework}</Badge>) : <Text>No frameworks listed yet.</Text>}
+          </div>
+        </Card>
+      </div>
 
-      <section className="detail-panel">
-        <div className="panel-heading">
-          <h3>More from CREAI</h3>
-          <p>Related releases and systems from the directory.</p>
-        </div>
-        <div className="card-grid compact-grid">
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <AdminSectionHeader eyebrow="App Detail" title="More from CREAI" description="Related releases and systems from the directory." />
+        <div className="grid gap-4 xl:grid-cols-2">
           {relatedApps.map((item) => (
-            <article key={item.id} className="app-card" style={{ '--accent-glow': item.accent }}>
-              <div className="card-topline">
-                <span>{item.category}</span>
-                <span className={`status-badge status-${item.status.toLowerCase()}`}>{item.status}</span>
+            <Card key={item.id} className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+              <div className="grid gap-4">
+                <div className="flex flex-wrap gap-2">
+                  <Badge color="gray">{item.category}</Badge>
+                  <AppStatusBadge status={item.status} />
+                </div>
+                <div className="grid gap-2">
+                  <Title>{item.name}</Title>
+                  <Text>{item.summary}</Text>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <Text>{formatDate(item.updatedAt)}</Text>
+                  <Button variant="secondary" onClick={() => onNavigate(`/apps/${item.slug}`)}>
+                    View details
+                  </Button>
+                </div>
               </div>
-              <div className="card-title-row">
-                <h3>{item.name}</h3>
-              </div>
-              <p>{item.summary}</p>
-              <div className="card-footer">
-                <span>{formatDate(item.updatedAt)}</span>
-                <a href={`/apps/${item.slug}`}>View details</a>
-              </div>
-            </article>
+            </Card>
           ))}
         </div>
-      </section>
+      </Card>
     </section>
   )
 }
@@ -1072,20 +1124,19 @@ function DetailView({ app, relatedApps, onNavigate }) {
 function SetupPanel() {
   return (
     <section className="content-shell">
-      <div className="content-hero">
-        <div>
-          <p className="eyebrow-copy">Supabase Setup</p>
-          <h2>Connect the directory to a real backend.</h2>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <AdminSectionHeader eyebrow="Supabase Setup" title="Connect the directory to a real backend." description="Add these variables in Cloudflare Pages and your local .env.local file." />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+            <Text>NEXT_PUBLIC_SUPABASE_URL</Text>
+          </Card>
+          <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+            <Text>NEXT_PUBLIC_SUPABASE_ANON_KEY</Text>
+          </Card>
         </div>
-      </div>
-
-      <div className="admin-panel setup-panel">
-        <h3>Required environment variables</h3>
-        <p>Add these variables in Cloudflare Pages and your local `.env.local` file:</p>
-        <code>NEXT_PUBLIC_SUPABASE_URL</code>
-        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
-        <p>The SQL starter schema is included in `supabase/schema.sql`.</p>
-      </div>
+        <Divider />
+        <Text>The SQL starter schema is included in `supabase/schema.sql`.</Text>
+      </Card>
     </section>
   )
 }
@@ -1372,22 +1423,35 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
 
   return (
     <section className="content-shell">
-      <div className="content-hero">
-        <div>
-          <p className="eyebrow-copy">Admin</p>
-          <h2>
-            {activeSection === 'Dashboard'
-              ? 'Monitor the directory and recent changes.'
-              : activeSection === 'Add a New App'
-                ? 'Create a new app entry with structured metadata.'
-                : 'Update existing apps and their content.'}
-          </h2>
+      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
+          <div className="grid gap-4">
+            <Badge color="lime">Admin</Badge>
+            <Title>
+              {activeSection === 'Dashboard'
+                ? 'Monitor the directory and recent changes.'
+                : activeSection === 'Add a New App'
+                  ? 'Create a new app entry with structured metadata.'
+                  : 'Update existing apps and their content.'}
+            </Title>
+            <Text>Everything in this workspace now sits on a Tremor-first shell so the dashboard and the public directory feel like one product system.</Text>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+            <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+              <Text>Signed in as</Text>
+              <Metric>{staticAdminUsername}</Metric>
+            </Card>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="secondary" onClick={() => onNavigate('/directory')}>
+                Open directory
+              </Button>
+              <Button variant="light" color="red" onClick={signOut}>
+                Sign out
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="hero-actions">
-          <span className="session-chip">{staticAdminUsername}</span>
-          <button className="ghost-button" onClick={signOut}>Sign out</button>
-        </div>
-      </div>
+      </Card>
 
       {loading ? <div className="empty-state">Syncing dashboard...</div> : null}
       {error ? <div className="empty-state">{error}</div> : null}
@@ -1788,6 +1852,7 @@ export default function App({ initialPath = '/', initialHost = '' }) {
             category={category}
             onCategoryChange={setCategory}
             loading={loading}
+            onNavigate={navigate}
           />
         )}
       </section>
