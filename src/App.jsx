@@ -11,7 +11,27 @@ import {
   IconSun,
   IconTable,
 } from '@tabler/icons-react'
-import { Card } from '@tremor/react'
+import {
+  Badge,
+  Button,
+  Card,
+  Divider,
+  Metric,
+  MultiSelect as TremorMultiSelect,
+  MultiSelectItem,
+  Select as TremorSelect,
+  SelectItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+  Text,
+  TextInput,
+  Textarea as TremorTextarea,
+  Title,
+} from '@tremor/react'
 import { appCategories, brandContent, frameworkOptions, seedApps, stackOptions } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import CreaiLogo from './CreaiLogo'
@@ -501,6 +521,251 @@ function StoreBadges({ links }) {
   )
 }
 
+function AdminStatCard({ label, value, tone = 'lime' }) {
+  return (
+    <Card decoration="top" decorationColor={tone} className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+      <Text>{label}</Text>
+      <Metric>{value}</Metric>
+    </Card>
+  )
+}
+
+function AdminSectionHeader({ eyebrow, title, description }) {
+  return (
+    <div className="panel-heading">
+      <p className="eyebrow-copy">{eyebrow}</p>
+      <Title>{title}</Title>
+      {description ? <Text>{description}</Text> : null}
+    </div>
+  )
+}
+
+function AdminFormFields({ form, updateField, categories, addCategory, disabled = false }) {
+  const [categoryDraft, setCategoryDraft] = useState('')
+
+  const submitCategory = () => {
+    const nextCategory = categoryDraft.trim()
+    if (!nextCategory) return
+    addCategory(nextCategory)
+    updateField('category', nextCategory)
+    setCategoryDraft('')
+  }
+
+  return (
+    <div className="grid gap-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <Text>App name</Text>
+          <TextInput
+            value={form.name}
+            onChange={(event) => updateField('name', event.target.value)}
+            placeholder="Signal Deck"
+            disabled={disabled}
+            required
+          />
+        </label>
+        <label className="grid gap-2">
+          <Text>Slug</Text>
+          <TextInput
+            value={form.slug}
+            onChange={(event) => updateField('slug', event.target.value)}
+            placeholder="signal-deck"
+            disabled={disabled}
+            required
+          />
+        </label>
+      </div>
+
+      <label className="grid gap-2">
+        <Text>Description</Text>
+        <TremorTextarea
+          value={form.summary}
+          onChange={(event) => updateField('summary', event.target.value)}
+          placeholder="Short explanation for the public detail page."
+          rows={5}
+          disabled={disabled}
+          required
+        />
+      </label>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <Text>Stacks</Text>
+          <TremorMultiSelect
+            value={form.stacks}
+            onValueChange={(value) => updateField('stacks', value)}
+            placeholder="Select stacks"
+            disabled={disabled}
+          >
+            {stackOptions.map((item) => (
+              <MultiSelectItem key={item.id} value={item.label}>
+                <span className="flex items-center gap-2">
+                  <TokenGlyph label={item.label} registry={stackMeta} />
+                  <span>{item.label}</span>
+                </span>
+              </MultiSelectItem>
+            ))}
+          </TremorMultiSelect>
+        </label>
+
+        <label className="grid gap-2">
+          <Text>Frameworks</Text>
+          <TremorMultiSelect
+            value={form.frameworks}
+            onValueChange={(value) => updateField('frameworks', value)}
+            placeholder="Select frameworks"
+            disabled={disabled}
+          >
+            {frameworkOptions.map((item) => (
+              <MultiSelectItem key={item.id} value={item.label}>
+                <span className="flex items-center gap-2">
+                  <TokenGlyph label={item.label} registry={frameworkMeta} />
+                  <span>{item.label}</span>
+                </span>
+              </MultiSelectItem>
+            ))}
+          </TremorMultiSelect>
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-2">
+          <Text>Category</Text>
+          <TremorSelect
+            value={form.category}
+            onValueChange={(value) => updateField('category', value)}
+            placeholder="Select a category"
+            disabled={disabled}
+          >
+            {categories.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </TremorSelect>
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <TextInput
+              value={categoryDraft}
+              onChange={(event) => setCategoryDraft(event.target.value)}
+              placeholder="Add a new category"
+              disabled={disabled}
+            />
+            <Button type="button" variant="secondary" onClick={submitCategory} disabled={disabled || !categoryDraft.trim()}>
+              Add category
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2">
+            <Text>Status</Text>
+            <TremorSelect
+              value={form.status}
+              onValueChange={(value) => updateField('status', value)}
+              placeholder="Select status"
+              disabled={disabled}
+            >
+              {['Live', 'Beta', 'Internal', 'Concept'].map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </TremorSelect>
+          </label>
+          <label className="grid gap-2">
+            <Text>Audience</Text>
+            <TremorSelect
+              value={form.audience}
+              onValueChange={(value) => updateField('audience', value)}
+              placeholder="Select audience"
+              disabled={disabled}
+            >
+              {['Public', 'Client-facing', 'Internal', 'Studio'].map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </TremorSelect>
+          </label>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px]">
+        <label className="grid gap-2">
+          <Text>App URL</Text>
+          <TextInput
+            value={form.url}
+            onChange={(event) => updateField('url', event.target.value)}
+            placeholder="https://app.creai.co/signal-deck"
+            disabled={disabled}
+          />
+        </label>
+        <label className="grid gap-2">
+          <Text>Accent color</Text>
+          <TextInput value={form.accent} onChange={(event) => updateField('accent', event.target.value)} disabled={disabled} />
+        </label>
+        <label className="grid gap-2">
+          <Text>Preview</Text>
+          <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} disabled={disabled} />
+        </label>
+      </div>
+
+      <Divider />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <AdminSectionHeader eyebrow="Social" title="Social links" description="Only filled links appear on the public detail page." />
+          <div className="social-column">
+            <label className="grid gap-2">
+              <Text>Website</Text>
+              <TextInput value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>X</Text>
+              <TextInput value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>Instagram</Text>
+              <TextInput value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>GitHub</Text>
+              <TextInput value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." disabled={disabled} />
+            </label>
+          </div>
+        </Card>
+
+        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <AdminSectionHeader eyebrow="Badges" title="Store badges" description="Show store badges only when URLs are available." />
+          <div className="social-column">
+            <label className="grid gap-2">
+              <Text>Web App</Text>
+              <TextInput value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>App Store</Text>
+              <TextInput value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>Google Play</Text>
+              <TextInput value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." disabled={disabled} />
+            </label>
+          </div>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button type="button" className={`ghost-button ${form.featured ? 'toggle-active' : ''}`} onClick={() => updateField('featured', !form.featured)} disabled={disabled}>
+          {form.featured ? 'Featured enabled' : 'Mark as featured'}
+        </button>
+        <button type="button" className={`ghost-button ${form.published ? 'toggle-active' : ''}`} onClick={() => updateField('published', !form.published)} disabled={disabled}>
+          {form.published ? 'Published' : 'Keep as draft'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function LandingView() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -880,16 +1145,16 @@ function AdminSignIn({ onSignedIn }) {
       </div>
       <div className="admin-auth-orbit admin-auth-orbit-one" aria-hidden="true" />
       <div className="admin-auth-orbit admin-auth-orbit-two" aria-hidden="true" />
-      <section className="admin-auth-card">
-        <div className="panel-heading admin-auth-heading">
-          <p className="eyebrow-copy">Admin Access</p>
-          <h3>Sign in to manage the app directory.</h3>
-          <p>Use the static credentials configured for the CREAI dashboard.</p>
-        </div>
+      <Card className="admin-auth-card border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+        <AdminSectionHeader
+          eyebrow="Admin Access"
+          title="Sign in to manage the app directory."
+          description="Use the static credentials configured for the CREAI dashboard."
+        />
         <form className="auth-form admin-auth-form" onSubmit={signIn}>
-          <label>
-            <span>Username</span>
-            <input
+          <label className="grid gap-2">
+            <Text>Username</Text>
+            <TextInput
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder="Username"
@@ -899,9 +1164,9 @@ function AdminSignIn({ onSignedIn }) {
               required
             />
           </label>
-          <label>
-            <span>Password</span>
-            <input
+          <label className="grid gap-2">
+            <Text>Password</Text>
+            <TextInput
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -910,10 +1175,12 @@ function AdminSignIn({ onSignedIn }) {
               required
             />
           </label>
-          <button type="submit" className="primary-button">Sign in</button>
+          <Button type="submit" size="lg" className="admin-primary-button justify-center">
+            Sign in
+          </Button>
         </form>
-        {message ? <p className="helper-copy">{message}</p> : null}
-      </section>
+        {message ? <Text className="helper-copy">{message}</Text> : null}
+      </Card>
     </main>
   )
 }
@@ -1093,6 +1360,13 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
     return <AdminSignIn onSignedIn={() => setFeedback('')} />
   }
 
+  const totals = {
+    total: apps.length,
+    published: apps.filter((app) => app.published).length,
+    featured: apps.filter((app) => app.featured).length,
+    categories: categories.length,
+  }
+
   return (
     <section className="content-shell">
       <div className="content-hero">
@@ -1118,80 +1392,79 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
       {activeSection === 'Dashboard' ? (
         <div className="admin-dashboard-grid">
           {showDashboardBlock('dashboard-overview') ? <section id="dashboard-overview" className="detail-panel">
-            <div className="panel-heading">
-              <h3>Overview</h3>
-              <p>High-level view of your current app catalog.</p>
-            </div>
+            <AdminSectionHeader eyebrow="Dashboard" title="Overview" description="High-level view of your current app catalog." />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <Card decoration="top" decorationColor="lime" className="bg-white/80 dark:bg-gray-950/80">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total apps</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{apps.length}</p>
-              </Card>
-              <Card decoration="top" decorationColor="emerald" className="bg-white/80 dark:bg-gray-950/80">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Published</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{apps.filter((app) => app.published).length}</p>
-              </Card>
-              <Card decoration="top" decorationColor="amber" className="bg-white/80 dark:bg-gray-950/80">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Featured</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{apps.filter((app) => app.featured).length}</p>
-              </Card>
-              <Card decoration="top" decorationColor="cyan" className="bg-white/80 dark:bg-gray-950/80">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Categories</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{categories.length}</p>
-              </Card>
+              <AdminStatCard label="Total apps" value={totals.total} tone="lime" />
+              <AdminStatCard label="Published" value={totals.published} tone="emerald" />
+              <AdminStatCard label="Featured" value={totals.featured} tone="amber" />
+              <AdminStatCard label="Categories" value={totals.categories} tone="cyan" />
             </div>
-            <div className="stat-stack admin-stat-grid">
-              <article className="mini-stat">
-                <strong>{apps.length}</strong>
-                <span>Total apps</span>
-              </article>
-              <article className="mini-stat">
-                <strong>{apps.filter((app) => app.published).length}</strong>
-                <span>Published</span>
-              </article>
-              <article className="mini-stat">
-                <strong>{apps.filter((app) => app.featured).length}</strong>
-                <span>Featured</span>
-              </article>
-              <article className="mini-stat">
-                <strong>{categories.length}</strong>
-                <span>Categories</span>
-              </article>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+                <Title>Publishing snapshot</Title>
+                <div className="mt-4 grid gap-3">
+                  <div className="mini-stat">
+                    <strong>{apps.filter((app) => !app.published).length}</strong>
+                    <span>Draft items</span>
+                  </div>
+                  <div className="mini-stat">
+                    <strong>{apps.filter((app) => app.status === 'Live').length}</strong>
+                    <span>Live status</span>
+                  </div>
+                </div>
+              </Card>
+              <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+                <Title>Coverage snapshot</Title>
+                <div className="mt-4 grid gap-3">
+                  <div className="mini-stat">
+                    <strong>{apps.filter((app) => app.socialLinks?.length).length}</strong>
+                    <span>Apps with social links</span>
+                  </div>
+                  <div className="mini-stat">
+                    <strong>{apps.filter((app) => app.storeLinks?.length).length}</strong>
+                    <span>Apps with store badges</span>
+                  </div>
+                </div>
+              </Card>
             </div>
           </section> : null}
 
           {showDashboardBlock('dashboard-recent') ? <section id="dashboard-recent" className="detail-panel">
-              <div className="panel-heading">
-                <h3>Recent updates</h3>
-                <p>Latest added and recently updated app records.</p>
-              </div>
-              <div className="stack-list">
-                {recentAddedApps.map((app) => (
-                  <article key={`added-${app.id}`} className="stack-item compact">
-                    <div>
-                      <strong>{app.name}</strong>
-                      <p>Added to directory / {app.category}</p>
-                    </div>
-                    <span>{formatDate(app.updatedAt)}</span>
-                  </article>
-                ))}
-                {recentUpdatedApps.map((app) => (
-                  <article key={`updated-${app.id}`} className="stack-item compact">
-                    <div>
-                      <strong>{app.name}</strong>
-                      <p>Last updated / {app.category}</p>
-                    </div>
-                    <span>{formatDate(app.updatedAt)}</span>
-                  </article>
-                ))}
+              <AdminSectionHeader eyebrow="Dashboard" title="Recent updates" description="Latest added and recently updated app records." />
+              <div className="grid gap-4 xl:grid-cols-2">
+                <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+                  <Title>Recently added</Title>
+                  <div className="mt-4 stack-list">
+                    {recentAddedApps.map((app) => (
+                      <article key={`added-${app.id}`} className="stack-item compact">
+                        <div>
+                          <strong>{app.name}</strong>
+                          <p>Added to directory / {app.category}</p>
+                        </div>
+                        <span>{formatDate(app.updatedAt)}</span>
+                      </article>
+                    ))}
+                  </div>
+                </Card>
+                <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+                  <Title>Recently updated</Title>
+                  <div className="mt-4 stack-list">
+                    {recentUpdatedApps.map((app) => (
+                      <article key={`updated-${app.id}`} className="stack-item compact">
+                        <div>
+                          <strong>{app.name}</strong>
+                          <p>Last updated / {app.category}</p>
+                        </div>
+                        <span>{formatDate(app.updatedAt)}</span>
+                      </article>
+                    ))}
+                  </div>
+                </Card>
               </div>
             </section> : null}
 
           {showDashboardBlock('dashboard-categories') ? <section id="dashboard-categories" className="detail-panel">
-              <div className="panel-heading">
-                <h3>Category distribution</h3>
-                <p>How apps are distributed across your current taxonomy.</p>
-              </div>
+              <AdminSectionHeader eyebrow="Dashboard" title="Category distribution" description="How apps are distributed across your current taxonomy." />
               <div className="stack-list">
                 {categoryBreakdown.map((item) => (
                   <article key={item.name} className="stack-item compact">
@@ -1206,22 +1479,22 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
             </section> : null}
 
           {showDashboardBlock('dashboard-actions') ? <section id="dashboard-actions" className="detail-panel">
-              <div className="panel-heading">
-                <h3>Quick actions</h3>
-                <p>Jump straight into common admin flows.</p>
-              </div>
-              <div className="sidebar-quick admin-quick-grid">
-                <button type="button" className="ghost-button" onClick={() => onSectionChange?.('Add a New App')}>Add a new app</button>
-                <button type="button" className="ghost-button" onClick={() => onSectionChange?.('Update Apps')}>Update apps</button>
-                <button type="button" className="ghost-button" onClick={() => onNavigate('/directory')}>Open directory</button>
+              <AdminSectionHeader eyebrow="Dashboard" title="Quick actions" description="Jump straight into common admin flows." />
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" onClick={() => onSectionChange?.('Add a New App')}>
+                  Add a new app
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => onSectionChange?.('Update Apps')}>
+                  Update apps
+                </Button>
+                <Button type="button" variant="light" onClick={() => onNavigate('/directory')}>
+                  Open directory
+                </Button>
               </div>
             </section> : null}
 
           {showDashboardBlock('dashboard-activity') ? <section id="dashboard-activity" className="detail-panel">
-              <div className="panel-heading">
-                <h3>Recent admin actions</h3>
-                <p>A quick feed of the latest content movements.</p>
-              </div>
+              <AdminSectionHeader eyebrow="Dashboard" title="Recent admin actions" description="A quick feed of the latest content movements." />
               <div className="stack-list">
                 {activityFeed.slice(0, 5).map((item) => (
                   <article key={item.id} className="stack-item compact">
@@ -1236,10 +1509,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
             </section> : null}
 
           {showDashboardBlock('dashboard-timeline') ? <section id="dashboard-timeline" className="detail-panel">
-            <div className="panel-heading">
-              <h3>Activity timeline</h3>
-              <p>Chronological feed of recent admin-side content events.</p>
-            </div>
+            <AdminSectionHeader eyebrow="Dashboard" title="Activity timeline" description="Chronological feed of recent admin-side content events." />
             <div className="timeline-list">
               {activityFeed.map((item) => (
                 <article key={`timeline-${item.id}`} className="timeline-item">
@@ -1258,219 +1528,92 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
 
       {activeSection === 'Add a New App' ? (
         <div className="admin-form-shell">
-        <form className="admin-panel form-panel admin-editor-panel" onSubmit={submitForm}>
-          <div className="panel-heading">
-            <h3>Add new app</h3>
-            <p>Create a new directory entry for app.creai.co.</p>
-          </div>
-
-          <label>
-            <span>App name</span>
-            <input value={form.name} onChange={(event) => updateField('name', event.target.value)} required />
-          </label>
-          <label>
-            <span>Slug</span>
-            <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} required />
-          </label>
-          <label>
-            <span>Description</span>
-            <AutoGrowTextarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
-          </label>
-          <label>
-            <span>Stacks</span>
-            <MultiSelect value={form.stacks} onChange={(value) => updateField('stacks', value)} options={stackOptions} registry={stackMeta} emptyLabel="Select stacks" countLabel="stacks selected" />
-          </label>
-          <label>
-            <span>Frameworks</span>
-            <MultiSelect value={form.frameworks} onChange={(value) => updateField('frameworks', value)} options={frameworkOptions} registry={frameworkMeta} emptyLabel="Select frameworks" countLabel="frameworks selected" />
-          </label>
-          <div className="form-split">
-            <label>
-              <span>Category</span>
-              <CategorySelect value={form.category} onChange={(value) => updateField('category', value)} categories={categories} onAddCategory={addCategory} />
-            </label>
-            <label>
-              <span>Status</span>
-              <SingleSelect value={form.status} onChange={(value) => updateField('status', value)} options={['Live', 'Beta', 'Internal', 'Concept']} />
-            </label>
-          </div>
-          <div className="form-split">
-            <label>
-              <span>Audience</span>
-              <SingleSelect value={form.audience} onChange={(value) => updateField('audience', value)} options={['Public', 'Client-facing', 'Internal', 'Studio']} />
-            </label>
-            <label>
-              <span>Accent color</span>
-              <div className="color-field">
-                <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} />
-                <strong>{form.accent}</strong>
+          <Card className="admin-panel form-panel admin-editor-panel border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+            <form className="grid gap-6" onSubmit={submitForm}>
+              <AdminSectionHeader eyebrow="Admin" title="Add new app" description="Create a new directory entry for app.creai.co." />
+              <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} />
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" size="lg" className="admin-primary-button">
+                  Create app entry
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => setForm(initialForm)}>
+                  Reset
+                </Button>
               </div>
-            </label>
-          </div>
-          <label>
-            <span>URL</span>
-            <input value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://app.creai.co/brief-forge" />
-          </label>
-          <div className="social-column">
-            <label>
-              <span>Website</span>
-              <input value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." />
-            </label>
-            <label>
-              <span>X</span>
-              <input value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." />
-            </label>
-            <label>
-              <span>Instagram</span>
-              <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." />
-            </label>
-            <label>
-              <span>GitHub</span>
-              <input value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." />
-            </label>
-          </div>
-          <div className="social-column">
-            <label>
-              <span>Web App badge</span>
-              <input value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." />
-            </label>
-            <label>
-              <span>App Store badge</span>
-              <input value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." />
-            </label>
-            <label>
-              <span>Google Play badge</span>
-              <input value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." />
-            </label>
-          </div>
-          <div className="toggle-row">
-            <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} /> Featured</label>
-            <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} /> Published</label>
-          </div>
-          <button type="submit" className="primary-button admin-primary-button">Create app entry</button>
-          {feedback ? <p className="helper-copy">{feedback}</p> : null}
-        </form>
+              {feedback ? <Text className="helper-copy">{feedback}</Text> : null}
+            </form>
+          </Card>
         </div>
       ) : null}
 
       {activeSection === 'Update Apps' ? (
         <div className="admin-layout">
-          <div className="admin-panel list-panel">
-            <div className="panel-heading">
-              <h3>Select app</h3>
-              <p>Choose an existing app to edit or remove.</p>
-            </div>
-            <div className="table-shell">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>App</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Audience</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {apps.map((app) => (
-                    <tr key={app.id} className={selectedAppId === app.id ? 'is-selected' : ''}>
-                      <td>{app.name}</td>
-                      <td>{app.category}</td>
-                      <td>{app.status}</td>
-                      <td>{app.audience}</td>
-                      <td className="table-actions">
-                        <button
+          <Card className="admin-panel list-panel border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+            <AdminSectionHeader eyebrow="Admin" title="Update apps" description="Choose an existing app to edit or remove." />
+            <Table className="table-shell">
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>App</TableHeaderCell>
+                  <TableHeaderCell>Category</TableHeaderCell>
+                  <TableHeaderCell>Status</TableHeaderCell>
+                  <TableHeaderCell>Audience</TableHeaderCell>
+                  <TableHeaderCell>Actions</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {apps.map((app) => (
+                  <TableRow key={app.id} className={selectedAppId === app.id ? 'is-selected' : ''}>
+                    <TableCell>{app.name}</TableCell>
+                    <TableCell>{app.category}</TableCell>
+                    <TableCell>
+                      <Badge color={app.status === 'Live' ? 'emerald' : app.status === 'Beta' ? 'amber' : 'gray'}>
+                        {app.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{app.audience}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
                           type="button"
+                          variant="secondary"
+                          size="xs"
                           onClick={() => {
                             setSelectedAppId(app.id)
                             fillFormFromApp(app)
                           }}
                         >
                           Update
-                        </button>
-                        <button type="button" onClick={() => deleteApp(app.id)}>Remove</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                        </Button>
+                        <Button type="button" variant="light" color="red" size="xs" onClick={() => deleteApp(app.id)}>
+                          Remove
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
 
-          <form className="admin-panel form-panel admin-editor-panel" onSubmit={updateApp}>
-            <div className="panel-heading">
-              <h3>Update app</h3>
-              <p>{selectedApp ? `Editing ${selectedApp.name}` : 'Select an app from the list to begin editing.'}</p>
-            </div>
-
-            <label>
-              <span>App name</span>
-              <input value={form.name} onChange={(event) => updateField('name', event.target.value)} disabled={!selectedApp} required />
-            </label>
-            <label>
-              <span>Slug</span>
-              <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} disabled={!selectedApp} required />
-            </label>
-            <label>
-              <span>Description</span>
-              <AutoGrowTextarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} disabled={!selectedApp} required />
-            </label>
-            <label>
-              <span>Stacks</span>
-              <MultiSelect value={form.stacks} onChange={(value) => updateField('stacks', value)} options={stackOptions} registry={stackMeta} emptyLabel="Select stacks" countLabel="stacks selected" />
-            </label>
-            <label>
-              <span>Frameworks</span>
-              <MultiSelect value={form.frameworks} onChange={(value) => updateField('frameworks', value)} options={frameworkOptions} registry={frameworkMeta} emptyLabel="Select frameworks" countLabel="frameworks selected" />
-            </label>
-            <div className="form-split">
-              <label>
-                <span>Category</span>
-                <CategorySelect value={form.category} onChange={(value) => updateField('category', value)} categories={categories} onAddCategory={addCategory} />
-              </label>
-              <label>
-                <span>Status</span>
-                <SingleSelect value={form.status} onChange={(value) => updateField('status', value)} options={['Live', 'Beta', 'Internal', 'Concept']} />
-              </label>
-            </div>
-            <div className="form-split">
-              <label>
-                <span>Audience</span>
-                <SingleSelect value={form.audience} onChange={(value) => updateField('audience', value)} options={['Public', 'Client-facing', 'Internal', 'Studio']} />
-              </label>
-              <label>
-                <span>Accent color</span>
-                <div className="color-field">
-                  <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} />
-                  <strong>{form.accent}</strong>
-                </div>
-              </label>
-            </div>
-            <div className="social-column">
-              <label>
-                <span>Website</span>
-                <input value={form.website} onChange={(event) => updateField('website', event.target.value)} disabled={!selectedApp} />
-              </label>
-              <label>
-                <span>X</span>
-                <input value={form.x} onChange={(event) => updateField('x', event.target.value)} disabled={!selectedApp} />
-              </label>
-              <label>
-                <span>Instagram</span>
-                <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} disabled={!selectedApp} />
-              </label>
-              <label>
-                <span>GitHub</span>
-                <input value={form.github} onChange={(event) => updateField('github', event.target.value)} disabled={!selectedApp} />
-              </label>
-            </div>
-            <div className="toggle-row">
-              <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} disabled={!selectedApp} /> Featured</label>
-              <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} disabled={!selectedApp} /> Published</label>
-            </div>
-            <button type="submit" className="primary-button admin-primary-button" disabled={!selectedApp}>Save changes</button>
-            {feedback ? <p className="helper-copy">{feedback}</p> : null}
-          </form>
+          <Card className="admin-panel form-panel admin-editor-panel border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+            <form className="grid gap-6" onSubmit={updateApp}>
+              <AdminSectionHeader
+                eyebrow="Admin"
+                title="Update selected app"
+                description={selectedApp ? `Editing ${selectedApp.name}` : 'Select an app from the table to begin editing.'}
+              />
+              <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} disabled={!selectedApp} />
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" size="lg" className="admin-primary-button" disabled={!selectedApp}>
+                  Save changes
+                </Button>
+                <Button type="button" variant="secondary" disabled={!selectedApp} onClick={() => selectedApp && fillFormFromApp(selectedApp)}>
+                  Reset fields
+                </Button>
+              </div>
+              {feedback ? <Text className="helper-copy">{feedback}</Text> : null}
+            </form>
+          </Card>
         </div>
       ) : null}
     </section>
