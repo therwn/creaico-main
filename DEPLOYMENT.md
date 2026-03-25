@@ -36,12 +36,22 @@ alter table public.apps
 In Supabase Auth:
 
 - Enable Email auth
-- Use magic link sign-in
+- Enable email/password sign-in
 - Set the site URL to `https://app.creai.co`
 - Add redirect URLs:
   - `https://app.creai.co/admin`
   - `http://localhost:5174/admin`
   - `http://localhost:5173/admin`
+- Create a user in Supabase Auth:
+  - Email: `root-admin@creai.co`
+  - Password: `7410Abc+++`
+
+The admin UI accepts:
+
+- Username: `root-admin`
+- Password: `7410Abc+++`
+
+Internally, the username maps to `root-admin@creai.co` and signs in through Supabase Auth.
 
 ## What The Admin Needs
 

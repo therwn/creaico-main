@@ -25,6 +25,9 @@ const initialForm = {
   published: true,
 }
 
+const staticAdminUsername = 'root-admin'
+const staticAdminEmail = 'root-admin@creai.co'
+
 const socialIcons = {
   Instagram: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -539,19 +542,25 @@ function SetupPanel() {
 }
 
 function AdminSignIn({ onSignedIn }) {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState(staticAdminUsername)
+  const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
 
   const signIn = async (event) => {
     event.preventDefault()
     if (!supabase) return
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/admin` },
+    if (username !== staticAdminUsername) {
+      setMessage('Invalid username.')
+      return
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: staticAdminEmail,
+      password,
     })
 
-    setMessage(error ? error.message : 'Magic link sent. Check your inbox to continue.')
+    setMessage(error ? error.message : 'Signed in successfully.')
     if (!error) onSignedIn()
   }
 
@@ -560,14 +569,18 @@ function AdminSignIn({ onSignedIn }) {
       <div className="admin-panel auth-panel">
         <div className="panel-heading">
           <h3>Admin sign in</h3>
-          <p>Use Supabase Auth to manage apps from the dashboard.</p>
+          <p>Use the static admin credentials to manage apps from the dashboard.</p>
         </div>
         <form className="auth-form" onSubmit={signIn}>
           <label>
-            <span>Email</span>
-            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="team@creai.co" required />
+            <span>Username</span>
+            <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder={staticAdminUsername} autoComplete="username" required />
           </label>
-          <button type="submit" className="primary-button">Send magic link</button>
+          <label>
+            <span>Password</span>
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••" autoComplete="current-password" required />
+          </label>
+          <button type="submit" className="primary-button">Sign in</button>
         </form>
         {message ? <p className="helper-copy">{message}</p> : null}
       </div>
@@ -666,7 +679,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
           <h2>Manage directory inventory with Supabase as the source of truth.</h2>
         </div>
         <div className="hero-actions">
-          <span className="session-chip">{session.user.email}</span>
+          <span className="session-chip">{staticAdminUsername}</span>
           <button className="ghost-button" onClick={signOut}>Sign out</button>
         </div>
       </div>
