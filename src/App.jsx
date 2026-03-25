@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
 import * as Svgl from '@ridemountainpig/svgl-react'
+import {
+  IconChevronDown,
+  IconLayoutDashboard,
+  IconMoon,
+  IconPlus,
+  IconSun,
+  IconTable,
+} from '@tabler/icons-react'
 import { appCategories, brandContent, frameworkOptions, seedApps, stackOptions } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import CreaiLogo from './CreaiLogo'
@@ -44,6 +52,38 @@ const adminTree = [
   { label: 'Add a New App', children: [] },
   { label: 'Update Apps', children: [] },
 ]
+const themeModes = ['system', 'dark', 'light']
+
+function ThemeToggle({ themeMode, onThemeChange }) {
+  return (
+    <div className="theme-toggle" role="group" aria-label="Theme">
+      {themeModes.map((mode) => (
+        <button
+          key={mode}
+          type="button"
+          className={themeMode === mode ? 'is-active' : ''}
+          onClick={() => onThemeChange(mode)}
+          aria-label={mode}
+        >
+          {mode === 'dark' ? <IconMoon size={16} stroke={1.8} /> : mode === 'light' ? <IconSun size={16} stroke={1.8} /> : <span>SYS</span>}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function AutoGrowTextarea(props) {
+  return (
+    <textarea
+      {...props}
+      onInput={(event) => {
+        event.currentTarget.style.height = '0px'
+        event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`
+        props.onInput?.(event)
+      }}
+    />
+  )
+}
 
 const socialIcons = {
   Instagram: (
@@ -114,7 +154,7 @@ function MultiSelect({ value, onChange, options, registry, emptyLabel, countLabe
     <div className={`stack-selector ${isOpen ? 'is-open' : ''}`}>
       <button type="button" className="stack-selector-trigger" onClick={() => setIsOpen((current) => !current)}>
         <span>{value.length ? `${value.length} ${countLabel}` : emptyLabel}</span>
-        <strong>{isOpen ? 'Close' : 'Choose'}</strong>
+        <IconChevronDown className={isOpen ? 'is-open' : ''} size={18} stroke={1.8} />
       </button>
 
       {value.length ? (
@@ -154,7 +194,7 @@ function SingleSelect({ value, onChange, options, placeholder = 'Choose an optio
     <div className={`single-select ${isOpen ? 'is-open' : ''}`}>
       <button type="button" className="single-select-trigger" onClick={() => setIsOpen((current) => !current)}>
         <span>{value || placeholder}</span>
-        <strong>{isOpen ? 'Close' : 'Choose'}</strong>
+        <IconChevronDown className={isOpen ? 'is-open' : ''} size={18} stroke={1.8} />
       </button>
       {isOpen ? (
         <div className="single-select-menu">
@@ -194,7 +234,7 @@ function CategorySelect({ value, onChange, categories, onAddCategory }) {
     <div className={`single-select ${isOpen ? 'is-open' : ''}`}>
       <button type="button" className="single-select-trigger" onClick={() => setIsOpen((current) => !current)}>
         <span>{value || 'Select category'}</span>
-        <strong>{isOpen ? 'Close' : 'Choose'}</strong>
+        <IconChevronDown className={isOpen ? 'is-open' : ''} size={18} stroke={1.8} />
       </button>
       {isOpen ? (
         <div className="single-select-menu">
@@ -341,7 +381,7 @@ function useSupabaseApps() {
   }
 }
 
-function Sidebar({ onNavigate }) {
+function Sidebar({ onNavigate, themeMode, onThemeChange }) {
   return (
     <aside className="sidebar">
       <button className="brand-lockup" onClick={() => onNavigate('/')}>
@@ -359,6 +399,7 @@ function Sidebar({ onNavigate }) {
       </div>
 
       <div className="sidebar-footer">
+        <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
         {brandContent.socialLinks.map((item) => (
           <a key={item.label} href={item.url} target="_blank" rel="noreferrer" aria-label={item.label}>
             <span className="social-icon">{socialIcons[item.label]}</span>
@@ -369,16 +410,29 @@ function Sidebar({ onNavigate }) {
   )
 }
 
-function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, onDashboardBlockChange, onNavigate }) {
+function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, onDashboardBlockChange, onNavigate, themeMode, onThemeChange }) {
+  const sectionIcons = {
+    Dashboard: IconLayoutDashboard,
+    'Add a New App': IconPlus,
+    'Update Apps': IconTable,
+  }
+
   return (
     <aside className="admin-sidebar">
-      <button className="brand-lockup" onClick={() => onNavigate('/directory')}>
-        <img src="/creailogo.svg" alt="CREAI" />
-        <span>
-          <strong>CREAI</strong>
-          <small>admin panel</small>
-        </span>
-      </button>
+      <div className="admin-sidebar-top">
+        <button className="brand-lockup" onClick={() => onNavigate('/directory')}>
+          <img src="/creailogo.svg" alt="CREAI" />
+          <span>
+            <strong>CREAI</strong>
+            <small>admin panel</small>
+          </span>
+        </button>
+        <div className="admin-sidebar-search">
+          <span>Quick search...</span>
+          <small>⌘K</small>
+        </div>
+        <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
+      </div>
 
       <div className="admin-sidebar-nav">
         {adminTree.map((section) => (
@@ -388,6 +442,10 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
               className={activeSection === section.label ? 'is-active' : ''}
               onClick={() => onSectionChange(section.label)}
             >
+              {(() => {
+                const Icon = sectionIcons[section.label]
+                return Icon ? <Icon size={17} stroke={1.8} /> : null
+              })()}
               {section.label}
             </button>
 
@@ -857,7 +915,7 @@ function AdminSignIn({ onSignedIn }) {
   )
 }
 
-function AdminView({ apps, setApps, session, setSession, loading, error, activeSection, onDashboardBlockChange, onNavigate }) {
+function AdminView({ apps, setApps, session, setSession, loading, error, activeSection, activeDashboardBlock, onDashboardBlockChange, onSectionChange, onNavigate }) {
   const [form, setForm] = useState(initialForm)
   const [selectedAppId, setSelectedAppId] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -882,6 +940,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
     detail: `${app.category} / ${app.status}`,
     date: formatDate(app.updatedAt),
   })), [apps])
+  const showDashboardBlock = (blockId) => activeDashboardBlock === blockId
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }))
@@ -1055,7 +1114,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
 
       {activeSection === 'Dashboard' ? (
         <div className="admin-dashboard-grid">
-          <section id="dashboard-overview" className="detail-panel">
+          {showDashboardBlock('dashboard-overview') ? <section id="dashboard-overview" className="detail-panel">
             <div className="panel-heading">
               <h3>Overview</h3>
               <p>High-level view of your current app catalog.</p>
@@ -1078,10 +1137,9 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                 <span>Categories</span>
               </article>
             </div>
-          </section>
+          </section> : null}
 
-          <div className="detail-grid">
-            <section id="dashboard-recent" className="detail-panel">
+          {showDashboardBlock('dashboard-recent') ? <section id="dashboard-recent" className="detail-panel">
               <div className="panel-heading">
                 <h3>Recent updates</h3>
                 <p>Latest added and recently updated app records.</p>
@@ -1106,9 +1164,9 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                   </article>
                 ))}
               </div>
-            </section>
+            </section> : null}
 
-            <section id="dashboard-categories" className="detail-panel">
+          {showDashboardBlock('dashboard-categories') ? <section id="dashboard-categories" className="detail-panel">
               <div className="panel-heading">
                 <h3>Category distribution</h3>
                 <p>How apps are distributed across your current taxonomy.</p>
@@ -1124,23 +1182,21 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                   </article>
                 ))}
               </div>
-            </section>
-          </div>
+            </section> : null}
 
-          <div className="detail-grid">
-            <section id="dashboard-actions" className="detail-panel">
+          {showDashboardBlock('dashboard-actions') ? <section id="dashboard-actions" className="detail-panel">
               <div className="panel-heading">
                 <h3>Quick actions</h3>
                 <p>Jump straight into common admin flows.</p>
               </div>
               <div className="sidebar-quick admin-quick-grid">
+                <button type="button" className="ghost-button" onClick={() => onSectionChange?.('Add a New App')}>Add a new app</button>
+                <button type="button" className="ghost-button" onClick={() => onSectionChange?.('Update Apps')}>Update apps</button>
                 <button type="button" className="ghost-button" onClick={() => onNavigate('/directory')}>Open directory</button>
-                <button type="button" className="ghost-button" onClick={() => onDashboardBlockChange('dashboard-overview')}>Back to overview</button>
-                <button type="button" className="ghost-button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Scroll to top</button>
               </div>
-            </section>
+            </section> : null}
 
-            <section id="dashboard-activity" className="detail-panel">
+          {showDashboardBlock('dashboard-activity') ? <section id="dashboard-activity" className="detail-panel">
               <div className="panel-heading">
                 <h3>Recent admin actions</h3>
                 <p>A quick feed of the latest content movements.</p>
@@ -1156,10 +1212,9 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                   </article>
                 ))}
               </div>
-            </section>
-          </div>
+            </section> : null}
 
-          <section id="dashboard-timeline" className="detail-panel">
+          {showDashboardBlock('dashboard-timeline') ? <section id="dashboard-timeline" className="detail-panel">
             <div className="panel-heading">
               <h3>Activity timeline</h3>
               <p>Chronological feed of recent admin-side content events.</p>
@@ -1176,7 +1231,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                 </article>
               ))}
             </div>
-          </section>
+          </section> : null}
         </div>
       ) : null}
 
@@ -1198,7 +1253,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
           </label>
           <label>
             <span>Description</span>
-            <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
+            <AutoGrowTextarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
           </label>
           <label>
             <span>Stacks</span>
@@ -1284,25 +1339,40 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
               <h3>Select app</h3>
               <p>Choose an existing app to edit or remove.</p>
             </div>
-            <div className="admin-list">
-              {apps.map((app) => (
-                <article key={app.id} className={`admin-item admin-item-card ${selectedAppId === app.id ? 'is-selected' : ''}`}>
-                  <button
-                    type="button"
-                    className="admin-record-button"
-                    onClick={() => {
-                      setSelectedAppId(app.id)
-                      fillFormFromApp(app)
-                    }}
-                  >
-                    <strong>{app.name}</strong>
-                    <p>{app.category} / {app.status} / {app.audience}</p>
-                  </button>
-                  <div className="admin-actions">
-                    <button type="button" onClick={() => deleteApp(app.id)}>Remove</button>
-                  </div>
-                </article>
-              ))}
+            <div className="table-shell">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>App</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Audience</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {apps.map((app) => (
+                    <tr key={app.id} className={selectedAppId === app.id ? 'is-selected' : ''}>
+                      <td>{app.name}</td>
+                      <td>{app.category}</td>
+                      <td>{app.status}</td>
+                      <td>{app.audience}</td>
+                      <td className="table-actions">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAppId(app.id)
+                            fillFormFromApp(app)
+                          }}
+                        >
+                          Update
+                        </button>
+                        <button type="button" onClick={() => deleteApp(app.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -1322,7 +1392,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
             </label>
             <label>
               <span>Description</span>
-              <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} disabled={!selectedApp} required />
+              <AutoGrowTextarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} disabled={!selectedApp} required />
             </label>
             <label>
               <span>Stacks</span>
@@ -1392,6 +1462,7 @@ export default function App() {
   const [category, setCategory] = useState('All')
   const [adminSection, setAdminSection] = useState('Dashboard')
   const [adminDashboardBlock, setAdminDashboardBlock] = useState('dashboard-overview')
+  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('creai-theme') || 'system')
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
   const route = parsePath(path, host)
 
@@ -1432,6 +1503,19 @@ export default function App() {
       document.body.style.overflow = ''
     }
   }, [route.view, session])
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: light)')
+    const applyTheme = () => {
+      const resolved = themeMode === 'system' ? (media.matches ? 'light' : 'dark') : themeMode
+      document.documentElement.dataset.theme = resolved
+      window.localStorage.setItem('creai-theme', themeMode)
+    }
+
+    applyTheme()
+    media.addEventListener('change', applyTheme)
+    return () => media.removeEventListener('change', applyTheme)
+  }, [themeMode])
 
   useEffect(() => {
     if (route.view !== 'admin' || adminSection !== 'Dashboard') return
@@ -1485,6 +1569,8 @@ export default function App() {
           onSectionChange={setAdminSection}
           onDashboardBlockChange={setAdminDashboardBlock}
           onNavigate={navigate}
+          themeMode={themeMode}
+          onThemeChange={setThemeMode}
         />
 
 
@@ -1499,6 +1585,7 @@ export default function App() {
             activeSection={adminSection}
             activeDashboardBlock={adminDashboardBlock}
             onDashboardBlockChange={setAdminDashboardBlock}
+            onSectionChange={setAdminSection}
             onNavigate={navigate}
           />
         </section>
@@ -1513,7 +1600,8 @@ export default function App() {
       <div className="ambient ambient-three" aria-hidden="true" />
       <div className="surface-grid" aria-hidden="true" />
 
-      <Sidebar onNavigate={navigate} />
+      <Sidebar onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
+
 
       <section className="page-frame">
         {route.view === 'detail' ? (

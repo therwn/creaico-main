@@ -12,6 +12,19 @@
   --shadow: 0 24px 90px rgba(0, 0, 0, 0.36);
 }
 
+:root[data-theme='light'] {
+  --bg: #f4f6f3;
+  --bg-soft: #eef2ec;
+  --panel: rgba(255, 255, 255, 0.88);
+  --panel-strong: rgba(255, 255, 255, 0.95);
+  --line: rgba(67, 84, 57, 0.12);
+  --text: #172118;
+  --muted: rgba(23, 33, 24, 0.62);
+  --accent: #98d918;
+  --accent-soft: rgba(152, 217, 24, 0.08);
+  --shadow: 0 24px 70px rgba(28, 37, 29, 0.08);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -140,6 +153,27 @@ button {
   z-index: 2;
 }
 
+.admin-sidebar-top {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-sidebar-search {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(194, 255, 41, 0.01);
+  color: var(--muted);
+}
+
+.admin-sidebar-search small {
+  font-size: 0.8rem;
+}
+
 .admin-sidebar-nav {
   display: grid;
   gap: 0.65rem;
@@ -176,6 +210,38 @@ button {
   padding: 0.7rem 0.85rem;
   border-radius: 0.8rem;
   font-size: 0.92rem;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(194, 255, 41, 0.01);
+}
+
+.theme-toggle button {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.theme-toggle .is-active {
+  background: rgba(194, 255, 41, 0.12);
+  color: var(--text);
+}
+
+.theme-toggle span {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
 }
 
 .brand-lockup {
@@ -286,6 +352,8 @@ label span {
 
 .sidebar-footer {
   margin-top: auto;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .sidebar-footer a,
@@ -514,7 +582,9 @@ input[type='color'] {
 }
 
 textarea {
-  resize: vertical;
+  resize: none;
+  min-height: 7rem;
+  overflow: hidden;
 }
 
 .category-row {
@@ -970,6 +1040,18 @@ textarea {
   text-transform: uppercase;
 }
 
+.stack-selector-trigger svg,
+.single-select-trigger svg {
+  transition: transform 220ms ease, opacity 220ms ease;
+  color: var(--muted);
+}
+
+.stack-selector-trigger svg.is-open,
+.single-select-trigger svg.is-open {
+  transform: rotate(180deg);
+  color: var(--text);
+}
+
 .stack-selection-row,
 .stack-selector-menu {
   display: flex;
@@ -982,6 +1064,8 @@ textarea {
   border-radius: 1rem;
   border: 1px solid var(--line);
   background: rgba(7, 8, 7, 0.92);
+  transform-origin: top;
+  animation: revealMenu 180ms ease;
 }
 
 .single-select {
@@ -1015,6 +1099,8 @@ textarea {
   border-radius: 1rem;
   border: 1px solid var(--line);
   background: rgba(7, 8, 7, 0.96);
+  transform-origin: top;
+  animation: revealMenu 180ms ease;
 }
 
 .single-select-option {
@@ -1077,6 +1163,47 @@ textarea {
   border-radius: 999px;
   background: var(--accent);
   box-shadow: 0 0 0 6px rgba(194, 255, 41, 0.08);
+}
+
+.table-shell {
+  overflow: auto;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.95rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.admin-table tr.is-selected {
+  background: rgba(194, 255, 41, 0.05);
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.table-actions button {
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(194, 255, 41, 0.012);
+  color: var(--text);
 }
 
 .stack-option,
@@ -1192,6 +1319,18 @@ textarea {
   }
 }
 
+@keyframes revealMenu {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
 @media (max-width: 1120px) {
   .sidebar {
     position: relative;
@@ -1229,6 +1368,11 @@ textarea {
   .admin-quick-grid,
   .timeline-item {
     grid-template-columns: 1fr;
+  }
+
+  .table-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 
