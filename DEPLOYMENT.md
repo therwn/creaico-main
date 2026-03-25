@@ -15,8 +15,8 @@ Set the production custom domain to:
 
 Add these environment variables in Cloudflare Pages:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 Because the app uses client-side routing, keep [`public/_redirects`](/Users/onedio/Desktop/CREAI/Landing/public/_redirects) in place so `/admin` and `/apps/:slug` resolve to the SPA.
 

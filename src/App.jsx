@@ -1082,8 +1082,8 @@ function SetupPanel() {
       <div className="admin-panel setup-panel">
         <h3>Required environment variables</h3>
         <p>Add these variables in Cloudflare Pages and your local `.env.local` file:</p>
-        <code>VITE_SUPABASE_URL</code>
-        <code>VITE_SUPABASE_ANON_KEY</code>
+        <code>NEXT_PUBLIC_SUPABASE_URL</code>
+        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
         <p>The SQL starter schema is included in `supabase/schema.sql`.</p>
       </div>
     </section>
