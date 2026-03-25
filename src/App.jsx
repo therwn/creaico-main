@@ -4,10 +4,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
 import * as Svgl from '@ridemountainpig/svgl-react'
 import {
+  IconArrowLeft,
   IconChevronDown,
+  IconChevronRight,
+  IconChartBar,
+  IconHome,
   IconLayoutDashboard,
+  IconLayoutGrid,
+  IconLogout,
   IconMoon,
+  IconPhotoPlus,
   IconPlus,
+  IconSettings,
   IconSun,
   IconTable,
 } from '@tabler/icons-react'
@@ -406,47 +414,61 @@ function useSupabaseApps() {
 
 function Sidebar({ onNavigate, themeMode, onThemeChange }) {
   return (
-    <aside className="sidebar">
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
-        <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
-          <img src="/creailogo.svg" alt="CREAI" />
-          <span>
-            <strong>CREAI</strong>
-            <small>app.creai.co</small>
-          </span>
-        </button>
-        <Divider />
-        <div className="grid gap-4">
+    <aside className="sticky top-0 flex h-screen flex-col gap-4 overflow-y-auto p-5">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+        <div className="grid gap-5">
+          <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
+            <img src="/creailogo.svg" alt="CREAI" />
+            <span>
+              <strong>CREAI</strong>
+              <small>app.creai.co</small>
+            </span>
+          </button>
           <div className="grid gap-2">
             <Badge color="lime">{brandContent.eyebrow}</Badge>
-            <Title>{brandContent.title}</Title>
-            <Text>{brandContent.subtitle}</Text>
+            <Title>Directory Workspace</Title>
+            <Text>Apps, experiments, and launch-ready product surfaces from the studio in one curated system.</Text>
           </div>
-          <div className="grid gap-3">
-            <Button variant="secondary" onClick={() => onNavigate('/directory')}>
-              Browse directory
+          <div className="grid gap-2">
+            <Button icon={IconLayoutGrid} onClick={() => onNavigate('/directory')}>
+              Browse apps
             </Button>
-            <Button variant="light" onClick={() => onNavigate('/')}>
+            <Button icon={IconHome} variant="secondary" onClick={() => onNavigate('/')}>
               CREAI landing
             </Button>
           </div>
         </div>
       </Card>
 
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <div className="grid gap-4">
           <div className="flex items-center justify-between gap-3">
-            <Text>Theme</Text>
+            <div className="grid gap-1">
+              <Text>Appearance</Text>
+              <Badge color="gray">System aware</Badge>
+            </div>
             <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
           </div>
           <Divider />
-          <div className="flex flex-wrap gap-3">
-            {brandContent.socialLinks.map((item) => (
-              <a key={item.label} href={item.url} target="_blank" rel="noreferrer" aria-label={item.label} className="icon-link-chip">
-                <span className="social-icon">{socialIcons[item.label]}</span>
-              </a>
-            ))}
+          <div className="grid gap-2">
+            <Text>Studio channels</Text>
+            <div className="flex flex-wrap gap-2">
+              {brandContent.socialLinks.map((item) => (
+                <Button key={item.label} href={item.url} target="_blank" rel="noreferrer" variant="light" size="xs">
+                  <span className="social-icon">{socialIcons[item.label]}</span>
+                  <span>{item.label}</span>
+                </Button>
+              ))}
+            </div>
           </div>
+        </div>
+      </Card>
+
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+        <div className="grid gap-3">
+          <Text>System state</Text>
+          <Metric>Ready</Metric>
+          <Text>Public directory and detail views now live in a separate product shell from the landing page.</Text>
         </div>
       </Card>
     </aside>
@@ -461,8 +483,8 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
   }
 
   return (
-    <aside className="admin-sidebar">
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+    <aside className="sticky top-0 flex h-screen flex-col gap-4 overflow-y-auto p-5">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <div className="grid gap-5">
           <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
             <img src="/creailogo.svg" alt="CREAI" />
@@ -472,7 +494,7 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
             </span>
           </button>
           <div className="flex items-center justify-between gap-3">
-            <Badge color="lime">Tremor Admin</Badge>
+            <Badge color="lime">Control Center</Badge>
             <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
           </div>
           <Divider />
@@ -481,23 +503,20 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
               <div key={section.label} className="grid gap-2">
                 <Button
                   type="button"
+                  icon={sectionIcons[section.label]}
                   variant={activeSection === section.label ? 'primary' : 'light'}
                   className="justify-start"
                   onClick={() => onSectionChange(section.label)}
                 >
-                  {(() => {
-                    const Icon = sectionIcons[section.label]
-                    return Icon ? <Icon size={16} stroke={1.8} /> : null
-                  })()}
-                  <span>{section.label}</span>
+                  {section.label}
                 </Button>
-
                 {section.children.length && activeSection === section.label ? (
                   <div className="grid gap-2 pl-3">
                     {section.children.map((child) => (
                       <Button
                         key={child.id}
                         type="button"
+                        icon={IconChevronRight}
                         variant={activeDashboardBlock === child.id ? 'secondary' : 'light'}
                         className="justify-start"
                         onClick={() => onDashboardBlockChange(child.id)}
@@ -510,21 +529,19 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
               </div>
             ))}
           </div>
-          <Divider />
-          <Button variant="light" onClick={() => onNavigate('/directory')}>
+        </div>
+      </Card>
+
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+        <div className="grid gap-3">
+          <Text>Workspace mode</Text>
+          <Metric>{activeSection === 'Dashboard' ? 'Focus' : 'Edit'}</Metric>
+          <Text>Everything here is separated from the landing and built as an internal product interface.</Text>
+          <Button variant="secondary" onClick={() => onNavigate('/directory')}>
             Open public directory
           </Button>
         </div>
       </Card>
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
-        <div className="grid gap-2">
-          <Text>Workspace status</Text>
-          <Metric>{activeSection === 'Dashboard' ? 'Live' : 'Editing'}</Metric>
-          <Text>Manage apps, categories, stack metadata, and publishing state from one place.</Text>
-        </div>
-      </Card>
-      <div className="admin-sidebar-nav">
-      </div>
     </aside>
   )
 }
@@ -565,7 +582,7 @@ function AppStatusBadge({ status }) {
 
 function AdminStatCard({ label, value, tone = 'lime' }) {
   return (
-    <Card decoration="top" decorationColor={tone} className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+    <Card decoration="top" decorationColor={tone} className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
       <Text>{label}</Text>
       <Metric>{value}</Metric>
     </Card>
@@ -755,7 +772,7 @@ function AdminFormFields({ form, updateField, categories, addCategory, disabled 
       <Divider />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="Social" title="Social links" description="Only filled links appear on the public detail page." />
           <div className="social-column">
             <label className="grid gap-2">
@@ -777,7 +794,7 @@ function AdminFormFields({ form, updateField, categories, addCategory, disabled 
           </div>
         </Card>
 
-        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="Badges" title="Store badges" description="Show store badges only when URLs are available." />
           <div className="social-column">
             <label className="grid gap-2">
@@ -942,8 +959,8 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }
   )
 
   return (
-    <section className="content-shell">
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+    <section className="grid gap-6">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="grid gap-4">
             <Badge color="lime">Directory</Badge>
@@ -965,11 +982,11 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_360px]">
-        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="Directory" title="Category map" description="Browse the public inventory by launch type and operating context." />
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {categoryStats.map((item) => (
-              <Card key={item.name} className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+              <Card key={item.name} className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
                 <Text>{item.name}</Text>
                 <Metric>{item.count}</Metric>
               </Card>
@@ -977,11 +994,11 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }
           </div>
         </Card>
 
-        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="Directory" title="Recently updated" description="The latest movements across tools, experiments, and internal systems." />
           <div className="grid gap-3">
             {recentApps.map((app) => (
-              <div key={app.id} className="flex items-start justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--panel-strong)] p-4">
+              <div key={app.id} className="flex items-start justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900 p-4">
                 <div className="grid gap-1">
                   <Text>{app.name}</Text>
                   <Badge color="gray">{app.category}</Badge>
@@ -997,7 +1014,7 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }
 
       <div className="grid gap-4 xl:grid-cols-2">
         {visibleApps.map((app) => (
-          <Card key={app.id} className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}18` }}>
+          <Card key={app.id} className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}18` }}>
             <div className="grid gap-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap gap-2">
@@ -1044,14 +1061,14 @@ function DetailView({ app, relatedApps, onNavigate }) {
   }
 
   return (
-    <section className="content-shell">
+    <section className="grid gap-6">
       <div className="flex flex-wrap gap-3">
-        <Button variant="light" onClick={() => onNavigate('/directory')}>
+        <Button variant="light" icon={IconArrowLeft} onClick={() => onNavigate('/directory')}>
           Back to directory
         </Button>
       </div>
 
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}22` }}>
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}22` }}>
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_340px]">
           <div className="grid gap-4">
             <div className="flex flex-wrap gap-2">
@@ -1065,11 +1082,11 @@ function DetailView({ app, relatedApps, onNavigate }) {
             <StoreBadges links={app.storeLinks} />
           </div>
           <div className="grid gap-4">
-            <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+            <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
               <Text>Last updated</Text>
               <Metric>{formatDate(app.updatedAt)}</Metric>
             </Card>
-            <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+            <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
               <Text>Published stack items</Text>
               <Metric>{app.stacks?.length || 0}</Metric>
             </Card>
@@ -1078,13 +1095,13 @@ function DetailView({ app, relatedApps, onNavigate }) {
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="App Detail" title="Stack" description="The tools and systems behind this app." />
           <div className="flex flex-wrap gap-2">
             {app.stacks?.length ? app.stacks.map((stack) => <Badge key={stack} color="gray">{stack}</Badge>) : <Text>No stack information yet.</Text>}
           </div>
         </Card>
-        <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="App Detail" title="Frameworks" description="Primary frameworks used across the product build." />
           <div className="flex flex-wrap gap-2">
             {app.frameworks?.length ? app.frameworks.map((framework) => <Badge key={framework} color="gray">{framework}</Badge>) : <Text>No frameworks listed yet.</Text>}
@@ -1092,11 +1109,11 @@ function DetailView({ app, relatedApps, onNavigate }) {
         </Card>
       </div>
 
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <AdminSectionHeader eyebrow="App Detail" title="More from CREAI" description="Related releases and systems from the directory." />
         <div className="grid gap-4 xl:grid-cols-2">
           {relatedApps.map((item) => (
-            <Card key={item.id} className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+            <Card key={item.id} className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
               <div className="grid gap-4">
                 <div className="flex flex-wrap gap-2">
                   <Badge color="gray">{item.category}</Badge>
@@ -1123,14 +1140,14 @@ function DetailView({ app, relatedApps, onNavigate }) {
 
 function SetupPanel() {
   return (
-    <section className="content-shell">
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+    <section className="grid gap-6">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <AdminSectionHeader eyebrow="Supabase Setup" title="Connect the directory to a real backend." description="Add these variables in Cloudflare Pages and your local .env.local file." />
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+          <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
             <Text>NEXT_PUBLIC_SUPABASE_URL</Text>
           </Card>
-          <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+          <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
             <Text>NEXT_PUBLIC_SUPABASE_ANON_KEY</Text>
           </Card>
         </div>
@@ -1199,7 +1216,7 @@ function AdminSignIn({ onSignedIn }) {
       </div>
       <div className="admin-auth-orbit admin-auth-orbit-one" aria-hidden="true" />
       <div className="admin-auth-orbit admin-auth-orbit-two" aria-hidden="true" />
-      <Card className="admin-auth-card border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+      <Card className="admin-auth-card border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <AdminSectionHeader
           eyebrow="Admin Access"
           title="Sign in to manage the app directory."
@@ -1422,8 +1439,8 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
   }
 
   return (
-    <section className="content-shell">
-      <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+    <section className="grid gap-6">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
           <div className="grid gap-4">
             <Badge color="lime">Admin</Badge>
@@ -1437,7 +1454,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
             <Text>Everything in this workspace now sits on a Tremor-first shell so the dashboard and the public directory feel like one product system.</Text>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-            <Card className="border !border-[var(--line)] !bg-[var(--panel-strong)] shadow-none">
+            <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
               <Text>Signed in as</Text>
               <Metric>{staticAdminUsername}</Metric>
             </Card>
@@ -1467,7 +1484,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
               <AdminStatCard label="Categories" value={totals.categories} tone="cyan" />
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
-              <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+              <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
                 <Title>Publishing snapshot</Title>
                 <div className="mt-4 grid gap-3">
                   <div className="mini-stat">
@@ -1480,7 +1497,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                   </div>
                 </div>
               </Card>
-              <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+              <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
                 <Title>Coverage snapshot</Title>
                 <div className="mt-4 grid gap-3">
                   <div className="mini-stat">
@@ -1499,7 +1516,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
           {showDashboardBlock('dashboard-recent') ? <section id="dashboard-recent" className="detail-panel">
               <AdminSectionHeader eyebrow="Dashboard" title="Recent updates" description="Latest added and recently updated app records." />
               <div className="grid gap-4 xl:grid-cols-2">
-                <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+                <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
                   <Title>Recently added</Title>
                   <div className="mt-4 stack-list">
                     {recentAddedApps.map((app) => (
@@ -1513,7 +1530,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
                     ))}
                   </div>
                 </Card>
-                <Card className="border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+                <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
                   <Title>Recently updated</Title>
                   <div className="mt-4 stack-list">
                     {recentUpdatedApps.map((app) => (
@@ -1594,8 +1611,8 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
       ) : null}
 
       {activeSection === 'Add a New App' ? (
-        <div className="admin-form-shell">
-          <Card className="admin-panel form-panel admin-editor-panel border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+        <div className="w-full">
+          <Card className="admin-panel form-panel admin-editor-panel border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
             <form className="grid gap-6" onSubmit={submitForm}>
               <AdminSectionHeader eyebrow="Admin" title="Add new app" description="Create a new directory entry for app.creai.co." />
               <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} />
@@ -1615,7 +1632,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
 
       {activeSection === 'Update Apps' ? (
         <div className="admin-layout">
-          <Card className="admin-panel list-panel border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <Card className="admin-panel list-panel border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
             <AdminSectionHeader eyebrow="Admin" title="Update apps" description="Choose an existing app to edit or remove." />
             <Table className="table-shell">
               <TableHead>
@@ -1662,7 +1679,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
             </Table>
           </Card>
 
-          <Card className="admin-panel form-panel admin-editor-panel border !border-[var(--line)] !bg-[var(--panel)] shadow-none">
+          <Card className="admin-panel form-panel admin-editor-panel border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
             <form className="grid gap-6" onSubmit={updateApp}>
               <AdminSectionHeader
                 eyebrow="Admin"
@@ -1793,12 +1810,8 @@ export default function App({ initialPath = '/', initialHost = '' }) {
 
   if (route.view === 'admin') {
     return (
-      <main className="admin-shell">
-        <div className="ambient ambient-one" aria-hidden="true" />
-        <div className="ambient ambient-two" aria-hidden="true" />
-        <div className="ambient ambient-three" aria-hidden="true" />
-        <div className="surface-grid" aria-hidden="true" />
-
+      <main className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-black dark:text-zinc-50">
+        <div className="mx-auto grid min-h-screen max-w-[1680px] grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]">
         <AdminSidebar
           activeSection={adminSection}
           activeDashboardBlock={adminDashboardBlock}
@@ -1808,9 +1821,7 @@ export default function App({ initialPath = '/', initialHost = '' }) {
           themeMode={themeMode}
           onThemeChange={setThemeMode}
         />
-
-
-        <section className="admin-page-frame">
+        <section className="min-w-0 overflow-y-auto p-5 xl:h-screen xl:p-6">
           <AdminView
             apps={apps}
             setApps={setApps}
@@ -1825,21 +1836,16 @@ export default function App({ initialPath = '/', initialHost = '' }) {
             onNavigate={navigate}
           />
         </section>
+        </div>
       </main>
     )
   }
 
   return (
-    <main className="app-shell">
-      <div className="ambient ambient-one" aria-hidden="true" />
-      <div className="ambient ambient-two" aria-hidden="true" />
-      <div className="ambient ambient-three" aria-hidden="true" />
-      <div className="surface-grid" aria-hidden="true" />
-
+    <main className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-black dark:text-zinc-50">
+      <div className="mx-auto grid min-h-screen max-w-[1680px] grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]">
       <Sidebar onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
-
-
-      <section className="page-frame">
+      <section className="min-w-0 p-5 xl:p-6">
         {route.view === 'detail' ? (
           <DetailView
             app={apps.find((app) => app.slug === route.slug && app.published)}
@@ -1856,6 +1862,7 @@ export default function App({ initialPath = '/', initialHost = '' }) {
           />
         )}
       </section>
+      </div>
     </main>
   )
 }
