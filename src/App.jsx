@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
+import * as Svgl from '@ridemountainpig/svgl-react'
 import { appCategories, brandContent, frameworkOptions, seedApps, stackOptions } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import CreaiLogo from './CreaiLogo'
@@ -58,13 +59,32 @@ const socialIcons = {
 
 const stackMeta = Object.fromEntries(stackOptions.map((item) => [item.label, item]))
 const frameworkMeta = Object.fromEntries(frameworkOptions.map((item) => [item.label, item]))
+const logoComponents = {
+  React: Svgl.ReactLight,
+  'Next.js': Svgl.Nextjs,
+  TypeScript: Svgl.TypeScript,
+  'Tailwind CSS': Svgl.TailwindCSS,
+  Supabase: Svgl.Supabase,
+  'Node.js': Svgl.Nodejs,
+  OpenAI: Svgl.OpenAIDark,
+  'Cloudflare Workers': Svgl.CloudflareWorkers,
+  Cloudflare: Svgl.Cloudflare,
+  'Framer Motion': Svgl.FramerLight,
+  Stripe: Svgl.Stripe,
+  Postgres: Svgl.PostgreSQL,
+  Swift: Svgl.Swift,
+  Firebase: Svgl.Firebase,
+  Flutter: Svgl.Flutter,
+  Expo: Svgl.Expo,
+}
 
 function TokenGlyph({ label, registry = stackMeta }) {
   const meta = registry[label] || { short: label.slice(0, 2).toUpperCase(), tone: '#c2ff29' }
+  const Logo = logoComponents[label]
 
   return (
-    <span className="stack-glyph" style={{ '--stack-tone': meta.tone }} aria-hidden="true">
-      {meta.short}
+    <span className={`stack-glyph ${Logo ? 'has-logo' : ''}`} style={{ '--stack-tone': meta.tone }} aria-hidden="true">
+      {Logo ? <Logo className="stack-logo-svg" /> : meta.short}
     </span>
   )
 }

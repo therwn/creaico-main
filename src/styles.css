@@ -1049,6 +1049,22 @@ textarea {
   letter-spacing: 0.02em;
 }
 
+.stack-glyph.has-logo {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #f7faf4;
+}
+
+.stack-logo-svg {
+  width: 0.92rem;
+  height: 0.92rem;
+  display: block;
+}
+
+.stack-logo-svg :where(path, rect, circle, polygon, ellipse) {
+  vector-effect: non-scaling-stroke;
+}
+
 .setup-panel code {
   display: block;
   width: fit-content;

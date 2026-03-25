@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ridemountainpig/svgl-react": "^1.0.16",
     "@supabase/supabase-js": "^2.100.0",
     "animejs": "^4.3.6",
     "gsap": "^3.14.2",
