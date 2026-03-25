@@ -1097,7 +1097,10 @@ function AdminSignIn({ onSignedIn }) {
 
   const signIn = async (event) => {
     event.preventDefault()
-    if (!supabase) return
+    if (!supabase) {
+      setMessage('Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Cloudflare Pages, then redeploy.')
+      return
+    }
 
     if (username !== staticAdminUsername) {
       setMessage('Invalid username.')
@@ -1698,6 +1701,10 @@ export default function App({ initialPath = '/', initialHost = '' }) {
 
   if (route.view === 'landing') {
     return <LandingView />
+  }
+
+  if (route.view === 'admin' && !isSupabaseConfigured) {
+    return <SetupPanel />
   }
 
   if (route.view === 'admin' && loading && isSupabaseConfigured && !session) {
