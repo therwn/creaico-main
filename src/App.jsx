@@ -87,12 +87,14 @@ const themeModes = ['system', 'dark', 'light']
 
 function ThemeToggle({ themeMode, onThemeChange }) {
   return (
-    <div className="theme-toggle" role="group" aria-label="Theme">
+    <div className="inline-flex rounded-full border border-zinc-800 bg-zinc-950 p-1" role="group" aria-label="Theme">
       {themeModes.map((mode) => (
         <button
           key={mode}
           type="button"
-          className={themeMode === mode ? 'is-active' : ''}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold tracking-[0.08em] transition ${
+            themeMode === mode ? 'bg-lime-300 text-black' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100'
+          }`}
           onClick={() => onThemeChange(mode)}
           aria-label={mode}
         >
@@ -168,8 +170,12 @@ function TokenGlyph({ label, registry = stackMeta }) {
   const Logo = logoComponents[label]
 
   return (
-    <span className={`stack-glyph ${Logo ? 'has-logo' : ''}`} style={{ '--stack-tone': meta.tone }} aria-hidden="true">
-      {Logo ? <Logo className="stack-logo-svg" /> : meta.short}
+    <span
+      className="inline-flex h-6 w-6 items-center justify-center rounded-md border text-[10px] font-bold uppercase"
+      style={{ borderColor: `${meta.tone}66`, color: meta.tone, backgroundColor: `${meta.tone}12` }}
+      aria-hidden="true"
+    >
+      {Logo ? <Logo className="h-3.5 w-3.5" /> : meta.short}
     </span>
   )
 }
@@ -548,7 +554,7 @@ function AppSocialLinks({ links }) {
     <div className="flex flex-wrap gap-2">
       {links.map((item) => (
         <Button key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" variant="light" size="xs" icon={undefined} aria-label={item.label}>
-          <span className="social-icon">{socialIcons[item.label] || socialIcons.Website}</span>
+          <span className="inline-flex h-4 w-4 items-center justify-center [&_svg]:h-4 [&_svg]:w-4 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]">{socialIcons[item.label] || socialIcons.Website}</span>
           <span>{item.label}</span>
         </Button>
       ))}
@@ -597,6 +603,14 @@ function MobileTopBar({ label, onNavigate, themeMode, onThemeChange, showAdminLi
   )
 }
 
+function InfoMessage({ children }) {
+  return (
+    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+      <Text>{children}</Text>
+    </Card>
+  )
+}
+
 function AdminStatCard({ label, value, tone = 'lime' }) {
   return (
     <Card decoration="top" decorationColor={tone} className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
@@ -608,8 +622,8 @@ function AdminStatCard({ label, value, tone = 'lime' }) {
 
 function AdminSectionHeader({ eyebrow, title, description }) {
   return (
-    <div className="panel-heading">
-      <p className="eyebrow-copy">{eyebrow}</p>
+    <div className="grid gap-2">
+      <Badge color="lime">{eyebrow}</Badge>
       <Title>{title}</Title>
       {description ? <Text>{description}</Text> : null}
     </div>
@@ -791,7 +805,7 @@ function AdminFormFields({ form, updateField, categories, addCategory, disabled 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="Social" title="Social links" description="Only filled links appear on the public detail page." />
-          <div className="social-column">
+          <div className="grid gap-4">
             <label className="grid gap-2">
               <Text>Website</Text>
               <TextInput value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." disabled={disabled} />
@@ -813,7 +827,7 @@ function AdminFormFields({ form, updateField, categories, addCategory, disabled 
 
         <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
           <AdminSectionHeader eyebrow="Badges" title="Store badges" description="Show store badges only when URLs are available." />
-          <div className="social-column">
+          <div className="grid gap-4">
             <label className="grid gap-2">
               <Text>Web App</Text>
               <TextInput value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." disabled={disabled} />
@@ -831,12 +845,12 @@ function AdminFormFields({ form, updateField, categories, addCategory, disabled 
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button type="button" className={`ghost-button ${form.featured ? 'toggle-active' : ''}`} onClick={() => updateField('featured', !form.featured)} disabled={disabled}>
+        <Button type="button" variant={form.featured ? 'primary' : 'secondary'} onClick={() => updateField('featured', !form.featured)} disabled={disabled}>
           {form.featured ? 'Featured enabled' : 'Mark as featured'}
-        </button>
-        <button type="button" className={`ghost-button ${form.published ? 'toggle-active' : ''}`} onClick={() => updateField('published', !form.published)} disabled={disabled}>
+        </Button>
+        <Button type="button" variant={form.published ? 'primary' : 'secondary'} onClick={() => updateField('published', !form.published)} disabled={disabled}>
           {form.published ? 'Published' : 'Keep as draft'}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -1029,7 +1043,7 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, 
         </Card>
       </div>
 
-      {loading ? <div className="empty-state">Loading app inventory...</div> : null}
+      {loading ? <InfoMessage>Loading app inventory...</InfoMessage> : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
         {visibleApps.map((app) => (
@@ -1071,10 +1085,8 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, 
 function DetailView({ app, relatedApps, onNavigate }) {
   if (!app) {
     return (
-      <section className="content-shell">
-        <div className="empty-state">
-          This app could not be found or is not published yet.
-        </div>
+      <section className="grid gap-6">
+        <InfoMessage>This app could not be found or is not published yet.</InfoMessage>
       </section>
     )
   }
@@ -1479,8 +1491,8 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
         </div>
       </Card>
 
-      {loading ? <div className="empty-state">Syncing dashboard...</div> : null}
-      {error ? <div className="empty-state">{error}</div> : null}
+      {loading ? <InfoMessage>Syncing dashboard...</InfoMessage> : null}
+      {error ? <InfoMessage>{error}</InfoMessage> : null}
 
       {activeSection === 'Dashboard' ? (
         <div className="admin-dashboard-grid">
