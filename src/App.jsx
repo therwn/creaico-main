@@ -414,61 +414,54 @@ function useSupabaseApps() {
 
 function Sidebar({ onNavigate, themeMode, onThemeChange }) {
   return (
-    <aside className="sticky top-0 flex h-screen flex-col gap-4 overflow-y-auto p-5">
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+    <aside className="sticky top-0 hidden h-screen flex-col gap-4 overflow-y-auto border-r border-zinc-800/80 bg-black/95 p-5 xl:flex">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <div className="grid gap-5">
-          <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
-            <img src="/creailogo.svg" alt="CREAI" />
-            <span>
-              <strong>CREAI</strong>
-              <small>app.creai.co</small>
+          <button className="flex w-full items-center gap-4 text-left" onClick={() => onNavigate('/directory')}>
+            <img src="/creailogo.svg" alt="CREAI" className="h-11 w-11 rounded-xl bg-zinc-900 p-2" />
+            <span className="grid gap-1">
+              <strong className="text-sm font-semibold tracking-[0.22em] text-zinc-50">CREAI</strong>
+              <small className="text-xs uppercase tracking-[0.24em] text-zinc-500">App Directory</small>
             </span>
           </button>
-          <div className="grid gap-2">
-            <Badge color="lime">{brandContent.eyebrow}</Badge>
-            <Title>Directory Workspace</Title>
-            <Text>Apps, experiments, and launch-ready product surfaces from the studio in one curated system.</Text>
-          </div>
-          <div className="grid gap-2">
-            <Button icon={IconLayoutGrid} onClick={() => onNavigate('/directory')}>
-              Browse apps
-            </Button>
-            <Button icon={IconHome} variant="secondary" onClick={() => onNavigate('/')}>
-              CREAI landing
-            </Button>
+          <div className="grid gap-3">
+            <Badge color="lime">Studio System</Badge>
+            <Title>Curated apps, experiments, and launches.</Title>
+            <Text>The public product shelf for CREAI, rebuilt around Tremor cards, metrics, and structured navigation.</Text>
           </div>
         </div>
       </Card>
 
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+        <div className="grid gap-3">
+          <Text>Navigation</Text>
+          <Button icon={IconLayoutGrid} onClick={() => onNavigate('/directory')}>
+            Directory
+          </Button>
+          <Button icon={IconHome} variant="secondary" onClick={() => onNavigate('/')}>
+            CREAI landing
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <div className="grid gap-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="grid gap-1">
-              <Text>Appearance</Text>
-              <Badge color="gray">System aware</Badge>
-            </div>
+            <Text>Appearance</Text>
             <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
           </div>
           <Divider />
           <div className="grid gap-2">
-            <Text>Studio channels</Text>
+            <Text>Channels</Text>
             <div className="flex flex-wrap gap-2">
               {brandContent.socialLinks.map((item) => (
                 <Button key={item.label} href={item.url} target="_blank" rel="noreferrer" variant="light" size="xs">
                   <span className="social-icon">{socialIcons[item.label]}</span>
-                  <span>{item.label}</span>
+                  {item.label}
                 </Button>
               ))}
             </div>
           </div>
-        </div>
-      </Card>
-
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-        <div className="grid gap-3">
-          <Text>System state</Text>
-          <Metric>Ready</Metric>
-          <Text>Public directory and detail views now live in a separate product shell from the landing page.</Text>
         </div>
       </Card>
     </aside>
@@ -483,60 +476,62 @@ function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, on
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen flex-col gap-4 overflow-y-auto p-5">
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+    <aside className="sticky top-0 hidden h-screen flex-col gap-4 overflow-y-auto border-r border-zinc-800/80 bg-black/95 p-5 xl:flex">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <div className="grid gap-5">
-          <button className="brand-lockup w-full" onClick={() => onNavigate('/directory')}>
-            <img src="/creailogo.svg" alt="CREAI" />
-            <span>
-              <strong>CREAI</strong>
-              <small>admin workspace</small>
+          <button className="flex w-full items-center gap-4 text-left" onClick={() => onNavigate('/directory')}>
+            <img src="/creailogo.svg" alt="CREAI" className="h-11 w-11 rounded-xl bg-zinc-900 p-2" />
+            <span className="grid gap-1">
+              <strong className="text-sm font-semibold tracking-[0.22em] text-zinc-50">CREAI</strong>
+              <small className="text-xs uppercase tracking-[0.24em] text-zinc-500">Admin Control</small>
             </span>
           </button>
           <div className="flex items-center justify-between gap-3">
-            <Badge color="lime">Control Center</Badge>
+            <Badge color="lime">Tremor Workspace</Badge>
             <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
-          </div>
-          <Divider />
-          <div className="grid gap-3">
-            {adminTree.map((section) => (
-              <div key={section.label} className="grid gap-2">
-                <Button
-                  type="button"
-                  icon={sectionIcons[section.label]}
-                  variant={activeSection === section.label ? 'primary' : 'light'}
-                  className="justify-start"
-                  onClick={() => onSectionChange(section.label)}
-                >
-                  {section.label}
-                </Button>
-                {section.children.length && activeSection === section.label ? (
-                  <div className="grid gap-2 pl-3">
-                    {section.children.map((child) => (
-                      <Button
-                        key={child.id}
-                        type="button"
-                        icon={IconChevronRight}
-                        variant={activeDashboardBlock === child.id ? 'secondary' : 'light'}
-                        className="justify-start"
-                        onClick={() => onDashboardBlockChange(child.id)}
-                      >
-                        {child.label}
-                      </Button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))}
           </div>
         </div>
       </Card>
 
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+        <div className="grid gap-3">
+          {adminTree.map((section) => (
+            <div key={section.label} className="grid gap-2">
+              <Button
+                type="button"
+                icon={sectionIcons[section.label]}
+                variant={activeSection === section.label ? 'primary' : 'light'}
+                className="justify-start"
+                onClick={() => onSectionChange(section.label)}
+              >
+                {section.label}
+              </Button>
+              {section.children.length && activeSection === section.label ? (
+                <div className="grid gap-2 pl-3">
+                  {section.children.map((child) => (
+                    <Button
+                      key={child.id}
+                      type="button"
+                      icon={IconChevronRight}
+                      variant={activeDashboardBlock === child.id ? 'secondary' : 'light'}
+                      className="justify-start"
+                      onClick={() => onDashboardBlockChange(child.id)}
+                    >
+                      {child.label}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <div className="grid gap-3">
           <Text>Workspace mode</Text>
           <Metric>{activeSection === 'Dashboard' ? 'Focus' : 'Edit'}</Metric>
-          <Text>Everything here is separated from the landing and built as an internal product interface.</Text>
+          <Text>Internal product ops, publishing, and catalog management live here without sharing the landing visual system.</Text>
           <Button variant="secondary" onClick={() => onNavigate('/directory')}>
             Open public directory
           </Button>
@@ -578,6 +573,28 @@ function StoreBadges({ links }) {
 function AppStatusBadge({ status }) {
   const tone = status === 'Live' ? 'emerald' : status === 'Beta' ? 'amber' : status === 'Internal' ? 'blue' : 'gray'
   return <Badge color={tone}>{status}</Badge>
+}
+
+function MobileTopBar({ label, onNavigate, themeMode, onThemeChange, showAdminLink = false }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-950 p-4 xl:hidden">
+      <div className="flex items-center gap-3">
+        <img src="/creailogo.svg" alt="CREAI" className="h-10 w-10 rounded-xl bg-zinc-900 p-2" />
+        <div className="grid gap-1">
+          <strong className="text-sm font-semibold tracking-[0.18em] text-zinc-50">CREAI</strong>
+          <span className="text-xs uppercase tracking-[0.22em] text-zinc-500">{label}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {showAdminLink ? (
+          <Button variant="light" size="xs" onClick={() => onNavigate('/admin')}>
+            Admin
+          </Button>
+        ) : null}
+        <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
+      </div>
+    </div>
+  )
 }
 
 function AdminStatCard({ label, value, tone = 'lime' }) {
@@ -929,7 +946,7 @@ function LandingView() {
   )
 }
 
-function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }) {
+function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, themeMode, onThemeChange }) {
   const visibleApps = useMemo(() => {
     return apps.filter((app) => {
       const categoryMatch = category === 'All' || app.category === category
@@ -960,7 +977,9 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate }
 
   return (
     <section className="grid gap-6">
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+      <MobileTopBar label="Directory" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} showAdminLink />
+
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="grid gap-4">
             <Badge color="lime">Directory</Badge>
@@ -1194,33 +1213,22 @@ function AdminSignIn({ onSignedIn }) {
   }
 
   return (
-    <main className="admin-auth-shell">
-      <div className="admin-auth-noise" aria-hidden="true" />
-      <div className="admin-auth-ambient admin-auth-ambient-one" aria-hidden="true" />
-      <div className="admin-auth-ambient admin-auth-ambient-two" aria-hidden="true" />
-      <div className="admin-auth-ambient admin-auth-ambient-three" aria-hidden="true" />
-      <div className="admin-auth-grid" aria-hidden="true" />
-      <div className="admin-auth-line-cluster" aria-hidden="true">
+    <main className="flex min-h-screen items-center justify-center bg-black px-4 py-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(194,255,41,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(194,255,41,0.08),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent)]" aria-hidden="true" />
+      <div className="absolute inset-0 opacity-20" aria-hidden="true">
         {landingScanLines.map((line, index) => (
           <span
             key={`auth-${line.left}-${index}`}
-            className="admin-auth-scan-line"
-            style={{
-              '--line-left': line.left,
-              '--line-duration': `${7 + index * 0.9}s`,
-              '--line-delay': `${index * 0.8}s`,
-              '--line-opacity': 0.52 + index * 0.06,
-            }}
+            className="absolute top-0 h-full w-px bg-gradient-to-b from-transparent via-lime-300/70 to-transparent"
+            style={{ left: line.left }}
           />
         ))}
       </div>
-      <div className="admin-auth-orbit admin-auth-orbit-one" aria-hidden="true" />
-      <div className="admin-auth-orbit admin-auth-orbit-two" aria-hidden="true" />
-      <Card className="admin-auth-card border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
+      <Card className="relative z-10 w-full max-w-md border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <AdminSectionHeader
           eyebrow="Admin Access"
-          title="Sign in to manage the app directory."
-          description="Use the static credentials configured for the CREAI dashboard."
+          title="Sign in to the CREAI admin workspace."
+          description="This interface is isolated from the landing and runs as a dedicated internal control surface."
         />
         <form className="auth-form admin-auth-form" onSubmit={signIn}>
           <label className="grid gap-2">
@@ -1256,7 +1264,7 @@ function AdminSignIn({ onSignedIn }) {
   )
 }
 
-function AdminView({ apps, setApps, session, setSession, loading, error, activeSection, activeDashboardBlock, onDashboardBlockChange, onSectionChange, onNavigate }) {
+function AdminView({ apps, setApps, session, setSession, loading, error, activeSection, activeDashboardBlock, onDashboardBlockChange, onSectionChange, onNavigate, themeMode, onThemeChange }) {
   const [form, setForm] = useState(initialForm)
   const [selectedAppId, setSelectedAppId] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -1440,6 +1448,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
 
   return (
     <section className="grid gap-6">
+      <MobileTopBar label="Admin" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
       <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
           <div className="grid gap-4">
@@ -1790,16 +1799,10 @@ export default function App({ initialPath = '/', initialHost = '' }) {
 
   if (route.view === 'admin' && loading && isSupabaseConfigured && !session) {
     return (
-      <main className="admin-auth-shell">
-        <div className="admin-auth-ambient admin-auth-ambient-one" aria-hidden="true" />
-        <div className="admin-auth-ambient admin-auth-ambient-two" aria-hidden="true" />
-        <div className="admin-auth-grid" aria-hidden="true" />
-        <section className="admin-auth-card">
-          <div className="panel-heading admin-auth-heading">
-            <p className="eyebrow-copy">Admin Access</p>
-            <h3>Checking your session.</h3>
-          </div>
-        </section>
+      <main className="flex min-h-screen items-center justify-center bg-black px-4 py-10">
+        <Card className="w-full max-w-md border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+          <AdminSectionHeader eyebrow="Admin Access" title="Checking your session." description="Restoring your workspace state and permissions." />
+        </Card>
       </main>
     )
   }
@@ -1834,6 +1837,8 @@ export default function App({ initialPath = '/', initialHost = '' }) {
             onDashboardBlockChange={setAdminDashboardBlock}
             onSectionChange={setAdminSection}
             onNavigate={navigate}
+            themeMode={themeMode}
+            onThemeChange={setThemeMode}
           />
         </section>
         </div>
@@ -1859,6 +1864,8 @@ export default function App({ initialPath = '/', initialHost = '' }) {
             onCategoryChange={setCategory}
             loading={loading}
             onNavigate={navigate}
+            themeMode={themeMode}
+            onThemeChange={setThemeMode}
           />
         )}
       </section>
