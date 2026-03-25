@@ -658,6 +658,83 @@ textarea {
   border-radius: 1.65rem;
 }
 
+.admin-auth-shell {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+.admin-auth-ambient,
+.admin-auth-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.admin-auth-ambient {
+  filter: blur(48px);
+  opacity: 0.26;
+  animation: floatAmbient 14s ease-in-out infinite alternate;
+}
+
+.admin-auth-ambient-one {
+  inset: -10% auto auto -8%;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(194, 255, 41, 0.08), transparent 72%);
+}
+
+.admin-auth-ambient-two {
+  inset: auto -10% -14% auto;
+  width: 38rem;
+  height: 38rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(194, 255, 41, 0.05), transparent 72%);
+  animation-duration: 18s;
+}
+
+.admin-auth-grid {
+  opacity: 0.08;
+  background-image:
+    linear-gradient(rgba(194, 255, 41, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 255, 41, 0.012) 1px, transparent 1px);
+  background-size: 100% 88px, 88px 100%;
+  mask-image: radial-gradient(circle at center, black 24%, transparent 78%);
+}
+
+.admin-auth-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 28rem);
+  padding: 1.5rem;
+  border-radius: 1.8rem;
+  border: 1px solid var(--line);
+  background: rgba(7, 8, 7, 0.9);
+  backdrop-filter: blur(22px);
+  box-shadow: var(--shadow);
+}
+
+.admin-auth-heading {
+  margin-bottom: 1.1rem;
+}
+
+.admin-auth-heading h3 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  line-height: 0.95;
+}
+
+.admin-auth-form {
+  gap: 0.85rem;
+}
+
+.admin-auth-form input {
+  max-width: 100%;
+}
+
 .setup-panel code {
   display: block;
   width: fit-content;

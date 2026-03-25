@@ -542,7 +542,7 @@ function SetupPanel() {
 }
 
 function AdminSignIn({ onSignedIn }) {
-  const [username, setUsername] = useState(staticAdminUsername)
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
 
@@ -560,31 +560,59 @@ function AdminSignIn({ onSignedIn }) {
       password,
     })
 
-    setMessage(error ? error.message : 'Signed in successfully.')
+    if (error) {
+      if (error.message.toLowerCase().includes('invalid login credentials')) {
+        setMessage('Invalid credentials. Check that `root-admin@creai.co` exists in Supabase Auth and that the password matches.')
+      } else {
+        setMessage(error.message)
+      }
+    } else {
+      setMessage('Signed in successfully.')
+    }
+
     if (!error) onSignedIn()
   }
 
   return (
-    <section className="content-shell">
-      <div className="admin-panel auth-panel">
-        <div className="panel-heading">
-          <h3>Admin sign in</h3>
-          <p>Use the static admin credentials to manage apps from the dashboard.</p>
+    <main className="admin-auth-shell">
+      <div className="admin-auth-ambient admin-auth-ambient-one" aria-hidden="true" />
+      <div className="admin-auth-ambient admin-auth-ambient-two" aria-hidden="true" />
+      <div className="admin-auth-grid" aria-hidden="true" />
+      <section className="admin-auth-card">
+        <div className="panel-heading admin-auth-heading">
+          <p className="eyebrow-copy">Admin Access</p>
+          <h3>Sign in to manage the app directory.</h3>
+          <p>Use the static credentials configured for the CREAI dashboard.</p>
         </div>
-        <form className="auth-form" onSubmit={signIn}>
+        <form className="auth-form admin-auth-form" onSubmit={signIn}>
           <label>
             <span>Username</span>
-            <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder={staticAdminUsername} autoComplete="username" required />
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="root-admin"
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck="false"
+              required
+            />
           </label>
           <label>
             <span>Password</span>
-            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••" autoComplete="current-password" required />
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••••"
+              autoComplete="off"
+              required
+            />
           </label>
           <button type="submit" className="primary-button">Sign in</button>
         </form>
         {message ? <p className="helper-copy">{message}</p> : null}
-      </div>
-    </section>
+      </section>
+    </main>
   )
 }
 
