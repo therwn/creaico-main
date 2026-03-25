@@ -142,7 +142,7 @@ button {
   top: 0;
   left: 0;
   width: 280px;
-  height: 100vh;
+  height: 100dvh;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -187,17 +187,18 @@ button {
 .admin-tree-children {
   display: grid;
   gap: 0.35rem;
+  margin-left: 0.6rem;
   padding-left: 0.9rem;
-  border-left: 1px solid rgba(214, 255, 122, 0.12);
+  border-left: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
 }
 
 .admin-sidebar-nav button {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.65rem 0.8rem;
+  padding: 0.45rem 0;
   text-align: left;
-  border-radius: 0.7rem;
+  border-radius: 0;
   border: 0;
   background: transparent;
   color: var(--muted);
@@ -205,14 +206,23 @@ button {
 }
 
 .admin-sidebar-nav .is-active {
-  background: color-mix(in srgb, var(--accent) 11%, transparent);
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--text);
 }
 
 .admin-tree-children button {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.6rem;
+  padding: 0.35rem 0;
+  border-radius: 0;
   font-size: 0.9rem;
+}
+
+.admin-tree-children .is-active {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-radius: 0.6rem;
 }
 
 .theme-toggle {
@@ -245,6 +255,26 @@ button {
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.05em;
+}
+
+:root[data-theme='light'] .admin-sidebar,
+:root[data-theme='light'] .sidebar {
+  background: rgba(255, 255, 255, 0.94);
+  border-right-color: rgba(24, 34, 25, 0.08);
+}
+
+:root[data-theme='light'] .admin-sidebar-search,
+:root[data-theme='light'] .theme-toggle {
+  background: rgba(245, 247, 244, 0.96);
+  border-color: rgba(24, 34, 25, 0.08);
+}
+
+:root[data-theme='light'] .admin-tree-children {
+  border-left-color: rgba(24, 34, 25, 0.08);
+}
+
+:root[data-theme='light'] .admin-sidebar-nav .is-active {
+  background: rgba(24, 34, 25, 0.06);
 }
 
 .brand-lockup {
@@ -399,11 +429,12 @@ label span {
   position: relative;
   z-index: 1;
   min-width: 0;
-  height: 100vh;
+  height: 100dvh;
   padding: 1.5rem;
   margin-left: 280px;
-  overflow-y: auto;
+  overflow-y: scroll;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .back-button {
@@ -419,6 +450,7 @@ label span {
   display: grid;
   gap: 1.25rem;
   padding-bottom: 4rem;
+  min-height: max-content;
 }
 
 .content-hero,
