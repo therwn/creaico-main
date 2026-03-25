@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
 import * as Svgl from '@ridemountainpig/svgl-react'
@@ -9,6 +11,7 @@ import {
   IconSun,
   IconTable,
 } from '@tabler/icons-react'
+import { Card } from '@tremor/react'
 import { appCategories, brandContent, frameworkOptions, seedApps, stackOptions } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import CreaiLogo from './CreaiLogo'
@@ -273,8 +276,8 @@ const formatDate = (value) =>
     year: 'numeric',
   })
 
-const buildPath = () => window.location.pathname.replace(/\/+$/, '') || '/'
-const buildHost = () => window.location.hostname.toLowerCase()
+const buildPath = () => (typeof window === 'undefined' ? '/' : window.location.pathname.replace(/\/+$/, '') || '/')
+const buildHost = () => (typeof window === 'undefined' ? '' : window.location.hostname.toLowerCase())
 
 const parsePath = (pathname, hostname) => {
   if (pathname === '/admin') {
@@ -1119,6 +1122,24 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
               <h3>Overview</h3>
               <p>High-level view of your current app catalog.</p>
             </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <Card decoration="top" decorationColor="lime" className="bg-white/80 dark:bg-gray-950/80">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total apps</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{apps.length}</p>
+              </Card>
+              <Card decoration="top" decorationColor="emerald" className="bg-white/80 dark:bg-gray-950/80">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Published</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{apps.filter((app) => app.published).length}</p>
+              </Card>
+              <Card decoration="top" decorationColor="amber" className="bg-white/80 dark:bg-gray-950/80">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Featured</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{apps.filter((app) => app.featured).length}</p>
+              </Card>
+              <Card decoration="top" decorationColor="cyan" className="bg-white/80 dark:bg-gray-950/80">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Categories</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-50">{categories.length}</p>
+              </Card>
+            </div>
             <div className="stat-stack admin-stat-grid">
               <article className="mini-stat">
                 <strong>{apps.length}</strong>
@@ -1456,13 +1477,13 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
   )
 }
 
-export default function App() {
-  const [path, setPath] = useState(() => buildPath())
-  const [host, setHost] = useState(() => buildHost())
+export default function App({ initialPath = '/', initialHost = '' }) {
+  const [path, setPath] = useState(initialPath)
+  const [host, setHost] = useState(initialHost)
   const [category, setCategory] = useState('All')
   const [adminSection, setAdminSection] = useState('Dashboard')
   const [adminDashboardBlock, setAdminDashboardBlock] = useState('dashboard-overview')
-  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem('creai-theme') || 'system')
+  const [themeMode, setThemeMode] = useState(() => (typeof window === 'undefined' ? 'system' : window.localStorage.getItem('creai-theme') || 'system'))
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
   const route = parsePath(path, host)
 
@@ -1526,6 +1547,7 @@ export default function App() {
   }, [route.view, adminSection, adminDashboardBlock])
 
   const navigate = (nextPath) => {
+    if (typeof window === 'undefined') return
     if (nextPath === path) return
     window.history.pushState({}, '', nextPath)
     setPath(nextPath)

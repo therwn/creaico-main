@@ -1,8 +1,8 @@
 node_modules/
 dist/
+.next/
 .env
 .env.local
 .env.*.local
 .DS_Store
 coverage/
-
