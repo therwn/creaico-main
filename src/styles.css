@@ -1,14 +1,14 @@
 :root {
   color-scheme: dark;
-  --bg: #050704;
-  --bg-soft: #0a1108;
-  --panel: rgba(8, 11, 8, 0.9);
-  --panel-strong: rgba(9, 13, 9, 0.985);
-  --line: rgba(194, 255, 41, 0.07);
+  --bg: #040504;
+  --bg-soft: #080b08;
+  --panel: rgba(7, 8, 7, 0.92);
+  --panel-strong: rgba(8, 10, 8, 0.985);
+  --line: rgba(194, 255, 41, 0.05);
   --text: #edf6e7;
   --muted: rgba(237, 246, 231, 0.68);
   --accent: #c2ff29;
-  --accent-soft: rgba(194, 255, 41, 0.04);
+  --accent-soft: rgba(194, 255, 41, 0.03);
   --shadow: 0 24px 90px rgba(0, 0, 0, 0.36);
 }
 
@@ -26,8 +26,8 @@ body {
   margin: 0;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(194, 255, 41, 0.05), transparent 22%),
-    radial-gradient(circle at 90% 15%, rgba(123, 203, 69, 0.025), transparent 18%),
+    radial-gradient(circle at top left, rgba(194, 255, 41, 0.035), transparent 20%),
+    radial-gradient(circle at 90% 15%, rgba(123, 203, 69, 0.018), transparent 16%),
     var(--bg);
   font-family: 'Manrope', sans-serif;
 }
@@ -63,7 +63,7 @@ button {
 
 .ambient {
   filter: blur(48px);
-  opacity: 0.34;
+  opacity: 0.24;
   animation: floatAmbient 16s ease-in-out infinite alternate;
 }
 
@@ -72,7 +72,7 @@ button {
   width: 42rem;
   height: 42rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(194, 255, 41, 0.06), transparent 70%);
+  background: radial-gradient(circle, rgba(194, 255, 41, 0.045), transparent 70%);
 }
 
 .ambient-two {
@@ -80,7 +80,7 @@ button {
   width: 48rem;
   height: 48rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(126, 208, 72, 0.05), transparent 68%);
+  background: radial-gradient(circle, rgba(126, 208, 72, 0.038), transparent 68%);
   animation-duration: 20s;
 }
 
@@ -89,12 +89,12 @@ button {
   width: 34rem;
   height: 34rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(170, 225, 106, 0.02), transparent 72%);
+  background: radial-gradient(circle, rgba(170, 225, 106, 0.014), transparent 72%);
   animation-duration: 12s;
 }
 
 .surface-grid {
-  opacity: 0.09;
+  opacity: 0.06;
   background-image:
     linear-gradient(rgba(194, 255, 41, 0.012) 1px, transparent 1px),
     linear-gradient(90deg, rgba(194, 255, 41, 0.012) 1px, transparent 1px);
@@ -113,7 +113,7 @@ button {
   flex-direction: column;
   gap: 1.5rem;
   border-right: 1px solid var(--line);
-  background: rgba(6, 8, 12, 0.72);
+  background: rgba(5, 6, 5, 0.78);
   backdrop-filter: blur(18px);
   z-index: 2;
 }
@@ -192,7 +192,7 @@ label span {
 .admin-actions button,
 .sidebar-quick a {
   border: 1px solid var(--line);
-  background: rgba(194, 255, 41, 0.018);
+  background: rgba(194, 255, 41, 0.012);
   color: var(--text);
   border-radius: 999px;
 }
@@ -237,7 +237,7 @@ label span {
   justify-content: center;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(194, 255, 41, 0.015);
+  background: rgba(194, 255, 41, 0.01);
 }
 
 .social-icon {
@@ -269,7 +269,7 @@ label span {
   padding: 0.8rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(194, 255, 41, 0.015);
+  background: rgba(194, 255, 41, 0.01);
   color: var(--text);
 }
 
@@ -309,7 +309,7 @@ label span {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at top right, var(--accent-glow), transparent 40%);
-  opacity: 0.2;
+  opacity: 0.12;
   pointer-events: none;
 }
 
@@ -351,7 +351,7 @@ label span {
   padding: 0.85rem 1rem;
   border-radius: 1.25rem;
   border: 1px solid var(--line);
-  background: rgba(194, 255, 41, 0.018);
+  background: rgba(194, 255, 41, 0.012);
 }
 
 .hero-metrics strong {
@@ -413,7 +413,7 @@ label span {
   padding: 0.45rem 0.8rem;
   font-size: 0.85rem;
   color: var(--muted);
-  background: rgba(194, 255, 41, 0.018);
+  background: rgba(194, 255, 41, 0.012);
 }
 
 .featured-meta {
@@ -430,7 +430,7 @@ select {
   padding: 0.95rem 1rem;
   border-radius: 1rem;
   border: 1px solid var(--line);
-  background: rgba(194, 255, 41, 0.018);
+  background: rgba(194, 255, 41, 0.012);
   color: var(--text);
 }
 
@@ -478,7 +478,7 @@ textarea {
   padding: 0.95rem 1rem;
   border-radius: 1.1rem;
   border: 1px solid var(--line);
-  background: rgba(194, 255, 41, 0.018);
+  background: rgba(194, 255, 41, 0.012);
 }
 
 .stack-row,
@@ -498,7 +498,7 @@ textarea {
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(194, 255, 41, 0.018);
+  background: rgba(194, 255, 41, 0.012);
   color: var(--text);
   font-size: 0.9rem;
 }
@@ -508,11 +508,18 @@ textarea {
   height: 2.7rem;
   justify-content: center;
   padding: 0;
+  background: rgba(6, 8, 6, 0.92);
 }
 
 .store-badge {
   min-height: 3rem;
   border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  background: rgba(6, 8, 6, 0.96);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .long-copy {
@@ -657,7 +664,7 @@ textarea {
   padding: 0.6rem 0.8rem;
   margin-top: 0.65rem;
   border-radius: 0.85rem;
-  background: rgba(194, 255, 41, 0.02);
+  background: rgba(194, 255, 41, 0.012);
 }
 
 .status-live {

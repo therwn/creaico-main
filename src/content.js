@@ -37,6 +37,10 @@ export const seedApps = [
       { label: 'Website', url: '#' },
       { label: 'X', url: 'https://x.com/creainetwork' },
     ],
+    storeLinks: [
+      { label: 'Web App', url: '#' },
+      { label: 'App Store', url: '#' },
+    ],
   },
   {
     id: 'brief-forge',
@@ -53,6 +57,7 @@ export const seedApps = [
     published: true,
     stacks: ['React', 'Design Systems', 'AI Briefing', 'Client Workflow'],
     socialLinks: [{ label: 'Instagram', url: 'https://www.instagram.com/creainetwork/' }],
+    storeLinks: [{ label: 'Web App', url: '#' }],
   },
   {
     id: 'canvas-ops',
@@ -69,6 +74,7 @@ export const seedApps = [
     published: true,
     stacks: ['Dashboarding', 'Operations', 'Internal Tracking'],
     socialLinks: [],
+    storeLinks: [],
   },
   {
     id: 'pulse-room',
@@ -85,5 +91,6 @@ export const seedApps = [
     published: false,
     stacks: ['Prototype', 'Editorial UI', 'Exploration'],
     socialLinks: [],
+    storeLinks: [],
   },
 ]
