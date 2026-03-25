@@ -19,6 +19,21 @@ export const appCategories = [
   'Prototype',
 ]
 
+export const stackOptions = [
+  { id: 'react', label: 'React', short: 'R', tone: '#61dafb' },
+  { id: 'nextjs', label: 'Next.js', short: 'N', tone: '#f5f5f5' },
+  { id: 'typescript', label: 'TypeScript', short: 'TS', tone: '#3178c6' },
+  { id: 'tailwind', label: 'Tailwind CSS', short: 'TW', tone: '#38bdf8' },
+  { id: 'supabase', label: 'Supabase', short: 'S', tone: '#3ecf8e' },
+  { id: 'nodejs', label: 'Node.js', short: 'N', tone: '#8cc84b' },
+  { id: 'openai', label: 'OpenAI', short: 'AI', tone: '#ffffff' },
+  { id: 'gsap', label: 'GSAP', short: 'G', tone: '#88ce02' },
+  { id: 'cloudflare', label: 'Cloudflare', short: 'CF', tone: '#f38020' },
+  { id: 'framer', label: 'Framer Motion', short: 'FM', tone: '#8b5cf6' },
+  { id: 'stripe', label: 'Stripe', short: 'ST', tone: '#635bff' },
+  { id: 'postgres', label: 'Postgres', short: 'PG', tone: '#336791' },
+]
+
 export const seedApps = [
   {
     id: 'signal-deck',

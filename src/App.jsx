@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { gsap } from 'gsap'
-import { appCategories, brandContent, seedApps } from './content'
+import { appCategories, brandContent, seedApps, stackOptions } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import CreaiLogo from './CreaiLogo'
 
@@ -11,7 +11,7 @@ const initialForm = {
   status: 'Beta',
   summary: '',
   audience: 'Public',
-  stacks: '',
+  stacks: [],
   url: '',
   website: '',
   x: '',
@@ -27,6 +27,7 @@ const initialForm = {
 
 const staticAdminUsername = 'root-admin'
 const staticAdminEmail = 'root-admin@creai.co'
+const adminSections = ['App Library', 'Publishing', 'Account']
 
 const socialIcons = {
   Instagram: (
@@ -52,6 +53,62 @@ const socialIcons = {
       <path d="M3.75 12H20.25M12 3.75C14.34 6.02 15.67 8.94 15.75 12C15.67 15.06 14.34 17.98 12 20.25C9.66 17.98 8.33 15.06 8.25 12C8.33 8.94 9.66 6.02 12 3.75Z" />
     </svg>
   ),
+}
+
+const stackMeta = Object.fromEntries(stackOptions.map((item) => [item.label, item]))
+
+function StackGlyph({ label }) {
+  const meta = stackMeta[label] || { short: label.slice(0, 2).toUpperCase(), tone: '#c2ff29' }
+
+  return (
+    <span className="stack-glyph" style={{ '--stack-tone': meta.tone }} aria-hidden="true">
+      {meta.short}
+    </span>
+  )
+}
+
+function StackMultiSelect({ value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const toggleStack = (label) => {
+    onChange(value.includes(label) ? value.filter((item) => item !== label) : [...value, label])
+  }
+
+  return (
+    <div className={`stack-selector ${isOpen ? 'is-open' : ''}`}>
+      <button type="button" className="stack-selector-trigger" onClick={() => setIsOpen((current) => !current)}>
+        <span>{value.length ? `${value.length} stack selected` : 'Select stacks'}</span>
+        <strong>{isOpen ? 'Close' : 'Choose'}</strong>
+      </button>
+
+      {value.length ? (
+        <div className="stack-selection-row">
+          {value.map((item) => (
+            <button key={item} type="button" className="stack-selection-chip" onClick={() => toggleStack(item)}>
+              <StackGlyph label={item} />
+              <span>{item}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {isOpen ? (
+        <div className="stack-selector-menu">
+          {stackOptions.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`stack-option ${value.includes(item.label) ? 'is-selected' : ''}`}
+              onClick={() => toggleStack(item.label)}
+            >
+              <StackGlyph label={item.label} />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 const formatDate = (value) =>
@@ -190,6 +247,33 @@ function Sidebar({ onNavigate }) {
           <a key={item.label} href={item.url} target="_blank" rel="noreferrer" aria-label={item.label}>
             <span className="social-icon">{socialIcons[item.label]}</span>
           </a>
+        ))}
+      </div>
+    </aside>
+  )
+}
+
+function AdminSidebar({ activeSection, onSectionChange, onNavigate }) {
+  return (
+    <aside className="admin-sidebar">
+      <button className="brand-lockup" onClick={() => onNavigate('/directory')}>
+        <img src="/creailogo.svg" alt="CREAI" />
+        <span>
+          <strong>CREAI</strong>
+          <small>admin panel</small>
+        </span>
+      </button>
+
+      <div className="admin-sidebar-nav">
+        {adminSections.map((section) => (
+          <button
+            key={section}
+            type="button"
+            className={activeSection === section ? 'is-active' : ''}
+            onClick={() => onSectionChange(section)}
+          >
+            {section}
+          </button>
         ))}
       </div>
     </aside>
@@ -590,8 +674,7 @@ function AdminSignIn({ onSignedIn }) {
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="root-admin"
-              autoComplete="off"
+              autoComplete="new-password"
               autoCapitalize="none"
               spellCheck="false"
               required
@@ -604,7 +687,7 @@ function AdminSignIn({ onSignedIn }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="••••••••••"
-              autoComplete="off"
+              autoComplete="new-password"
               required
             />
           </label>
@@ -616,7 +699,7 @@ function AdminSignIn({ onSignedIn }) {
   )
 }
 
-function AdminView({ apps, setApps, session, setSession, loading, error }) {
+function AdminView({ apps, setApps, session, setSession, loading, error, activeSection }) {
   const [form, setForm] = useState(initialForm)
   const [feedback, setFeedback] = useState('')
 
@@ -647,7 +730,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
       status: form.status,
       summary: form.summary,
       audience: form.audience,
-      stacks: form.stacks.split(',').map((item) => item.trim()).filter(Boolean),
+      stacks: form.stacks,
       social_links: socialLinks,
       store_links: storeLinks,
       url: form.url,
@@ -685,6 +768,19 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
     setApps((current) => current.map((app) => (app.id === id ? mapAppRow(data) : app)))
   }
 
+  const deleteApp = async (id) => {
+    if (!supabase) return
+
+    const { error: deleteError } = await supabase.from('apps').delete().eq('id', id)
+    if (deleteError) {
+      setFeedback(deleteError.message)
+      return
+    }
+
+    setApps((current) => current.filter((app) => app.id !== id))
+    setFeedback('App removed successfully.')
+  }
+
   const signOut = async () => {
     if (!supabase) return
     await supabase.auth.signOut()
@@ -704,7 +800,7 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
       <div className="content-hero">
         <div>
           <p className="eyebrow-copy">Admin</p>
-          <h2>Manage directory inventory with Supabase as the source of truth.</h2>
+          <h2>{activeSection === 'App Library' ? 'Create and edit app entries.' : activeSection === 'Publishing' ? 'Control visibility and featured states.' : 'Admin session and access state.'}</h2>
         </div>
         <div className="hero-actions">
           <span className="session-chip">{staticAdminUsername}</span>
@@ -715,126 +811,153 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
       {loading ? <div className="empty-state">Syncing dashboard...</div> : null}
       {error ? <div className="empty-state">{error}</div> : null}
 
-      <div className="admin-layout">
-        <form className="admin-panel form-panel" onSubmit={submitForm}>
-          <div className="panel-heading">
-            <h3>Add new app</h3>
-            <p>Create a new directory entry that can be published to app.creai.co.</p>
-          </div>
+      {activeSection === 'App Library' ? (
+        <div className="admin-layout">
+          <form className="admin-panel form-panel" onSubmit={submitForm}>
+            <div className="panel-heading">
+              <h3>Add new app</h3>
+              <p>Create a new directory entry for app.creai.co.</p>
+            </div>
 
-          <label>
-            <span>App name</span>
-            <input value={form.name} onChange={(event) => updateField('name', event.target.value)} required />
-          </label>
-          <label>
-            <span>Slug</span>
-            <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} required />
-          </label>
-          <label>
-            <span>Summary</span>
-            <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
-          </label>
-          <label>
-            <span>Stacks</span>
-            <input value={form.stacks} onChange={(event) => updateField('stacks', event.target.value)} placeholder="React, Supabase, AI Workflow" />
-          </label>
-          <div className="form-split">
             <label>
-              <span>Category</span>
-              <select value={form.category} onChange={(event) => updateField('category', event.target.value)}>
-                {appCategories.filter((item) => item !== 'All').map((item) => (
-                  <option key={item} value={item}>{item}</option>
-                ))}
-              </select>
+              <span>App name</span>
+              <input value={form.name} onChange={(event) => updateField('name', event.target.value)} required />
             </label>
             <label>
-              <span>Status</span>
-              <select value={form.status} onChange={(event) => updateField('status', event.target.value)}>
-                <option>Live</option>
-                <option>Beta</option>
-                <option>Internal</option>
-                <option>Concept</option>
-              </select>
-            </label>
-          </div>
-          <div className="form-split">
-            <label>
-              <span>Audience</span>
-              <select value={form.audience} onChange={(event) => updateField('audience', event.target.value)}>
-                <option>Public</option>
-                <option>Client-facing</option>
-                <option>Internal</option>
-                <option>Studio</option>
-              </select>
+              <span>Slug</span>
+              <input value={form.slug} onChange={(event) => updateField('slug', event.target.value)} required />
             </label>
             <label>
-              <span>Accent</span>
-              <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} />
-            </label>
-          </div>
-          <label>
-            <span>URL</span>
-            <input value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://app.creai.co/brief-forge" />
-          </label>
-          <div className="form-split">
-            <label>
-              <span>Website</span>
-              <input value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." />
+              <span>Description</span>
+              <textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={4} required />
             </label>
             <label>
-              <span>X</span>
-              <input value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." />
+              <span>Stacks</span>
+              <StackMultiSelect value={form.stacks} onChange={(value) => updateField('stacks', value)} />
             </label>
-          </div>
-          <div className="form-split">
+            <div className="form-split">
+              <label>
+                <span>Category</span>
+                <select value={form.category} onChange={(event) => updateField('category', event.target.value)}>
+                  {appCategories.filter((item) => item !== 'All').map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Status</span>
+                <select value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+                  <option>Live</option>
+                  <option>Beta</option>
+                  <option>Internal</option>
+                  <option>Concept</option>
+                </select>
+              </label>
+            </div>
+            <div className="form-split">
+              <label>
+                <span>Audience</span>
+                <select value={form.audience} onChange={(event) => updateField('audience', event.target.value)}>
+                  <option>Public</option>
+                  <option>Client-facing</option>
+                  <option>Internal</option>
+                  <option>Studio</option>
+                </select>
+              </label>
+              <label>
+                <span>Accent color</span>
+                <div className="color-field">
+                  <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} />
+                  <strong>{form.accent}</strong>
+                </div>
+              </label>
+            </div>
             <label>
-              <span>Instagram</span>
-              <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." />
+              <span>URL</span>
+              <input value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://app.creai.co/brief-forge" />
             </label>
+            <div className="form-split">
+              <label>
+                <span>Website</span>
+                <input value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." />
+              </label>
+              <label>
+                <span>X</span>
+                <input value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." />
+              </label>
+            </div>
+            <div className="form-split">
+              <label>
+                <span>Instagram</span>
+                <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." />
+              </label>
+              <label>
+                <span>GitHub</span>
+                <input value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." />
+              </label>
+            </div>
+            <div className="form-split">
+              <label>
+                <span>Web App badge</span>
+                <input value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." />
+              </label>
+              <label>
+                <span>App Store badge</span>
+                <input value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." />
+              </label>
+            </div>
             <label>
-              <span>GitHub</span>
-              <input value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." />
+              <span>Google Play badge</span>
+              <input value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." />
             </label>
-          </div>
-          <div className="form-split">
-            <label>
-              <span>Web App badge</span>
-              <input value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." />
-            </label>
-            <label>
-              <span>App Store badge</span>
-              <input value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." />
-            </label>
-          </div>
-          <label>
-            <span>Google Play badge</span>
-            <input value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." />
-          </label>
-          <div className="toggle-row">
-            <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} /> Featured</label>
-            <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} /> Published</label>
-          </div>
-          <button type="submit" className="primary-button">Create app entry</button>
-          {feedback ? <p className="helper-copy">{feedback}</p> : null}
-        </form>
+            <div className="toggle-row">
+              <label><input type="checkbox" checked={form.featured} onChange={() => updateField('featured', !form.featured)} /> Featured</label>
+              <label><input type="checkbox" checked={form.published} onChange={() => updateField('published', !form.published)} /> Published</label>
+            </div>
+            <button type="submit" className="primary-button admin-primary-button">Create app entry</button>
+            {feedback ? <p className="helper-copy">{feedback}</p> : null}
+          </form>
 
+          <div className="admin-panel list-panel">
+            <div className="panel-heading">
+              <h3>App library</h3>
+              <p>All entries currently stored in the directory database.</p>
+            </div>
+            <div className="admin-list">
+              {apps.map((app) => (
+                <article key={app.id} className="admin-item admin-item-card">
+                  <div>
+                    <strong>{app.name}</strong>
+                    <p>{app.category} / {app.status} / {app.audience}</p>
+                  </div>
+                  <div className="admin-actions">
+                    <button type="button" onClick={() => deleteApp(app.id)}>Remove</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {activeSection === 'Publishing' ? (
         <div className="admin-panel list-panel">
           <div className="panel-heading">
-            <h3>Current inventory</h3>
-            <p>Feature or publish launches directly from the dashboard.</p>
+            <h3>Publishing controls</h3>
+            <p>Feature, hide, or publish apps from one place.</p>
           </div>
           <div className="admin-list">
             {apps.map((app) => (
-              <article key={app.id} className="admin-item">
+              <article key={app.id} className="admin-item admin-item-card">
                 <div>
                   <strong>{app.name}</strong>
                   <p>{app.category} / {app.status} / {app.audience}</p>
                 </div>
                 <div className="admin-actions">
-                  <button onClick={() => toggleField(app.id, 'featured', app.featured)} className={app.featured ? 'toggle-active' : ''}>
+                  <button type="button" onClick={() => toggleField(app.id, 'featured', app.featured)} className={app.featured ? 'toggle-active' : ''}>
                     {app.featured ? 'Featured' : 'Feature'}
                   </button>
-                  <button onClick={() => toggleField(app.id, 'published', app.published)} className={app.published ? 'toggle-active' : ''}>
+                  <button type="button" onClick={() => toggleField(app.id, 'published', app.published)} className={app.published ? 'toggle-active' : ''}>
                     {app.published ? 'Published' : 'Hidden'}
                   </button>
                 </div>
@@ -842,7 +965,30 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
             ))}
           </div>
         </div>
-      </div>
+      ) : null}
+
+      {activeSection === 'Account' ? (
+        <div className="admin-panel list-panel">
+          <div className="panel-heading">
+            <h3>Account</h3>
+            <p>Current admin session and backend connection state.</p>
+          </div>
+          <div className="stack-list">
+            <article className="stack-item">
+              <div>
+                <strong>Username</strong>
+                <p>{staticAdminUsername}</p>
+              </div>
+            </article>
+            <article className="stack-item">
+              <div>
+                <strong>Supabase session</strong>
+                <p>{session.user?.email || staticAdminEmail}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -851,6 +997,7 @@ export default function App() {
   const [path, setPath] = useState(() => buildPath())
   const [host, setHost] = useState(() => buildHost())
   const [category, setCategory] = useState('All')
+  const [adminSection, setAdminSection] = useState('App Library')
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
   const route = parsePath(path, host)
 
@@ -883,6 +1030,15 @@ export default function App() {
     document.title = 'CREAI Apps | Imagine Beyond'
   }, [route, apps])
 
+  useEffect(() => {
+    const shouldLockScroll = route.view === 'admin' && !session
+    document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [route.view, session])
+
   const navigate = (nextPath) => {
     if (nextPath === path) return
     window.history.pushState({}, '', nextPath)
@@ -891,6 +1047,51 @@ export default function App() {
 
   if (route.view === 'landing') {
     return <LandingView />
+  }
+
+  if (route.view === 'admin' && loading && isSupabaseConfigured && !session) {
+    return (
+      <main className="admin-auth-shell">
+        <div className="admin-auth-ambient admin-auth-ambient-one" aria-hidden="true" />
+        <div className="admin-auth-ambient admin-auth-ambient-two" aria-hidden="true" />
+        <div className="admin-auth-grid" aria-hidden="true" />
+        <section className="admin-auth-card">
+          <div className="panel-heading admin-auth-heading">
+            <p className="eyebrow-copy">Admin Access</p>
+            <h3>Checking your session.</h3>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  if (route.view === 'admin' && !session) {
+    return <AdminSignIn onSignedIn={() => {}} />
+  }
+
+  if (route.view === 'admin') {
+    return (
+      <main className="admin-shell">
+        <div className="ambient ambient-one" aria-hidden="true" />
+        <div className="ambient ambient-two" aria-hidden="true" />
+        <div className="ambient ambient-three" aria-hidden="true" />
+        <div className="surface-grid" aria-hidden="true" />
+
+        <AdminSidebar activeSection={adminSection} onSectionChange={setAdminSection} onNavigate={navigate} />
+
+        <section className="admin-page-frame">
+          <AdminView
+            apps={apps}
+            setApps={setApps}
+            session={session}
+            setSession={setSession}
+            loading={loading}
+            error={error}
+            activeSection={adminSection}
+          />
+        </section>
+      </main>
+    )
   }
 
   return (
@@ -903,9 +1104,7 @@ export default function App() {
       <Sidebar onNavigate={navigate} />
 
       <section className="page-frame">
-        {route.view === 'admin' ? (
-          <AdminView apps={apps} setApps={setApps} session={session} setSession={setSession} loading={loading} error={error} />
-        ) : route.view === 'detail' ? (
+        {route.view === 'detail' ? (
           <DetailView
             app={apps.find((app) => app.slug === route.slug && app.published)}
             relatedApps={apps.filter((app) => app.slug !== route.slug && app.published).slice(0, 2)}
