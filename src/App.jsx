@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { gsap } from 'gsap'
 import { appCategories, brandContent, seedApps } from './content'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import CreaiLogo from './CreaiLogo'
 
 const initialForm = {
   name: '',
@@ -57,8 +59,9 @@ const formatDate = (value) =>
   })
 
 const buildPath = () => window.location.pathname.replace(/\/+$/, '') || '/'
+const buildHost = () => window.location.hostname.toLowerCase()
 
-const parsePath = (pathname) => {
+const parsePath = (pathname, hostname) => {
   if (pathname === '/admin') {
     return { view: 'admin' }
   }
@@ -67,8 +70,20 @@ const parsePath = (pathname) => {
     return { view: 'detail', slug: pathname.replace('/apps/', '') }
   }
 
-  return { view: 'directory' }
+  if (pathname === '/directory' || hostname === 'app.creai.co') {
+    return { view: 'directory' }
+  }
+
+  return { view: 'landing' }
 }
+
+const landingScanLines = [
+  { left: '10%', duration: '8.8s', delay: '1.7s', strength: 0.62 },
+  { left: '30%', duration: '10.4s', delay: '0.4s', strength: 0.78 },
+  { left: '50%', duration: '7.6s', delay: '2.9s', strength: 0.52 },
+  { left: '70%', duration: '9.2s', delay: '1.1s', strength: 0.72 },
+  { left: '90%', duration: '8.1s', delay: '3.6s', strength: 0.58 },
+]
 
 const mapAppRow = (row) => ({
   id: row.id,
@@ -203,6 +218,110 @@ function StoreBadges({ links }) {
         </a>
       ))}
     </div>
+  )
+}
+
+function LandingView() {
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const syncPreference = () => setReducedMotion(media.matches)
+
+    syncPreference()
+    setIsLoaded(true)
+    media.addEventListener('change', syncPreference)
+
+    return () => media.removeEventListener('change', syncPreference)
+  }, [])
+
+  useEffect(() => {
+    if (reducedMotion) {
+      return undefined
+    }
+
+    const ctx = gsap.context(() => {
+      gsap.to('.landing-ambient-one', {
+        xPercent: 10,
+        yPercent: 8,
+        scale: 1.08,
+        rotation: 8,
+        duration: 14,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      })
+
+      gsap.to('.landing-ambient-two', {
+        xPercent: -12,
+        yPercent: -10,
+        scale: 1.14,
+        rotation: -10,
+        duration: 16,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      })
+
+      gsap.to('.landing-ambient-three', {
+        xPercent: 6,
+        yPercent: -7,
+        scale: 1.18,
+        opacity: 0.78,
+        rotation: 6,
+        duration: 12,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      })
+    })
+
+    return () => ctx.revert()
+  }, [reducedMotion])
+
+  return (
+    <main className={`landing-shell ${isLoaded ? 'is-loaded' : ''}`}>
+      <div className="landing-noise" aria-hidden="true" />
+      <div className="landing-grid-field" aria-hidden="true" />
+      <div className="landing-ambient landing-ambient-one" aria-hidden="true" />
+      <div className="landing-ambient landing-ambient-two" aria-hidden="true" />
+      <div className="landing-ambient landing-ambient-three" aria-hidden="true" />
+      <div className="landing-line-cluster" aria-hidden="true">
+        {landingScanLines.map((line, index) => (
+          <span
+            key={`landing-${line.left}-${index}`}
+            className="landing-scan-line"
+            style={{
+              '--line-left': line.left,
+              '--line-duration': line.duration,
+              '--line-delay': line.delay,
+              '--line-opacity': line.strength,
+            }}
+          />
+        ))}
+      </div>
+
+      <section className="landing-hero">
+        <div className="landing-hero-visual">
+          <div className="landing-logo-stage">
+            <CreaiLogo />
+          </div>
+          <p className="landing-hero-eyebrow">{brandContent.eyebrow}</p>
+          <p className="landing-logo-caption">{brandContent.caption}</p>
+        </div>
+
+        <div className="landing-hero-copy">
+          <div className="landing-social-list" aria-label="Social links">
+            {brandContent.socialLinks.map((item) => (
+              <a key={item.label} href={item.url} target="_blank" rel="noreferrer" aria-label={item.label}>
+                <span className="social-icon">{socialIcons[item.label]}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
   )
 }
 
@@ -689,17 +808,26 @@ function AdminView({ apps, setApps, session, setSession, loading, error }) {
 
 export default function App() {
   const [path, setPath] = useState(() => buildPath())
+  const [host, setHost] = useState(() => buildHost())
   const [category, setCategory] = useState('All')
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
-  const route = parsePath(path)
+  const route = parsePath(path, host)
 
   useEffect(() => {
-    const onPopState = () => setPath(buildPath())
+    const onPopState = () => {
+      setPath(buildPath())
+      setHost(buildHost())
+    }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   useEffect(() => {
+    if (route.view === 'landing') {
+      document.title = 'CREAI | Imagine Beyond'
+      return
+    }
+
     if (route.view === 'admin') {
       document.title = 'CREAI Admin | Imagine Beyond'
       return
@@ -718,6 +846,10 @@ export default function App() {
     if (nextPath === path) return
     window.history.pushState({}, '', nextPath)
     setPath(nextPath)
+  }
+
+  if (route.view === 'landing') {
+    return <LandingView />
   }
 
   return (

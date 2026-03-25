@@ -1,5 +1,6 @@
 export const brandContent = {
   eyebrow: 'IMAGINE BEYOND',
+  caption: 'CREATIVE AI STUDIO',
   title: 'CREAI App Directory',
   subtitle:
     'A living home for CREAI products, experiments, and internal launches across AI, interface design, and modern app systems.',
