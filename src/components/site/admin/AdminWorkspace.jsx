@@ -59,6 +59,7 @@ import { getSupabaseBrowserClient, hasSupabaseEnv } from '../../../lib/supabase'
 import Input from '../../ui/Input'
 import ThemeToggle from '../ThemeToggle'
 import SetupState from '../SetupState'
+import WorkspaceBrand from '../WorkspaceBrand'
 
 const navGroups = [
   {
@@ -825,21 +826,10 @@ export default function AdminWorkspace({ route }) {
     <div className="min-h-screen bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
       <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-mist-200/80 bg-white shadow-soft dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
-        <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
-          <div className="space-y-6">
+        <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:h-[calc(100vh-2.5rem)] lg:w-[280px] lg:flex-none lg:border-b-0 lg:border-r lg:overflow-hidden">
+          <div className="flex h-full flex-col gap-6">
             <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink-950 text-mist-200 dark:bg-mist-200 dark:text-ink-950">
-                    <RiDashboardLine className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <Text className="text-xs uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">CREAI</Text>
-                    <Title>Admin</Title>
-                  </div>
-                </div>
-                <Badge color="lime">{apps.length}</Badge>
-              </div>
+              <WorkspaceBrand label="Admin" value={<Badge color="lime">{apps.length}</Badge>} />
               <Text>Manage categories, products, publishing state, and activity from one catalog workspace.</Text>
             </div>
 

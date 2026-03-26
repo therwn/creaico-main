@@ -25,7 +25,6 @@ import {
   RiApps2Line,
   RiAppsLine,
   RiArrowRightUpLine,
-  RiCompass3Line,
   RiFolderOpenLine,
   RiGlobalLine,
   RiPulseLine,
@@ -40,6 +39,7 @@ import Input from '../ui/Input'
 import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
+import WorkspaceBrand from './WorkspaceBrand'
 
 const directoryTabs = [
   { value: 'active', label: 'Active' },
@@ -161,20 +161,9 @@ export default function PublicDirectory() {
     <div className="min-h-screen bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
       <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-mist-200/80 bg-white shadow-soft dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
-          <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink-950 text-mist-200 dark:bg-mist-200 dark:text-ink-950">
-                    <RiCompass3Line className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <Text className="text-xs uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">CREAI</Text>
-                    <Title>Directory</Title>
-                  </div>
-                </div>
-                <Badge color="lime">{metrics.total}</Badge>
-              </div>
+          <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:h-[calc(100vh-2.5rem)] lg:w-[280px] lg:flex-none lg:border-b-0 lg:border-r lg:overflow-hidden">
+            <div className="flex h-full flex-col gap-5">
+              <WorkspaceBrand label="Directory" value={<Badge color="lime">{metrics.total}</Badge>} />
 
               <div>
                 <Input
@@ -184,122 +173,122 @@ export default function PublicDirectory() {
                   icon={RiSearchLine}
                 />
               </div>
-            </div>
 
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Browse</Text>
-                <div className="space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDirectoryTab('directory')
-                      setAvailabilityFilter('all')
-                    }}
-                    className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                      directoryTab === 'directory'
-                        ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                        : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                    }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      <RiFolderOpenLine className="h-4 w-4" />
-                      Directory
-                    </span>
-                    <Badge color="gray">{metrics.total}</Badge>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDirectoryTab('active')}
-                    className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                      directoryTab === 'active'
-                        ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                        : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                    }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      <RiPulseLine className="h-4 w-4" />
-                      Active
-                    </span>
-                    <Badge color="gray">{activeCount}</Badge>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAvailabilityFilter('store')}
-                    className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
-                  >
-                    <span className="flex items-center gap-3">
-                      <RiStore2Line className="h-4 w-4" />
-                      Store-ready
-                    </span>
-                    <Badge color="gray">{metrics.storeReady}</Badge>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAvailabilityFilter('social')}
-                    className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
-                  >
-                    <span className="flex items-center gap-3">
-                      <RiGlobalLine className="h-4 w-4" />
-                      Social-ready
-                    </span>
-                    <Badge color="gray">{metrics.socialReady}</Badge>
-                  </button>
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Browse</Text>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDirectoryTab('directory')
+                        setAvailabilityFilter('all')
+                      }}
+                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                        directoryTab === 'directory'
+                          ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                          : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <RiFolderOpenLine className="h-4 w-4" />
+                        Directory
+                      </span>
+                      <Badge color="gray">{metrics.total}</Badge>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDirectoryTab('active')}
+                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                        directoryTab === 'active'
+                          ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                          : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <RiPulseLine className="h-4 w-4" />
+                        Active
+                      </span>
+                      <Badge color="gray">{activeCount}</Badge>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAvailabilityFilter('store')}
+                      className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
+                    >
+                      <span className="flex items-center gap-3">
+                        <RiStore2Line className="h-4 w-4" />
+                        Store-ready
+                      </span>
+                      <Badge color="gray">{metrics.storeReady}</Badge>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAvailabilityFilter('social')}
+                      className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
+                    >
+                      <span className="flex items-center gap-3">
+                        <RiGlobalLine className="h-4 w-4" />
+                        Social-ready
+                      </span>
+                      <Badge color="gray">{metrics.socialReady}</Badge>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Collections</Text>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('all')}
+                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                        selectedCategory === 'all'
+                          ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                          : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <RiAppsLine className="h-4 w-4" />
+                        All categories
+                      </span>
+                      <Badge color="gray">{metrics.categories}</Badge>
+                    </button>
+                    {highlightedCategories.map((category) => {
+                      const count = apps.filter((app) => app.category?.id === category.id).length
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => setSelectedCategory(category.id)}
+                          className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                            selectedCategory === category.id
+                              ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                              : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
+                          }`}
+                        >
+                          <span className="flex items-center gap-3">
+                            <RiShapesLine className="h-4 w-4" />
+                            {category.name}
+                          </span>
+                          <Badge color="gray">{count}</Badge>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Collections</Text>
-                <div className="space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory('all')}
-                    className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                      selectedCategory === 'all'
-                        ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                        : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                    }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      <RiAppsLine className="h-4 w-4" />
-                      All categories
-                    </span>
-                    <Badge color="gray">{metrics.categories}</Badge>
-                  </button>
-                  {highlightedCategories.map((category) => {
-                    const count = apps.filter((app) => app.category?.id === category.id).length
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => setSelectedCategory(category.id)}
-                        className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                          selectedCategory === category.id
-                            ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                            : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                        }`}
-                      >
-                        <span className="flex items-center gap-3">
-                          <RiShapesLine className="h-4 w-4" />
-                          {category.name}
-                        </span>
-                        <Badge color="gray">{count}</Badge>
-                      </button>
-                    )
-                  })}
-                </div>
+              <div className="mt-auto space-y-3 border-t border-mist-200/80 pt-4 dark:border-ink-700">
+                <ThemeToggle />
+                <Text className="text-xs text-mist-500 dark:text-mist-400">
+                  Browse published CREAI products, stacks, and launch surfaces from one catalog.
+                </Text>
               </div>
-            </div>
-
-            <div className="mt-auto space-y-3 border-t border-mist-200/80 pt-4 dark:border-ink-700">
-              <ThemeToggle />
-              <Text className="text-xs text-mist-500 dark:text-mist-400">
-                Browse published CREAI products, stacks, and launch surfaces from one catalog.
-              </Text>
             </div>
           </aside>
 
-          <main className="min-w-0 flex-1 p-6 lg:p-8">
+          <main className="min-w-0 flex-1 p-6 lg:h-[calc(100vh-2.5rem)] lg:overflow-y-auto lg:p-8">
             <div className="space-y-8">
               <div className="space-y-6">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
