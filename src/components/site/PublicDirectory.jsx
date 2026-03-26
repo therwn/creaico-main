@@ -163,7 +163,7 @@ export default function PublicDirectory() {
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
           <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:h-[calc(100vh-2.5rem)] lg:w-[280px] lg:flex-none lg:border-b-0 lg:border-r lg:overflow-hidden">
             <div className="flex h-full flex-col gap-5">
-              <WorkspaceBrand label="Directory" value={<Badge color="lime">{metrics.total}</Badge>} />
+              <WorkspaceBrand label="Directory" value={<Badge color="lime" className="creai-badge">{metrics.total}</Badge>} />
 
               <div>
                 <Input
@@ -389,7 +389,7 @@ export default function PublicDirectory() {
                 <div className="space-y-6">
                   <Card className="rounded-[2rem] p-6">
                     <div className="space-y-2">
-                      <Badge color="lime" icon={RiPulseLine}>Spotlight</Badge>
+                      <Badge color="lime" icon={RiPulseLine} className="creai-badge">Spotlight</Badge>
                       <Title>{latestUpdatedApp ? latestUpdatedApp.name : 'Your next featured app'}</Title>
                       <Text>
                         {latestUpdatedApp
@@ -401,10 +401,10 @@ export default function PublicDirectory() {
                       <>
                         <div className="mt-4 flex flex-wrap gap-2">
                           <Badge color="gray">{latestUpdatedApp.category?.name ?? 'Uncategorized'}</Badge>
-                          <Badge color="lime">{formatDate(latestUpdatedApp.updatedAt)}</Badge>
+                          <Badge color="lime" className="creai-badge">{formatDate(latestUpdatedApp.updatedAt)}</Badge>
                         </div>
                         <Link href={`/apps/${latestUpdatedApp.slug}`} className="mt-6 inline-flex">
-                          <Button icon={RiArrowRightUpLine}>Open spotlight</Button>
+                          <Button icon={RiArrowRightUpLine} className="creai-button-primary">Open spotlight</Button>
                         </Link>
                       </>
                     ) : null}

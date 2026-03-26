@@ -57,7 +57,7 @@ function TechBadge({ value, color = 'gray' }) {
   const Icon = meta?.icon
 
   return (
-    <Badge color={color}>
+    <Badge color={color} className={color === 'lime' ? 'creai-badge' : undefined}>
       <span className="flex items-center gap-2">
         {Icon ? (
           <span className="flex h-4 w-4 items-center justify-center overflow-hidden [&>svg]:h-4 [&>svg]:w-4">
@@ -168,7 +168,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                     </div>
                   )}
                   <div className="space-y-2">
-                    <Badge color="lime">{app.category?.name ?? 'Uncategorized'}</Badge>
+                    <Badge color="lime" className="creai-badge">{app.category?.name ?? 'Uncategorized'}</Badge>
                     <Title>{app.name}</Title>
                     <Text>{app.shortDescription}</Text>
                     <Text>{formatDate(app.updatedAt)}</Text>
@@ -210,7 +210,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                         if (!meta) return null
                         return (
                           <a key={key} href={value} target="_blank" rel="noreferrer">
-                            <Button icon={meta.icon}>
+                            <Button icon={meta.icon} className="creai-button-primary">
                               {meta.label}
                             </Button>
                           </a>
@@ -240,8 +240,8 @@ export default function AppDetailView({ slug, publicRoot }) {
               <Card className="rounded-3xl p-6">
                 <Title>Availability</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge color={socialLinks.length ? 'lime' : 'gray'}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
-                  <Badge color={storeLinks.length ? 'lime' : 'gray'}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
+                  <Badge color={socialLinks.length ? 'lime' : 'gray'} className={socialLinks.length ? 'creai-badge' : undefined}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
+                  <Badge color={storeLinks.length ? 'lime' : 'gray'} className={storeLinks.length ? 'creai-badge' : undefined}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
                   <Badge color="slate" icon={RiExternalLinkLine}>
                     {app.status}
                   </Badge>

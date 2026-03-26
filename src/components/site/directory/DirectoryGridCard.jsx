@@ -34,7 +34,7 @@ export default function DirectoryGridCard({ app }) {
             {app.name.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
+        <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
       </div>
 
       <div className="mt-5 space-y-1.5">
@@ -56,7 +56,7 @@ export default function DirectoryGridCard({ app }) {
         {app.frameworks.slice(0, 1).map((item) => {
           const meta = getTechOption(item)
           return (
-            <Badge key={item} color="lime" icon={meta?.icon}>
+            <Badge key={item} color="lime" icon={meta?.icon} className="creai-badge">
               {item}
             </Badge>
           )

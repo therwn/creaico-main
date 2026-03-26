@@ -250,7 +250,7 @@ function CategoryDialog({ open, onOpenChange, value, onValueChange, onSubmit, lo
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-mist-200/80 bg-white p-6 shadow-soft outline-none dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <Badge color="lime">New category</Badge>
+              <Badge color="lime" className="creai-badge">New category</Badge>
               <Title>Create a category</Title>
               <Text>Add a new category without leaving the app form.</Text>
             </div>
@@ -276,7 +276,7 @@ function CategoryDialog({ open, onOpenChange, value, onValueChange, onSubmit, lo
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button type="button" loading={loading} className="rounded-2xl" onClick={onSubmit}>
+            <Button type="button" loading={loading} className="creai-button-primary rounded-2xl" onClick={onSubmit}>
               Save category
             </Button>
           </div>
@@ -291,7 +291,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full rounded-3xl border border-mist-200/80 bg-white/90 p-8 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/85 dark:shadow-soft-dark">
         <div className="space-y-3 text-center">
-          <Badge color="lime">CREAI Admin</Badge>
+          <Badge color="lime" className="creai-badge">CREAI Admin</Badge>
           <Title>Sign in to manage the app catalog</Title>
           <Text>Use your Supabase email and password to access the Tremor workspace.</Text>
         </div>
@@ -321,7 +321,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
               onChange={(event) => onChange('password', event.target.value)}
             />
           </div>
-          <Button type="submit" loading={loading} className="w-full rounded-2xl">
+          <Button type="submit" loading={loading} className="creai-button-primary w-full rounded-2xl">
             Sign in
           </Button>
         </form>
@@ -516,7 +516,7 @@ function AppForm({
         </div>
       </Card>
 
-      <Button loading={loading} className="w-full rounded-2xl" onClick={onSubmit}>
+      <Button loading={loading} className="creai-button-primary w-full rounded-2xl" onClick={onSubmit}>
         {submitLabel}
       </Button>
     </div>
@@ -817,7 +817,7 @@ export default function AdminWorkspace({ route }) {
                   <TableRow key={app.id}>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>
-                      <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
+                      <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
                     </TableCell>
                     <TableCell>{formatDate(app.updatedAt)}</TableCell>
                   </TableRow>
@@ -845,7 +845,7 @@ export default function AdminWorkspace({ route }) {
               <Title>Create a new app</Title>
               <Text className="mt-2">Open the app creation form and publish a new product entry.</Text>
               <Link href="/admin/add" className="mt-6 inline-flex">
-                <Button icon={RiAddCircleLine}>Go to Add a New App</Button>
+                <Button icon={RiAddCircleLine} className="creai-button-primary">Go to Add a New App</Button>
               </Link>
             </Card>
             <Card className="rounded-3xl p-6">
@@ -869,7 +869,7 @@ export default function AdminWorkspace({ route }) {
               {activity.map((item) => (
                 <div key={item.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge color="lime">{item.action}</Badge>
+                    <Badge color="lime" className="creai-badge">{item.action}</Badge>
                     <Badge color="gray">{item.entity_type}</Badge>
                     <Text>{item.actor_email || 'Unknown user'}</Text>
                   </div>
@@ -913,7 +913,7 @@ export default function AdminWorkspace({ route }) {
                           <Text className="font-medium">{app.name}</Text>
                           <Text>{app.category?.name ?? 'Uncategorized'}</Text>
                         </div>
-                        <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
+                        <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
                       </div>
                     </div>
                   ))}
@@ -965,7 +965,7 @@ export default function AdminWorkspace({ route }) {
               className="gap-4 rounded-[2rem] border border-mist-200/80 bg-white/90 p-6 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/80 dark:shadow-soft-dark lg:flex-row lg:items-center"
             >
               <div className="space-y-2">
-                <Badge color="lime">{view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : 'Update Apps'}</Badge>
+                <Badge color="lime" className="creai-badge">{view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : 'Update Apps'}</Badge>
                 <Title>
                   {view.page === 'dashboard'
                     ? 'Manage the CREAI app directory'
@@ -987,7 +987,7 @@ export default function AdminWorkspace({ route }) {
               <div className="fixed right-6 top-6 z-50 max-w-sm">
                 <Card className="rounded-2xl border border-brand-200/80 bg-white/95 p-4 shadow-soft dark:border-brand-700/70 dark:bg-ink-900/95 dark:shadow-soft-dark">
                   <div className="flex items-start gap-3">
-                    <Badge color="lime">Saved</Badge>
+                    <Badge color="lime" className="creai-badge">Saved</Badge>
                     <Text>{notice}</Text>
                   </div>
                 </Card>
@@ -1051,7 +1051,7 @@ export default function AdminWorkspace({ route }) {
                                   <Text>{app.category?.name ?? 'Uncategorized'}</Text>
                                 </div>
                               </div>
-                              <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
+                              <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
                             </div>
 
                             <Text className="mt-4 min-h-[44px]">{app.shortDescription || 'No short description added yet.'}</Text>
@@ -1059,7 +1059,7 @@ export default function AdminWorkspace({ route }) {
                             <div className="mt-5 flex items-center justify-between gap-3">
                               <Text>{formatDate(app.updatedAt)}</Text>
                               <Link href={`/admin/update/${app.id}`}>
-                                <Button size="xs" icon={RiEdit2Line}>
+                                <Button size="xs" icon={RiEdit2Line} className="creai-button-primary">
                                   Edit
                                 </Button>
                               </Link>
