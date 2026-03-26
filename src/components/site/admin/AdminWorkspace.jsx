@@ -41,6 +41,7 @@ import {
 } from '@remixicon/react'
 import {
   createAppRecord,
+  deleteAppRecord,
   fetchAdminSnapshot,
   insertCategory,
   recordActivity,
@@ -51,8 +52,10 @@ import {
   createEmptyAppForm,
   dashboardSections,
   frameworkOptions,
+  getStoreStatusMeta,
   socialFieldOptions,
   stackOptions,
+  storeStatusOptions,
   storeFieldOptions,
 } from '../../../lib/app-options'
 import { getSupabaseBrowserClient, hasSupabaseEnv } from '../../../lib/supabase'
@@ -135,7 +138,7 @@ function humanizeFieldName(value) {
     social_links: 'social links',
     store_links: 'store links',
     logo_url: 'logo',
-    category: 'category',
+    category_ids: 'categories',
     stacks: 'stacks',
     frameworks: 'frameworks',
     slug: 'slug',
@@ -149,6 +152,7 @@ function humanizeFieldName(value) {
 function ActivityEntry({ item, compact = false }) {
   const details = item.details ?? {}
   const changedFields = Array.isArray(details.changedFields) ? details.changedFields : []
+  const changes = Array.isArray(details.changes) ? details.changes : []
 
   return (
     <div className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
@@ -164,7 +168,7 @@ function ActivityEntry({ item, compact = false }) {
         <div className="flex flex-wrap gap-2">
           {details.name ? <Badge color="gray">{details.name}</Badge> : null}
           {details.slug ? <Badge color="gray">slug: {details.slug}</Badge> : null}
-          {details.status ? <Badge color="gray">store: {details.status}</Badge> : null}
+          {details.status ? <Badge color="gray">store: {getStoreStatusMeta(details.status).label}</Badge> : null}
           {typeof details.stackCount === 'number' ? <Badge color="gray">stacks: {details.stackCount}</Badge> : null}
           {typeof details.frameworkCount === 'number' ? <Badge color="gray">frameworks: {details.frameworkCount}</Badge> : null}
           {typeof details.socialCount === 'number' ? <Badge color="gray">social: {details.socialCount}</Badge> : null}
@@ -177,9 +181,22 @@ function ActivityEntry({ item, compact = false }) {
           </Text>
         ) : null}
 
+        {!compact && changes.length ? (
+          <div className="space-y-2 rounded-2xl bg-mist-50 p-3 dark:bg-ink-900/70">
+            {changes.map((change) => (
+              <div key={`${change.field}-${change.before}-${change.after}`} className="text-sm">
+                <span className="font-medium text-ink-950 dark:text-mist-200">{humanizeFieldName(change.field)}:</span>{' '}
+                <span className="text-mist-500 dark:text-mist-400">{change.before}</span>{' '}
+                <span aria-hidden="true">→</span>{' '}
+                <span className="text-ink-950 dark:text-mist-200">{change.after}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         {details.previousStatus && details.previousStatus !== details.status ? (
           <Text>
-            Store status moved from {details.previousStatus} to {details.status}.
+            Store status moved from {getStoreStatusMeta(details.previousStatus).label} to {getStoreStatusMeta(details.status).label}.
           </Text>
         ) : null}
 
@@ -271,6 +288,24 @@ function sanitizeLinks(group) {
       .map(([key, value]) => [key, normalizeExternalUrl(value)])
       .filter(([, value]) => value),
   )
+}
+
+function validateAppForm(form, apps = [], currentId = null) {
+  if (!form.name.trim()) return 'App name is required.'
+
+  const slug = form.slug
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  if (!slug) return 'Slug is required.'
+  if (apps.some((app) => app.slug === slug && app.id !== currentId)) return 'This slug is already in use.'
+  if (!form.shortDescription.trim()) return 'Short description is required.'
+  if (!form.description.trim()) return 'Description is required.'
+  if (!form.categoryIds.length) return 'Select at least one category.'
+
+  return ''
 }
 
 function appPayloadFromForm(form, logoUrl) {
@@ -372,6 +407,38 @@ function CategoryDialog({ open, onOpenChange, value, onValueChange, onSubmit, lo
   )
 }
 
+function DeleteAppDialog({ open, onOpenChange, appName, onConfirm, loading }) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-ink-950/45 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-mist-200/80 bg-white p-6 shadow-soft outline-none dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
+          <div className="space-y-3">
+            <Badge color="gray">Delete app</Badge>
+            <Title>Remove this app from the catalog?</Title>
+            <Text>
+              {appName
+                ? `${appName} will be removed from the directory and admin list.`
+                : 'This app will be removed from the directory and admin list.'}
+            </Text>
+          </div>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <Dialog.Close asChild>
+              <Button type="button" variant="secondary" className="creai-button-secondary rounded-2xl">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button type="button" color="rose" loading={loading} className="rounded-2xl" onClick={onConfirm}>
+              Delete app
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 function LoginView({ credentials, onChange, onSubmit, error, loading }) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-12 sm:px-6 lg:px-8">
@@ -433,17 +500,13 @@ function AppForm({
     icon: RiShapesLine,
     keywords: [category.slug],
   }))
-  const statusOptions = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'published', label: 'Published' },
-  ]
 
   return (
     <div className="space-y-6">
       <Card className="rounded-3xl p-6">
         <div className="space-y-2">
           <Title>{title}</Title>
-          <Text>Shape the app metadata, publishing state, and public-facing touchpoints.</Text>
+          <Text>Shape the app metadata, store launch state, and public-facing touchpoints.</Text>
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -497,7 +560,7 @@ function AppForm({
             <SearchableSelect
               value={form.status}
               onChange={(value) => onChange('status', value)}
-              options={statusOptions}
+              options={storeStatusOptions}
               placeholder="Select store status"
               searchPlaceholder="Search store status..."
               emptyMessage="No store status found."
@@ -628,6 +691,7 @@ export default function AdminWorkspace({ route }) {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryDialogValue, setCategoryDialogValue] = useState('')
   const [categoryTarget, setCategoryTarget] = useState('create')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const view = adminViewFromPath(route.path)
   const selectedApp = useMemo(
@@ -662,11 +726,6 @@ export default function AdminWorkspace({ route }) {
       setApps(snapshot.apps)
       setCategories(snapshot.categories)
       setActivity(snapshot.activity)
-
-      if (!selectedAppId && !view.appId && snapshot.apps[0]) {
-        setSelectedAppId(snapshot.apps[0].id)
-        setEditForm(hydrateForm(snapshot.apps[0]))
-      }
     } catch (reason) {
       setError(reason.message || 'Unable to load admin data.')
     } finally {
@@ -783,6 +842,12 @@ export default function AdminWorkspace({ route }) {
   async function handleCreateApp() {
     if (!session) return
 
+    const validationError = validateAppForm(createForm, apps)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setOperationLoading(true)
     setError('')
     setNotice('')
@@ -810,6 +875,12 @@ export default function AdminWorkspace({ route }) {
   async function handleUpdateApp() {
     if (!session || !selectedApp) return
 
+    const validationError = validateAppForm(editForm, apps, selectedApp.id)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setOperationLoading(true)
     setError('')
     setNotice('')
@@ -827,6 +898,27 @@ export default function AdminWorkspace({ route }) {
       await loadSnapshot()
     } catch (reason) {
       setError(reason.message || 'Unable to update the app.')
+    } finally {
+      setOperationLoading(false)
+    }
+  }
+
+  async function handleDeleteApp() {
+    if (!session || !selectedApp) return
+
+    setOperationLoading(true)
+    setError('')
+    setNotice('')
+
+    try {
+      await deleteAppRecord(selectedApp.id, session.user.email)
+      setDeleteDialogOpen(false)
+      setSelectedAppId('')
+      setEditForm(createEmptyAppForm())
+      setNotice(`Deleted ${selectedApp.name}.`)
+      await loadSnapshot()
+    } catch (reason) {
+      setError(reason.message || 'Unable to delete the app.')
     } finally {
       setOperationLoading(false)
     }
@@ -907,7 +999,9 @@ export default function AdminWorkspace({ route }) {
                   <TableRow key={app.id}>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>
-                      <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
+                      <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
+                        {getStoreStatusMeta(app.status).label}
+                      </Badge>
                     </TableCell>
                     <TableCell>{formatDate(app.updatedAt)}</TableCell>
                   </TableRow>
@@ -992,9 +1086,11 @@ export default function AdminWorkspace({ route }) {
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <Text className="font-medium">{app.name}</Text>
-                          <Text>{app.category?.name ?? 'Uncategorized'}</Text>
+                          <Text>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Text>
                         </div>
-                        <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
+                        <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
+                          {getStoreStatusMeta(app.status).shortLabel}
+                        </Badge>
                       </div>
                     </div>
                   ))}
@@ -1124,10 +1220,12 @@ export default function AdminWorkspace({ route }) {
                                 )}
                                 <div className="space-y-1">
                                   <Text className="font-semibold text-ink-950 dark:text-mist-200">{app.name}</Text>
-                                  <Text>{app.category?.name ?? 'Uncategorized'}</Text>
+                                  <Text>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Text>
                                 </div>
                               </div>
-                              <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
+                              <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
+                                {getStoreStatusMeta(app.status).shortLabel}
+                              </Badge>
                             </div>
 
                             <Text className="mt-4 min-h-[44px]">{app.shortDescription || 'No short description added yet.'}</Text>
@@ -1148,17 +1246,36 @@ export default function AdminWorkspace({ route }) {
                     )}
                   </Card>
                 ) : selectedApp ? (
-                  <AppForm
-                    title={`Editing ${selectedApp.name}`}
-                    form={editForm}
-                    categories={categories}
-                    onCreateCategory={() => openCategoryDialog('edit')}
-                    onChange={(key, value) => updateFormState(setEditForm, key, value)}
-                    onLinksChange={(group, key, value) => updateNestedLinkState(setEditForm, group, key, value)}
-                    onSubmit={handleUpdateApp}
-                    submitLabel="Save changes"
-                    loading={operationLoading}
-                  />
+                  <div className="space-y-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-mist-200/80 bg-white/90 p-5 dark:border-ink-700/80 dark:bg-ink-900/80">
+                      <div className="space-y-1">
+                        <Title>Editing {selectedApp.name}</Title>
+                        <Text>{selectedApp.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Text>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Link href="/admin/update">
+                          <Button variant="secondary" className="creai-button-secondary rounded-2xl">
+                            Back to manage
+                          </Button>
+                        </Link>
+                        <Button color="rose" variant="secondary" className="rounded-2xl" onClick={() => setDeleteDialogOpen(true)}>
+                          Delete app
+                        </Button>
+                      </div>
+                    </div>
+
+                    <AppForm
+                      title={`Editing ${selectedApp.name}`}
+                      form={editForm}
+                      categories={categories}
+                      onCreateCategory={() => openCategoryDialog('edit')}
+                      onChange={(key, value) => updateFormState(setEditForm, key, value)}
+                      onLinksChange={(group, key, value) => updateNestedLinkState(setEditForm, group, key, value)}
+                      onSubmit={handleUpdateApp}
+                      submitLabel="Save changes"
+                      loading={operationLoading}
+                    />
+                  </div>
                 ) : (
                   <EmptyCard title="App not found" description="Return to Manage apps and select a valid record to continue editing." />
                 )}
@@ -1178,6 +1295,13 @@ export default function AdminWorkspace({ route }) {
         value={categoryDialogValue}
         onValueChange={setCategoryDialogValue}
         onSubmit={handleCreateCategory}
+        loading={operationLoading}
+      />
+      <DeleteAppDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        appName={selectedApp?.name}
+        onConfirm={handleDeleteApp}
         loading={operationLoading}
       />
     </div>

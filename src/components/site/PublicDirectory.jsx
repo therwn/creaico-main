@@ -33,7 +33,7 @@ import {
   RiStore2Line,
   RiTimeLine,
 } from '@remixicon/react'
-import { fetchPublishedApps } from '../../lib/app-data'
+import { fetchApps } from '../../lib/app-data'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import Input from '../ui/Input'
 import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
@@ -83,7 +83,7 @@ export default function PublicDirectory() {
     let isActive = true
     setLoading(true)
 
-    fetchPublishedApps()
+    fetchApps()
       .then((rows) => {
         if (isActive) {
           setApps(rows)
@@ -107,7 +107,9 @@ export default function PublicDirectory() {
   const categories = useMemo(() => {
     const unique = new Map()
     apps.forEach((app) => {
-      if (app.category?.id) unique.set(app.category.id, app.category)
+      ;(app.categories ?? []).forEach((category) => {
+        if (category?.id) unique.set(category.id, category)
+      })
     })
     return [...unique.values()]
   }, [apps])
@@ -119,6 +121,7 @@ export default function PublicDirectory() {
         app.shortDescription,
         app.description,
         app.category?.name,
+        ...(app.categories ?? []).map((category) => category.name),
         ...(app.stacks ?? []),
         ...(app.frameworks ?? []),
       ]
@@ -127,7 +130,7 @@ export default function PublicDirectory() {
         .toLowerCase()
 
       if (searchQuery.trim() && !searchable.includes(searchQuery.trim().toLowerCase())) return false
-      if (selectedCategory !== 'all' && app.category?.id !== selectedCategory) return false
+      if (selectedCategory !== 'all' && !(app.categories ?? []).some((category) => category.id === selectedCategory)) return false
       if (directoryTab === 'active' && !hasLinks(app.storeLinks) && !hasLinks(app.socialLinks)) return false
       if (availabilityFilter === 'store' && !hasLinks(app.storeLinks)) return false
       if (availabilityFilter === 'social' && !hasLinks(app.socialLinks)) return false
@@ -255,7 +258,7 @@ export default function PublicDirectory() {
                       <Badge color="gray">{metrics.categories}</Badge>
                     </button>
                     {highlightedCategories.map((category) => {
-                      const count = apps.filter((app) => app.category?.id === category.id).length
+      const count = apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length
                       return (
                         <button
                           key={category.id}
@@ -348,7 +351,7 @@ export default function PublicDirectory() {
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="space-y-2">
                       <Title>Recently updated</Title>
-                      <Text>Quick access to the latest app changes.</Text>
+                      <Text>Quick access to the latest app changes across every catalog entry.</Text>
                     </div>
                     <Badge color="slate" icon={RiTimeLine}>
                       Live directory data
@@ -372,7 +375,7 @@ export default function PublicDirectory() {
                               {app.name}
                             </Link>
                           </TableCell>
-                          <TableCell>{app.category?.name ?? 'Uncategorized'}</TableCell>
+                          <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
                           <TableCell>{formatDate(app.updatedAt)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -400,7 +403,7 @@ export default function PublicDirectory() {
                     {latestUpdatedApp ? (
                       <>
                         <div className="mt-4 flex flex-wrap gap-2">
-                          <Badge color="gray">{latestUpdatedApp.category?.name ?? 'Uncategorized'}</Badge>
+                          <Badge color="gray">{latestUpdatedApp.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Badge>
                           <Badge color="lime" className="creai-badge">{formatDate(latestUpdatedApp.updatedAt)}</Badge>
                         </div>
                         <Link href={`/apps/${latestUpdatedApp.slug}`} className="mt-6 inline-flex">
@@ -415,7 +418,7 @@ export default function PublicDirectory() {
                     <div className="mt-4 space-y-3">
                       {highlightedCategories.length ? (
                         highlightedCategories.map((category) => {
-                          const count = apps.filter((app) => app.category?.id === category.id).length
+                          const count = apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length
                           return (
                             <div key={category.id} className="flex items-center justify-between rounded-2xl border border-mist-200/70 px-4 py-3 dark:border-ink-700">
                               <div className="flex items-center gap-3">

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Badge, Button, Card, Text, Title } from '@tremor/react'
 import { RiArrowRightUpLine } from '@remixicon/react'
-import { getTechOption } from '../../../lib/app-options'
+import { getStoreStatusMeta, getTechOption } from '../../../lib/app-options'
 
 function formatDate(value) {
   if (!value) return 'Recently'
@@ -15,6 +15,9 @@ function formatDate(value) {
 }
 
 export default function DirectoryGridCard({ app }) {
+  const statusMeta = getStoreStatusMeta(app.status)
+  const categoryLabel = app.categories?.map((category) => category.name).join(', ') || app.category?.name || 'Uncategorized'
+
   return (
     <Card className="rounded-3xl border border-mist-200/80 p-6 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
       <div className="flex items-start justify-between gap-3">
@@ -34,12 +37,12 @@ export default function DirectoryGridCard({ app }) {
             {app.name.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <Badge color={app.status === 'published' ? 'lime' : 'gray'} className={app.status === 'published' ? 'creai-badge' : undefined}>{app.status}</Badge>
+        <Badge color={statusMeta.color} className={statusMeta.className}>{statusMeta.shortLabel}</Badge>
       </div>
 
       <div className="mt-5 space-y-1.5">
         <Title>{app.name}</Title>
-        <Text>{app.category?.name ?? 'Uncategorized'}</Text>
+        <Text>{categoryLabel}</Text>
       </div>
 
       <Text className="mt-4 min-h-[56px]">{app.shortDescription || 'No short description added yet.'}</Text>
@@ -56,7 +59,7 @@ export default function DirectoryGridCard({ app }) {
         {app.frameworks.slice(0, 1).map((item) => {
           const meta = getTechOption(item)
           return (
-            <Badge key={item} color="lime" icon={meta?.icon} className="creai-badge">
+            <Badge key={item} color="gray" icon={meta?.icon}>
               {item}
             </Badge>
           )

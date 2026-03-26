@@ -23,8 +23,8 @@ import {
   RiLinkedinLine,
   RiTwitterXLine,
 } from '@remixicon/react'
-import { fetchPublishedAppBySlug } from '../../lib/app-data'
-import { getTechOption } from '../../lib/app-options'
+import { fetchAppBySlug } from '../../lib/app-data'
+import { getStoreStatusMeta, getTechOption } from '../../lib/app-options'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
@@ -91,7 +91,7 @@ export default function AppDetailView({ slug, publicRoot }) {
     let isActive = true
     setLoading(true)
 
-    fetchPublishedAppBySlug(slug)
+    fetchAppBySlug(slug)
       .then((row) => {
         if (isActive) {
           setApp(row)
@@ -117,6 +117,8 @@ export default function AppDetailView({ slug, publicRoot }) {
   const storeLinks = useMemo(() => {
     return Object.entries(app?.storeLinks ?? {}).filter(([, value]) => Boolean(value))
   }, [app?.storeLinks])
+
+  const statusMeta = getStoreStatusMeta(app?.status)
 
   if (!hasSupabaseEnv) {
     return (
@@ -175,7 +177,12 @@ export default function AppDetailView({ slug, publicRoot }) {
                     </div>
                   )}
                   <div className="space-y-2">
-                    <Badge color="lime" className="creai-badge">{app.category?.name ?? 'Uncategorized'}</Badge>
+                    <div className="flex flex-wrap gap-2">
+                      {(app.categories?.length ? app.categories : [app.category].filter(Boolean)).map((category) => (
+                        <Badge key={category.id || category.name} color="lime" className="creai-badge">{category.name}</Badge>
+                      ))}
+                      {!(app.categories?.length || app.category) ? <Badge color="gray">Uncategorized</Badge> : null}
+                    </div>
                     <Title>{app.name}</Title>
                     <Text>{app.shortDescription}</Text>
                     <Text>{formatDate(app.updatedAt)}</Text>
@@ -240,17 +247,17 @@ export default function AppDetailView({ slug, publicRoot }) {
               <Card className="rounded-3xl p-6">
                 <Title>Frameworks</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {app.frameworks.length ? app.frameworks.map((item) => <TechBadge key={item} value={item} color="lime" />) : <Text>No framework tags added.</Text>}
+                  {app.frameworks.length ? app.frameworks.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No framework tags added.</Text>}
                 </div>
               </Card>
 
               <Card className="rounded-3xl p-6">
                 <Title>Availability</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge color={socialLinks.length ? 'lime' : 'gray'} className={socialLinks.length ? 'creai-badge' : undefined}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
-                  <Badge color={storeLinks.length ? 'lime' : 'gray'} className={storeLinks.length ? 'creai-badge' : undefined}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
-                  <Badge color="slate" icon={RiExternalLinkLine}>
-                    {app.status}
+                  <Badge color={socialLinks.length ? 'gray' : 'gray'}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
+                  <Badge color={storeLinks.length ? 'gray' : 'gray'}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
+                  <Badge color={statusMeta.color} className={statusMeta.className} icon={RiExternalLinkLine}>
+                    {statusMeta.label}
                   </Badge>
                 </div>
               </Card>

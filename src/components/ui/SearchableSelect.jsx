@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
-import { Button, Text } from '@tremor/react'
+import { Button } from '@tremor/react'
 import { RiArrowDownSLine, RiCheckLine, RiSearchLine } from '@remixicon/react'
 import Input from './Input'
 
@@ -26,6 +26,7 @@ export default function SearchableSelect({
   searchPlaceholder = 'Search...',
   emptyMessage = 'No results found.',
   multi = false,
+  searchable = true,
   actionLabel,
   onAction,
   icon: TriggerIcon,
@@ -62,7 +63,8 @@ export default function SearchableSelect({
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="flex h-11 w-full items-center justify-between gap-3 rounded-tremor-default border border-tremor-border bg-tremor-background px-3 text-left text-tremor-default text-tremor-content-emphasis shadow-tremor-input transition hover:border-mist-300 dark:border-dark-tremor-border dark:bg-dark-tremor-background dark:text-dark-tremor-content-emphasis dark:shadow-dark-tremor-input dark:hover:border-ink-600"
+          aria-expanded={open}
+          className="flex h-11 w-full items-center justify-between gap-3 rounded-tremor-default border border-tremor-border bg-white px-3 text-left text-tremor-default text-ink-950 shadow-tremor-input transition hover:border-mist-300 dark:border-dark-tremor-border dark:bg-ink-900 dark:text-mist-100 dark:shadow-dark-tremor-input dark:hover:border-ink-600"
         >
           <span className="flex min-w-0 items-center gap-2">
             {TriggerIcon ? <TriggerIcon className="h-4 w-4 shrink-0 text-mist-500 dark:text-mist-400" /> : null}
@@ -79,7 +81,9 @@ export default function SearchableSelect({
           className="z-50 w-[var(--radix-popover-trigger-width)] min-w-[260px] rounded-2xl border border-mist-200/80 bg-white p-2 shadow-soft outline-none data-[side=bottom]:animate-slideDownAndFade dark:border-ink-700 dark:bg-ink-900 dark:shadow-soft-dark"
         >
           <div className="space-y-2">
-            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={searchPlaceholder} icon={RiSearchLine} />
+            {searchable ? (
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={searchPlaceholder} icon={RiSearchLine} />
+            ) : null}
 
             <div className="max-h-60 space-y-1 overflow-y-auto pr-1">
               {filteredOptions.length ? (
@@ -117,7 +121,7 @@ export default function SearchableSelect({
 
             {actionLabel && onAction ? (
               <div className="border-t border-mist-200/80 pt-2 dark:border-ink-700">
-                <Button variant="secondary" className="w-full rounded-xl" onClick={() => { onAction(); setOpen(false) }}>
+                <Button variant="secondary" className="creai-button-secondary w-full rounded-xl" onClick={() => { onAction(); setOpen(false) }}>
                   {actionLabel}
                 </Button>
               </div>

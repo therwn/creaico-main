@@ -32,6 +32,7 @@ export default function ThemeToggle() {
         searchPlaceholder="Search theme..."
         emptyMessage="No theme found."
         icon={activeOption.icon}
+        searchable={false}
       />
     </div>
   )

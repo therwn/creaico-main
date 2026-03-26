@@ -82,6 +82,30 @@ export const storeFieldOptions = [
   { key: 'web_app', label: 'Web App' },
 ]
 
+export const storeStatusOptions = [
+  { value: 'draft', label: 'Store pending' },
+  { value: 'published', label: 'Store live' },
+]
+
+const storeStatusMeta = {
+  draft: {
+    label: 'Store pending',
+    shortLabel: 'Pending',
+    color: 'gray',
+    className: '',
+  },
+  published: {
+    label: 'Store live',
+    shortLabel: 'Live',
+    color: 'lime',
+    className: 'creai-badge',
+  },
+}
+
+export function getStoreStatusMeta(value) {
+  return storeStatusMeta[value] || storeStatusMeta.draft
+}
+
 export const dashboardSections = [
   { value: 'overview', label: 'Overview', href: '/admin/dashboard' },
   { value: 'recent-updates', label: 'Recent Updates', href: '/admin/dashboard/recent-updates' },

@@ -4,14 +4,83 @@ function countLinks(group) {
   return Object.values(group ?? {}).filter(Boolean).length
 }
 
+function summarizeLinkKeys(group) {
+  const keys = Object.entries(group ?? {})
+    .filter(([, value]) => Boolean(value))
+    .map(([key]) => key)
+
+  return keys.length ? keys.join(', ') : 'empty'
+}
+
+function formatScalarValue(value) {
+  if (value === null || value === undefined || value === '') return 'empty'
+  return String(value)
+}
+
+function formatArrayValue(value) {
+  if (!Array.isArray(value) || value.length === 0) return 'empty'
+  return value.join(', ')
+}
+
+function formatChangeValue(field, value) {
+  switch (field) {
+    case 'stacks':
+    case 'frameworks':
+    case 'category_ids':
+      return formatArrayValue(value)
+    case 'social_links':
+    case 'store_links':
+      return summarizeLinkKeys(value)
+    case 'description':
+    case 'short_description':
+      return formatScalarValue(value).slice(0, 120)
+    default:
+      return formatScalarValue(value)
+  }
+}
+
+function buildCategoryMap(rows) {
+  return new Map((rows ?? []).map((row) => [row.id, row]))
+}
+
+function collectCategoryIds(rows) {
+  return [...new Set(
+    (rows ?? [])
+      .flatMap((row) => {
+        const ids = Array.isArray(row.category_ids) ? row.category_ids : []
+        return row.category?.id ? [...ids, row.category.id] : ids
+      })
+      .filter(Boolean),
+  )]
+}
+
+async function fetchCategoriesByIds(supabase, ids) {
+  if (!ids.length) return new Map()
+
+  const { data, error } = await supabase
+    .from('app_categories')
+    .select('id, name, slug, created_at')
+    .in('id', ids)
+
+  if (error) throw error
+  return buildCategoryMap(data)
+}
+
 function summarizeAppRecord(row) {
   if (!row) return {}
+
+  const categoryIds = Array.isArray(row.category_ids)
+    ? row.category_ids
+    : row.category_id
+      ? [row.category_id]
+      : []
 
   return {
     name: row.name,
     slug: row.slug,
     status: row.status,
-    categoryId: row.category_id ?? null,
+    categoryIds,
+    categoryCount: categoryIds.length,
     stackCount: Array.isArray(row.stacks) ? row.stacks.length : 0,
     frameworkCount: Array.isArray(row.frameworks) ? row.frameworks.length : 0,
     socialCount: countLinks(row.social_links),
@@ -24,22 +93,42 @@ function buildChangedFields(previous, next) {
     ['name', previous?.name, next?.name],
     ['slug', previous?.slug, next?.slug],
     ['status', previous?.status, next?.status],
-    ['category', previous?.category_id ?? null, next?.category_id ?? null],
+    ['category_ids', previous?.category_ids ?? (previous?.category_id ? [previous.category_id] : []), next?.category_ids ?? (next?.category_id ? [next.category_id] : [])],
     ['description', previous?.description, next?.description],
     ['short_description', previous?.short_description, next?.short_description],
     ['accent_color', previous?.accent_color, next?.accent_color],
-    ['stacks', JSON.stringify(previous?.stacks ?? []), JSON.stringify(next?.stacks ?? [])],
-    ['frameworks', JSON.stringify(previous?.frameworks ?? []), JSON.stringify(next?.frameworks ?? [])],
-    ['social_links', JSON.stringify(previous?.social_links ?? {}), JSON.stringify(next?.social_links ?? {})],
-    ['store_links', JSON.stringify(previous?.store_links ?? {}), JSON.stringify(next?.store_links ?? {})],
+    ['stacks', previous?.stacks ?? [], next?.stacks ?? []],
+    ['frameworks', previous?.frameworks ?? [], next?.frameworks ?? []],
+    ['social_links', previous?.social_links ?? {}, next?.social_links ?? {}],
+    ['store_links', previous?.store_links ?? {}, next?.store_links ?? {}],
     ['logo_url', previous?.logo_url ?? null, next?.logo_url ?? null],
   ]
 
-  return fields.filter(([, before, after]) => before !== after).map(([name]) => name)
+  return fields
+    .filter(([, before, after]) => JSON.stringify(before) !== JSON.stringify(after))
+    .map(([field, before, after]) => ({
+      field,
+      before: formatChangeValue(field, before),
+      after: formatChangeValue(field, after),
+    }))
 }
 
-function normalizeApp(row) {
+function normalizeApp(row, categoryMap = new Map()) {
   if (!row) return null
+
+  const categoryIds = Array.isArray(row.category_ids)
+    ? row.category_ids
+    : row.category?.id
+      ? [row.category.id]
+      : []
+
+  const categories = categoryIds
+    .map((id) => categoryMap.get(id))
+    .filter(Boolean)
+
+  if (!categories.length && row.category?.id) {
+    categories.push(row.category)
+  }
 
   return {
     id: row.id,
@@ -47,12 +136,9 @@ function normalizeApp(row) {
     name: row.name,
     shortDescription: row.short_description ?? '',
     description: row.description ?? '',
-    category: row.category ?? null,
-    categoryIds: Array.isArray(row.category_ids)
-      ? row.category_ids
-      : row.category?.id
-        ? [row.category.id]
-        : [],
+    category: categories[0] ?? row.category ?? null,
+    categories,
+    categoryIds,
     logoUrl: row.logo_url ?? '',
     accentColor: row.accent_color ?? '#c2ff29',
     stacks: Array.isArray(row.stacks) ? row.stacks : [],
@@ -65,7 +151,7 @@ function normalizeApp(row) {
   }
 }
 
-export async function fetchPublishedApps() {
+export async function fetchApps() {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return []
 
@@ -96,10 +182,12 @@ export async function fetchPublishedApps() {
     .order('updated_at', { ascending: false })
 
   if (error) throw error
-  return (data ?? []).map(normalizeApp)
+
+  const categoryMap = await fetchCategoriesByIds(supabase, collectCategoryIds(data ?? []))
+  return (data ?? []).map((row) => normalizeApp(row, categoryMap))
 }
 
-export async function fetchPublishedAppBySlug(slug) {
+export async function fetchAppBySlug(slug) {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return null
 
@@ -131,7 +219,9 @@ export async function fetchPublishedAppBySlug(slug) {
     .maybeSingle()
 
   if (error) throw error
-  return normalizeApp(data)
+
+  const categoryMap = await fetchCategoriesByIds(supabase, collectCategoryIds(data ? [data] : []))
+  return normalizeApp(data, categoryMap)
 }
 
 export async function fetchAdminSnapshot() {
@@ -177,8 +267,10 @@ export async function fetchAdminSnapshot() {
   if (categoriesError) throw categoriesError
   if (activityError) throw activityError
 
+  const categoryMap = buildCategoryMap(categories ?? [])
+
   return {
-    apps: (apps ?? []).map(normalizeApp),
+    apps: (apps ?? []).map((row) => normalizeApp(row, categoryMap)),
     categories: categories ?? [],
     activity: activity ?? [],
   }
@@ -277,7 +369,8 @@ export async function createAppRecord(payload, actorEmail) {
     },
   })
 
-  return normalizeApp(data)
+  const categoryMap = await fetchCategoriesByIds(supabase, collectCategoryIds(data ? [data] : []))
+  return normalizeApp(data, categoryMap)
 }
 
 export async function updateAppRecord(id, payload, actorEmail) {
@@ -287,7 +380,7 @@ export async function updateAppRecord(id, payload, actorEmail) {
   const { data: previous, error: previousError } = await supabase
     .from('apps')
     .select(
-      'id, name, slug, short_description, description, category_id, logo_url, accent_color, stacks, frameworks, social_links, store_links, status',
+      'id, name, slug, short_description, description, category_id, category_ids, logo_url, accent_color, stacks, frameworks, social_links, store_links, status',
     )
     .eq('id', id)
     .single()
@@ -332,10 +425,40 @@ export async function updateAppRecord(id, payload, actorEmail) {
     details: {
       ...summarizeAppRecord(data),
       previousStatus: previous.status,
-      changedFields: buildChangedFields(previous, payload),
+      changes: buildChangedFields(previous, payload),
+      changedFields: buildChangedFields(previous, payload).map((item) => item.field),
       message: `Updated ${data.name}`,
     },
   })
 
-  return normalizeApp(data)
+  const categoryMap = await fetchCategoriesByIds(supabase, collectCategoryIds(data ? [data] : []))
+  return normalizeApp(data, categoryMap)
+}
+
+export async function deleteAppRecord(id, actorEmail) {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) throw new Error('Supabase env is missing.')
+
+  const { data: previous, error: previousError } = await supabase
+    .from('apps')
+    .select('id, name, slug, category_id, category_ids, stacks, frameworks, social_links, store_links, status')
+    .eq('id', id)
+    .single()
+
+  if (previousError) throw previousError
+
+  const { error } = await supabase.from('apps').delete().eq('id', id)
+
+  if (error) throw error
+
+  await recordActivity({
+    action: 'deleted',
+    entityType: 'app',
+    entityId: id,
+    actorEmail,
+    details: {
+      ...summarizeAppRecord(previous),
+      message: `Deleted ${previous.name}`,
+    },
+  })
 }
