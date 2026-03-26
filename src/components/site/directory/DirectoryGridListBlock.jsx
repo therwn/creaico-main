@@ -1,7 +1,8 @@
 'use client'
 
-import { Callout, Card, Grid, Select, SelectItem, Text, Title } from '@tremor/react'
+import { Callout, Card, Grid, Text, Title } from '@tremor/react'
 import { RiFilter3Line } from '@remixicon/react'
+import SearchableSelect from '../../ui/SearchableSelect'
 import DirectoryGridCard from './DirectoryGridCard'
 
 export default function DirectoryGridListBlock({
@@ -14,6 +15,15 @@ export default function DirectoryGridListBlock({
   setAvailabilityFilter,
   availabilityOptions,
 }) {
+  const categoryOptions = [
+    { value: 'all', label: 'All categories', icon: RiFilter3Line },
+    ...categories.map((category) => ({
+      value: category.id,
+      label: category.name,
+      keywords: [category.slug],
+    })),
+  ]
+
   return (
     <Card className="rounded-[2rem] p-6">
       <div className="flex flex-col gap-4 border-b border-mist-200/80 pb-6 dark:border-ink-700 xl:flex-row xl:items-end xl:justify-between">
@@ -27,24 +37,26 @@ export default function DirectoryGridListBlock({
               <RiFilter3Line className="h-4 w-4" />
               Category
             </Text>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </Select>
+            <SearchableSelect
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={categoryOptions}
+              placeholder="All categories"
+              searchPlaceholder="Search categories..."
+              emptyMessage="No category found."
+              icon={RiFilter3Line}
+            />
           </div>
           <div className="space-y-2">
             <Text className="font-medium">Availability</Text>
-            <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-              {availabilityOptions.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </Select>
+            <SearchableSelect
+              value={availabilityFilter}
+              onChange={setAvailabilityFilter}
+              options={availabilityOptions}
+              placeholder="All availability"
+              searchPlaceholder="Search availability..."
+              emptyMessage="No availability option found."
+            />
           </div>
         </div>
       </div>

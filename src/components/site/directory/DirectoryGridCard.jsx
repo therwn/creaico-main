@@ -66,7 +66,7 @@ export default function DirectoryGridCard({ app }) {
       <div className="mt-6 flex items-center justify-between">
         <Text>{formatDate(app.updatedAt)}</Text>
         <Link href={`/apps/${app.slug}`}>
-          <Button size="xs" icon={RiArrowRightUpLine} variant="secondary">
+          <Button size="xs" icon={RiArrowRightUpLine} variant="secondary" className="creai-button-secondary">
             Open
           </Button>
         </Link>

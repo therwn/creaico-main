@@ -126,7 +126,7 @@ export default function AppDetailView({ slug, publicRoot }) {
         <div className="flex flex-col gap-4 rounded-3xl border border-mist-200/80 bg-white/90 p-6 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <Link href={publicRoot}>
-              <Button variant="secondary" icon={RiArrowLeftLine}>
+              <Button variant="secondary" icon={RiArrowLeftLine} className="creai-button-secondary">
                 Back to directory
               </Button>
             </Link>
@@ -182,7 +182,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                       if (!meta) return null
                       return (
                         <a key={key} href={value} target="_blank" rel="noreferrer">
-                          <Button variant="secondary" icon={meta.icon} size="xs">
+                          <Button variant="secondary" icon={meta.icon} size="xs" className="creai-button-secondary">
                             {meta.label}
                           </Button>
                         </a>

@@ -272,7 +272,7 @@ function CategoryDialog({ open, onOpenChange, value, onValueChange, onSubmit, lo
 
           <div className="mt-6 flex justify-end gap-3">
             <Dialog.Close asChild>
-              <Button type="button" variant="secondary" className="rounded-2xl">
+              <Button type="button" variant="secondary" className="creai-button-secondary rounded-2xl">
                 Cancel
               </Button>
             </Dialog.Close>
@@ -852,7 +852,7 @@ export default function AdminWorkspace({ route }) {
               <Title>Update an existing app</Title>
               <Text className="mt-2">Review the table of existing entries and edit one in place.</Text>
               <Link href="/admin/update" className="mt-6 inline-flex">
-                <Button icon={RiEdit2Line} variant="secondary">
+                <Button icon={RiEdit2Line} variant="secondary" className="creai-button-secondary">
                   Go to Update Apps
                 </Button>
               </Link>
@@ -976,7 +976,7 @@ export default function AdminWorkspace({ route }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={route.publicRoot}>
-                  <Button icon={RiArrowRightUpLine} variant="secondary" className="rounded-2xl">
+                  <Button icon={RiArrowRightUpLine} variant="secondary" className="creai-button-secondary rounded-2xl">
                     Open public directory
                   </Button>
                 </Link>

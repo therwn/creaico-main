@@ -305,7 +305,7 @@ export default function PublicDirectory() {
                   index={directoryTabs.findIndex((item) => item.value === directoryTab)}
                   onIndexChange={(index) => setDirectoryTab(directoryTabs[index]?.value ?? 'directory')}
                 >
-                  <TabList variant="line" color="lime">
+                  <TabList variant="line" color="gray">
                     {directoryTabs.map((item) => (
                       <Tab key={item.value}>{item.label}</Tab>
                     ))}
