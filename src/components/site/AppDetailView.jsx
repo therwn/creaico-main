@@ -189,7 +189,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                         if (!meta) return null
                         return (
                           <a key={key} href={value} target="_blank" rel="noreferrer">
-                            <Button color="lime" icon={meta.icon}>
+                            <Button icon={meta.icon}>
                               {meta.label}
                             </Button>
                           </a>

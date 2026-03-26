@@ -229,7 +229,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
               onChange={(event) => onChange('password', event.target.value)}
             />
           </div>
-          <Button type="submit" loading={loading} color="lime" className="w-full rounded-2xl">
+          <Button type="submit" loading={loading} className="w-full rounded-2xl">
             Sign in
           </Button>
         </form>
@@ -427,7 +427,7 @@ function AppForm({
         </div>
       </Card>
 
-      <Button loading={loading} color="lime" className="w-full rounded-2xl" onClick={onSubmit}>
+      <Button loading={loading} className="w-full rounded-2xl" onClick={onSubmit}>
         {submitLabel}
       </Button>
     </div>
