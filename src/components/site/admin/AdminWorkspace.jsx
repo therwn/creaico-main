@@ -89,7 +89,14 @@ function adminViewFromPath(path) {
     }
   }
   if (path === '/admin/add') return { page: 'add', section: 'create' }
-  if (path === '/admin/update') return { page: 'update', section: 'update' }
+  if (path === '/admin/update') return { page: 'update', section: 'update', appId: null }
+  if (path.startsWith('/admin/update/')) {
+    return {
+      page: 'update',
+      section: 'update',
+      appId: path.replace('/admin/update/', ''),
+    }
+  }
   return { page: 'dashboard', section: 'overview' }
 }
 
@@ -115,7 +122,10 @@ function NavTree({ groups, currentPath }) {
             </div>
             <div className="space-y-1 border-l border-mist-200 pl-4 dark:border-ink-700">
               {group.links.map((item) => {
-                const isActive = currentPath === item.href || (item.href === '/admin/dashboard' && currentPath === '/admin')
+                const isActive =
+                  currentPath === item.href ||
+                  currentPath.startsWith(`${item.href}/`) ||
+                  (item.href === '/admin/dashboard' && currentPath === '/admin')
                 return (
                   <Link
                     key={item.href}
@@ -534,7 +544,10 @@ export default function AdminWorkspace({ route }) {
   const [categoryTarget, setCategoryTarget] = useState('create')
 
   const view = adminViewFromPath(route.path)
-  const selectedApp = useMemo(() => apps.find((item) => item.id === selectedAppId) || null, [apps, selectedAppId])
+  const selectedApp = useMemo(
+    () => apps.find((item) => item.id === (view.appId || selectedAppId)) || null,
+    [apps, selectedAppId, view.appId],
+  )
   const dashboardMetrics = useMemo(() => {
     return {
       totalApps: apps.length,
@@ -564,7 +577,7 @@ export default function AdminWorkspace({ route }) {
       setCategories(snapshot.categories)
       setActivity(snapshot.activity)
 
-      if (!selectedAppId && snapshot.apps[0]) {
+      if (!selectedAppId && !view.appId && snapshot.apps[0]) {
         setSelectedAppId(snapshot.apps[0].id)
         setEditForm(hydrateForm(snapshot.apps[0]))
       }
@@ -1011,60 +1024,54 @@ export default function AdminWorkspace({ route }) {
 
             {!loadingSnapshot && view.page === 'update' ? (
               <div className="space-y-6">
-                <Card className="rounded-3xl p-6">
-                  <Title>Existing apps</Title>
-                  <Text className="mt-2">Select an app from the table to load it into the update form.</Text>
-                  {apps.length ? (
-                    <Table className="mt-6">
-                      <TableHead>
-                        <TableRow>
-                          <TableHeaderCell>App</TableHeaderCell>
-                          <TableHeaderCell>Category</TableHeaderCell>
-                          <TableHeaderCell>Status</TableHeaderCell>
-                          <TableHeaderCell>Updated</TableHeaderCell>
-                          <TableHeaderCell>Action</TableHeaderCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
+                {!view.appId ? (
+                  <Card className="rounded-3xl p-6">
+                    <Title>Manage apps</Title>
+                    <Text className="mt-2">Open an app card to move into its dedicated edit screen.</Text>
+                    {apps.length ? (
+                      <Grid numItemsMd={2} numItemsLg={3} className="mt-6 gap-4">
                         {apps.map((app) => (
-                          <TableRow
-                            key={app.id}
-                            className="cursor-pointer"
-                            onClick={() => {
-                              setSelectedAppId(app.id)
-                              setEditForm(hydrateForm(app))
-                            }}
-                          >
-                            <TableCell>{app.name}</TableCell>
-                            <TableCell>{app.category?.name ?? 'Uncategorized'}</TableCell>
-                            <TableCell>
+                          <Card key={app.id} className="rounded-3xl border border-mist-200/80 p-5 dark:border-ink-700/80">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                {app.logoUrl ? (
+                                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">
+                                    <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
+                                  </div>
+                                ) : (
+                                  <div
+                                    className="flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-semibold text-ink-950"
+                                    style={{ backgroundColor: app.accentColor || '#c2ff29' }}
+                                  >
+                                    {app.name.slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="space-y-1">
+                                  <Text className="font-semibold text-ink-950 dark:text-mist-200">{app.name}</Text>
+                                  <Text>{app.category?.name ?? 'Uncategorized'}</Text>
+                                </div>
+                              </div>
                               <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
-                            </TableCell>
-                            <TableCell>{formatDate(app.updatedAt)}</TableCell>
-                            <TableCell>
-                              <Button
-                                size="xs"
-                                icon={RiEdit2Line}
-                                variant={selectedAppId === app.id ? 'primary' : 'secondary'}
-                                onClick={(event) => {
-                                  event.stopPropagation()
-                                  setSelectedAppId(app.id)
-                                  setEditForm(hydrateForm(app))
-                                }}
-                              >
-                                Update
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <EmptyCard title="No apps yet" description="Create the first app before returning to this screen." />
-                  )}
-                </Card>
+                            </div>
 
-                {selectedApp ? (
+                            <Text className="mt-4 min-h-[44px]">{app.shortDescription || 'No short description added yet.'}</Text>
+
+                            <div className="mt-5 flex items-center justify-between gap-3">
+                              <Text>{formatDate(app.updatedAt)}</Text>
+                              <Link href={`/admin/update/${app.id}`}>
+                                <Button size="xs" icon={RiEdit2Line}>
+                                  Edit
+                                </Button>
+                              </Link>
+                            </div>
+                          </Card>
+                        ))}
+                      </Grid>
+                    ) : (
+                      <EmptyCard title="No apps yet" description="Create the first app before returning to this screen." />
+                    )}
+                  </Card>
+                ) : selectedApp ? (
                   <AppForm
                     title={`Editing ${selectedApp.name}`}
                     form={editForm}
@@ -1076,7 +1083,9 @@ export default function AdminWorkspace({ route }) {
                     submitLabel="Save changes"
                     loading={operationLoading}
                   />
-                ) : null}
+                ) : (
+                  <EmptyCard title="App not found" description="Return to Manage apps and select a valid record to continue editing." />
+                )}
               </div>
             ) : null}
 

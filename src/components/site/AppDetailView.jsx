@@ -24,6 +24,7 @@ import {
   RiTwitterXLine,
 } from '@remixicon/react'
 import { fetchPublishedAppBySlug } from '../../lib/app-data'
+import { getTechOption } from '../../lib/app-options'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
@@ -49,6 +50,24 @@ function formatDate(value) {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+function TechBadge({ value, color = 'gray' }) {
+  const meta = getTechOption(value)
+  const Icon = meta?.icon
+
+  return (
+    <Badge color={color}>
+      <span className="flex items-center gap-2">
+        {Icon ? (
+          <span className="flex h-4 w-4 items-center justify-center overflow-hidden [&>svg]:h-4 [&>svg]:w-4">
+            <Icon />
+          </span>
+        ) : null}
+        <span>{value}</span>
+      </span>
+    </Badge>
+  )
 }
 
 export default function AppDetailView({ slug, publicRoot }) {
@@ -137,7 +156,9 @@ export default function AppDetailView({ slug, publicRoot }) {
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex items-start gap-4">
                   {app.logoUrl ? (
-                    <img src={app.logoUrl} alt={`${app.name} logo`} className="h-16 w-16 rounded-3xl border border-mist-200/80 object-cover dark:border-ink-700/80" />
+                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-mist-200/80 bg-white p-3 dark:border-ink-700/80 dark:bg-ink-900">
+                      <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
+                    </div>
                   ) : (
                     <div
                       className="flex h-16 w-16 items-center justify-center rounded-3xl text-lg font-semibold text-ink-950"
@@ -205,14 +226,14 @@ export default function AppDetailView({ slug, publicRoot }) {
               <Card className="rounded-3xl p-6">
                 <Title>Stack</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {app.stacks.length ? app.stacks.map((item) => <Badge key={item}>{item}</Badge>) : <Text>No stack tags added.</Text>}
+                  {app.stacks.length ? app.stacks.map((item) => <TechBadge key={item} value={item} />) : <Text>No stack tags added.</Text>}
                 </div>
               </Card>
 
               <Card className="rounded-3xl p-6">
                 <Title>Frameworks</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {app.frameworks.length ? app.frameworks.map((item) => <Badge key={item} color="lime">{item}</Badge>) : <Text>No framework tags added.</Text>}
+                  {app.frameworks.length ? app.frameworks.map((item) => <TechBadge key={item} value={item} color="lime" />) : <Text>No framework tags added.</Text>}
                 </div>
               </Card>
 

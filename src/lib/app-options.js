@@ -61,6 +61,13 @@ export const frameworkOptions = [
   { value: 'App Intents', label: 'App Intents', icon: AppleLight },
 ]
 
+const techOptions = [...stackOptions, ...frameworkOptions]
+const techOptionMap = new Map(techOptions.map((option) => [option.value, option]))
+
+export function getTechOption(value) {
+  return techOptionMap.get(value) || null
+}
+
 export const socialFieldOptions = [
   { key: 'website', label: 'Website' },
   { key: 'x', label: 'X' },
