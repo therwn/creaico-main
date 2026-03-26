@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   Badge,
   Button,
@@ -36,6 +37,7 @@ import {
   RiInstagramLine,
   RiLinkedinLine,
   RiLogoutBoxRLine,
+  RiMore2Line,
   RiTimeLine,
   RiTwitterXLine,
 } from '@remixicon/react'
@@ -134,6 +136,41 @@ function NavTree({ groups, currentPath }) {
         )
       })}
     </div>
+  )
+}
+
+function AdminOptionsMenu({ onSignOut }) {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <button
+          type="button"
+          aria-label="Open admin options"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-mist-200/80 bg-white text-ink-950 shadow-sm transition hover:border-mist-300 dark:border-ink-700 dark:bg-ink-800 dark:text-mist-200 dark:hover:border-ink-600"
+        >
+          <RiMore2Line className="h-5 w-5" />
+        </button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          sideOffset={10}
+          align="end"
+          className="z-50 min-w-[180px] rounded-2xl border border-mist-200/80 bg-white p-2 shadow-soft outline-none data-[side=bottom]:animate-slideDownAndFade dark:border-ink-700 dark:bg-ink-900 dark:shadow-soft-dark"
+        >
+          <DropdownMenu.Item asChild>
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-ink-950 transition hover:bg-mist-100 dark:text-mist-200 dark:hover:bg-ink-800"
+            >
+              <RiLogoutBoxRLine className="h-4 w-4" />
+              Sign out
+            </button>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }
 
@@ -829,7 +866,7 @@ export default function AdminWorkspace({ route }) {
         <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:h-[calc(100vh-2.5rem)] lg:w-[280px] lg:flex-none lg:border-b-0 lg:border-r lg:overflow-hidden">
           <div className="flex h-full flex-col gap-6">
             <div className="space-y-5">
-              <WorkspaceBrand label="Admin" value={<Badge color="lime">{apps.length}</Badge>} />
+              <WorkspaceBrand label="Admin" value={<AdminOptionsMenu onSignOut={handleSignOut} />} />
               <Text>Manage categories, products, publishing state, and activity from one catalog workspace.</Text>
             </div>
 
@@ -837,11 +874,6 @@ export default function AdminWorkspace({ route }) {
 
             <div className="mt-auto space-y-3 border-t border-mist-200/80 pt-4 dark:border-ink-700">
               <ThemeToggle />
-              <div className="flex flex-wrap gap-2">
-                <Button icon={RiLogoutBoxRLine} variant="secondary" onClick={handleSignOut} className="rounded-2xl">
-                  Sign out
-                </Button>
-              </div>
             </div>
           </div>
         </aside>
@@ -863,7 +895,6 @@ export default function AdminWorkspace({ route }) {
                       ? 'Create a new app record'
                       : 'Update existing app records'}
                 </Title>
-                <Text>Signed in as {session.user.email}</Text>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={route.publicRoot}>
