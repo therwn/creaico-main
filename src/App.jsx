@@ -5,17 +5,11 @@ import { gsap } from 'gsap'
 import * as Svgl from '@ridemountainpig/svgl-react'
 import {
   IconArrowLeft,
-  IconChevronDown,
-  IconChevronRight,
-  IconChartBar,
   IconHome,
   IconLayoutDashboard,
   IconLayoutGrid,
-  IconLogout,
   IconMoon,
-  IconPhotoPlus,
   IconPlus,
-  IconSettings,
   IconSun,
   IconTable,
 } from '@tabler/icons-react'
@@ -25,9 +19,9 @@ import {
   Card,
   Divider,
   Metric,
-  MultiSelect as TremorMultiSelect,
+  MultiSelect,
   MultiSelectItem,
-  Select as TremorSelect,
+  Select,
   SelectItem,
   Table,
   TableBody,
@@ -37,7 +31,7 @@ import {
   TableRow,
   Text,
   TextInput,
-  Textarea as TremorTextarea,
+  Textarea,
   Title,
 } from '@tremor/react'
 import { appCategories, brandContent, frameworkOptions, seedApps, stackOptions } from './content'
@@ -68,54 +62,36 @@ const initialForm = {
 
 const staticAdminUsername = 'root-admin'
 const staticAdminEmail = 'root-admin@creai.co'
-const adminTree = [
-  {
-    label: 'Dashboard',
-    children: [
-      { label: 'Overview', id: 'dashboard-overview' },
-      { label: 'Recent Updates', id: 'dashboard-recent' },
-      { label: 'Categories', id: 'dashboard-categories' },
-      { label: 'Quick Actions', id: 'dashboard-actions' },
-      { label: 'Recent Activity', id: 'dashboard-activity' },
-      { label: 'Activity Timeline', id: 'dashboard-timeline' },
-    ],
-  },
-  { label: 'Add a New App', children: [] },
-  { label: 'Update Apps', children: [] },
+
+const landingScanLines = [
+  { left: '10%', duration: '8.8s', delay: '1.7s', strength: 0.62 },
+  { left: '30%', duration: '10.4s', delay: '0.4s', strength: 0.78 },
+  { left: '50%', duration: '7.6s', delay: '2.9s', strength: 0.52 },
+  { left: '70%', duration: '9.2s', delay: '1.1s', strength: 0.72 },
+  { left: '90%', duration: '8.1s', delay: '3.6s', strength: 0.58 },
 ]
-const themeModes = ['system', 'dark', 'light']
 
-function ThemeToggle({ themeMode, onThemeChange }) {
-  return (
-    <div className="inline-flex rounded-full border border-zinc-800 bg-zinc-950 p-1" role="group" aria-label="Theme">
-      {themeModes.map((mode) => (
-        <button
-          key={mode}
-          type="button"
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold tracking-[0.08em] transition ${
-            themeMode === mode ? 'bg-lime-300 text-black' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100'
-          }`}
-          onClick={() => onThemeChange(mode)}
-          aria-label={mode}
-        >
-          {mode === 'dark' ? <IconMoon size={16} stroke={1.8} /> : mode === 'light' ? <IconSun size={16} stroke={1.8} /> : <span>SYS</span>}
-        </button>
-      ))}
-    </div>
-  )
-}
+const adminSections = [
+  { id: 'dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
+  { id: 'create', label: 'Add New App', icon: IconPlus },
+  { id: 'update', label: 'Update Apps', icon: IconTable },
+]
 
-function AutoGrowTextarea(props) {
-  return (
-    <textarea
-      {...props}
-      onInput={(event) => {
-        event.currentTarget.style.height = '0px'
-        event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`
-        props.onInput?.(event)
-      }}
-    />
-  )
+const formatDate = (value) =>
+  new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
+const buildPath = () => (typeof window === 'undefined' ? '/' : window.location.pathname.replace(/\/+$/, '') || '/')
+const buildHost = () => (typeof window === 'undefined' ? '' : window.location.hostname.toLowerCase())
+
+const parsePath = (pathname, hostname) => {
+  if (pathname === '/admin') return { view: 'admin' }
+  if (pathname.startsWith('/apps/')) return { view: 'detail', slug: pathname.replace('/apps/', '') }
+  if (pathname === '/directory' || hostname === 'app.creai.co') return { view: 'directory' }
+  return { view: 'landing' }
 }
 
 const socialIcons = {
@@ -146,6 +122,7 @@ const socialIcons = {
 
 const stackMeta = Object.fromEntries(stackOptions.map((item) => [item.label, item]))
 const frameworkMeta = Object.fromEntries(frameworkOptions.map((item) => [item.label, item]))
+
 const logoComponents = {
   React: Svgl.ReactLight,
   'Next.js': Svgl.Nextjs,
@@ -164,178 +141,6 @@ const logoComponents = {
   Flutter: Svgl.Flutter,
   Expo: Svgl.Expo,
 }
-
-function TokenGlyph({ label, registry = stackMeta }) {
-  const meta = registry[label] || { short: label.slice(0, 2).toUpperCase(), tone: '#c2ff29' }
-  const Logo = logoComponents[label]
-
-  return (
-    <span
-      className="inline-flex h-6 w-6 items-center justify-center rounded-md border text-[10px] font-bold uppercase"
-      style={{ borderColor: `${meta.tone}66`, color: meta.tone, backgroundColor: `${meta.tone}12` }}
-      aria-hidden="true"
-    >
-      {Logo ? <Logo className="h-3.5 w-3.5" /> : meta.short}
-    </span>
-  )
-}
-
-function MultiSelect({ value, onChange, options, registry, emptyLabel, countLabel = 'selected' }) {
-  const [isOpen, setIsOpen] = useState(false)
-
-  const toggleValue = (label) => {
-    onChange(value.includes(label) ? value.filter((item) => item !== label) : [...value, label])
-  }
-
-  return (
-    <div className={`stack-selector ${isOpen ? 'is-open' : ''}`}>
-      <button type="button" className="stack-selector-trigger" onClick={() => setIsOpen((current) => !current)}>
-        <span>{value.length ? `${value.length} ${countLabel}` : emptyLabel}</span>
-        <IconChevronDown className={isOpen ? 'is-open' : ''} size={18} stroke={1.8} />
-      </button>
-
-      {value.length ? (
-        <div className="stack-selection-row">
-          {value.map((item) => (
-            <button key={item} type="button" className="stack-selection-chip" onClick={() => toggleValue(item)}>
-              <TokenGlyph label={item} registry={registry} />
-              <span>{item}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      {isOpen ? (
-        <div className="stack-selector-menu">
-          {options.map((item) => (
-            <button
-              key={item.id}
-              className={`stack-option ${value.includes(item.label) ? 'is-selected' : ''}`}
-              type="button"
-              onClick={() => toggleValue(item.label)}
-            >
-              <TokenGlyph label={item.label} registry={registry} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function SingleSelect({ value, onChange, options, placeholder = 'Choose an option' }) {
-  const [isOpen, setIsOpen] = useState(false)
-
-  return (
-    <div className={`single-select ${isOpen ? 'is-open' : ''}`}>
-      <button type="button" className="single-select-trigger" onClick={() => setIsOpen((current) => !current)}>
-        <span>{value || placeholder}</span>
-        <IconChevronDown className={isOpen ? 'is-open' : ''} size={18} stroke={1.8} />
-      </button>
-      {isOpen ? (
-        <div className="single-select-menu">
-          {options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={`single-select-option ${value === option ? 'is-selected' : ''}`}
-              onClick={() => {
-                onChange(option)
-                setIsOpen(false)
-              }}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function CategorySelect({ value, onChange, categories, onAddCategory }) {
-  const [draft, setDraft] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-
-  const submitCategory = () => {
-    const next = draft.trim()
-    if (!next) return
-    onAddCategory(next)
-    onChange(next)
-    setDraft('')
-    setIsOpen(false)
-  }
-
-  return (
-    <div className={`single-select ${isOpen ? 'is-open' : ''}`}>
-      <button type="button" className="single-select-trigger" onClick={() => setIsOpen((current) => !current)}>
-        <span>{value || 'Select category'}</span>
-        <IconChevronDown className={isOpen ? 'is-open' : ''} size={18} stroke={1.8} />
-      </button>
-      {isOpen ? (
-        <div className="single-select-menu">
-          {categories.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={`single-select-option ${value === option ? 'is-selected' : ''}`}
-              onClick={() => {
-                onChange(option)
-                setIsOpen(false)
-              }}
-            >
-              {option}
-            </button>
-          ))}
-          <div className="category-create-row">
-            <input
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder="Add category"
-              autoComplete="off"
-            />
-            <button type="button" className="ghost-button" onClick={submitCategory}>Add</button>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-const formatDate = (value) =>
-  new Date(value).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
-const buildPath = () => (typeof window === 'undefined' ? '/' : window.location.pathname.replace(/\/+$/, '') || '/')
-const buildHost = () => (typeof window === 'undefined' ? '' : window.location.hostname.toLowerCase())
-
-const parsePath = (pathname, hostname) => {
-  if (pathname === '/admin') {
-    return { view: 'admin' }
-  }
-
-  if (pathname.startsWith('/apps/')) {
-    return { view: 'detail', slug: pathname.replace('/apps/', '') }
-  }
-
-  if (pathname === '/directory' || hostname === 'app.creai.co') {
-    return { view: 'directory' }
-  }
-
-  return { view: 'landing' }
-}
-
-const landingScanLines = [
-  { left: '10%', duration: '8.8s', delay: '1.7s', strength: 0.62 },
-  { left: '30%', duration: '10.4s', delay: '0.4s', strength: 0.78 },
-  { left: '50%', duration: '7.6s', delay: '2.9s', strength: 0.52 },
-  { left: '70%', duration: '9.2s', delay: '1.1s', strength: 0.72 },
-  { left: '90%', duration: '8.1s', delay: '3.6s', strength: 0.58 },
-]
 
 const mapAppRow = (row) => ({
   id: row.id,
@@ -363,9 +168,7 @@ function useSupabaseApps() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
-      return undefined
-    }
+    if (!isSupabaseConfigured || !supabase) return undefined
 
     let mounted = true
 
@@ -379,7 +182,6 @@ function useSupabaseApps() {
       if (!mounted) return
 
       setSession(authData.session)
-
       if (appsError) {
         setError(appsError.message)
         setLoading(false)
@@ -408,215 +210,37 @@ function useSupabaseApps() {
     }
   }, [])
 
-  return {
-    apps,
-    session,
-    loading,
-    error,
-    setApps,
-    setSession,
-  }
+  return { apps, session, loading, error, setApps, setSession }
 }
 
-function Sidebar({ onNavigate, themeMode, onThemeChange }) {
+function ThemeToggle({ themeMode, onThemeChange }) {
   return (
-    <aside className="sticky top-0 hidden h-screen flex-col gap-4 overflow-y-auto border-r border-zinc-800/80 bg-black/95 p-5 xl:flex">
-      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <div className="grid gap-5">
-          <button className="flex w-full items-center gap-4 text-left" onClick={() => onNavigate('/directory')}>
-            <img src="/creailogo.svg" alt="CREAI" className="h-11 w-11 rounded-xl bg-zinc-900 p-2" />
-            <span className="grid gap-1">
-              <strong className="text-sm font-semibold tracking-[0.22em] text-zinc-50">CREAI</strong>
-              <small className="text-xs uppercase tracking-[0.24em] text-zinc-500">App Directory</small>
-            </span>
-          </button>
-          <div className="grid gap-3">
-            <Badge color="lime">Studio System</Badge>
-            <Title>Curated apps, experiments, and launches.</Title>
-            <Text>The public product shelf for CREAI, rebuilt around Tremor cards, metrics, and structured navigation.</Text>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <div className="grid gap-3">
-          <Text>Navigation</Text>
-          <Button icon={IconLayoutGrid} onClick={() => onNavigate('/directory')}>
-            Directory
-          </Button>
-          <Button icon={IconHome} variant="secondary" onClick={() => onNavigate('/')}>
-            CREAI landing
-          </Button>
-        </div>
-      </Card>
-
-      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <div className="grid gap-4">
-          <div className="flex items-center justify-between gap-3">
-            <Text>Appearance</Text>
-            <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
-          </div>
-          <Divider />
-          <div className="grid gap-2">
-            <Text>Channels</Text>
-            <div className="flex flex-wrap gap-2">
-              {brandContent.socialLinks.map((item) => (
-                <Button key={item.label} href={item.url} target="_blank" rel="noreferrer" variant="light" size="xs">
-                  <span className="social-icon">{socialIcons[item.label]}</span>
-                  {item.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Card>
-    </aside>
-  )
-}
-
-function AdminSidebar({ activeSection, activeDashboardBlock, onSectionChange, onDashboardBlockChange, onNavigate, themeMode, onThemeChange }) {
-  const sectionIcons = {
-    Dashboard: IconLayoutDashboard,
-    'Add a New App': IconPlus,
-    'Update Apps': IconTable,
-  }
-
-  return (
-    <aside className="sticky top-0 hidden h-screen flex-col gap-4 overflow-y-auto border-r border-zinc-800/80 bg-black/95 p-5 xl:flex">
-      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <div className="grid gap-5">
-          <button className="flex w-full items-center gap-4 text-left" onClick={() => onNavigate('/directory')}>
-            <img src="/creailogo.svg" alt="CREAI" className="h-11 w-11 rounded-xl bg-zinc-900 p-2" />
-            <span className="grid gap-1">
-              <strong className="text-sm font-semibold tracking-[0.22em] text-zinc-50">CREAI</strong>
-              <small className="text-xs uppercase tracking-[0.24em] text-zinc-500">Admin Control</small>
-            </span>
-          </button>
-          <div className="flex items-center justify-between gap-3">
-            <Badge color="lime">Tremor Workspace</Badge>
-            <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
-          </div>
-        </div>
-      </Card>
-
-      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <div className="grid gap-3">
-          {adminTree.map((section) => (
-            <div key={section.label} className="grid gap-2">
-              <Button
-                type="button"
-                icon={sectionIcons[section.label]}
-                variant={activeSection === section.label ? 'primary' : 'light'}
-                className="justify-start"
-                onClick={() => onSectionChange(section.label)}
-              >
-                {section.label}
-              </Button>
-              {section.children.length && activeSection === section.label ? (
-                <div className="grid gap-2 pl-3">
-                  {section.children.map((child) => (
-                    <Button
-                      key={child.id}
-                      type="button"
-                      icon={IconChevronRight}
-                      variant={activeDashboardBlock === child.id ? 'secondary' : 'light'}
-                      className="justify-start"
-                      onClick={() => onDashboardBlockChange(child.id)}
-                    >
-                      {child.label}
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <div className="grid gap-3">
-          <Text>Workspace mode</Text>
-          <Metric>{activeSection === 'Dashboard' ? 'Focus' : 'Edit'}</Metric>
-          <Text>Internal product ops, publishing, and catalog management live here without sharing the landing visual system.</Text>
-          <Button variant="secondary" onClick={() => onNavigate('/directory')}>
-            Open public directory
-          </Button>
-        </div>
-      </Card>
-    </aside>
-  )
-}
-
-function AppSocialLinks({ links }) {
-  if (!links?.length) return null
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {links.map((item) => (
-        <Button key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" variant="light" size="xs" icon={undefined} aria-label={item.label}>
-          <span className="inline-flex h-4 w-4 items-center justify-center [&_svg]:h-4 [&_svg]:w-4 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]">{socialIcons[item.label] || socialIcons.Website}</span>
-          <span>{item.label}</span>
-        </Button>
+    <div className="inline-flex rounded-full border border-zinc-800 bg-zinc-950 p-1">
+      {['system', 'dark', 'light'].map((mode) => (
+        <button
+          key={mode}
+          type="button"
+          onClick={() => onThemeChange(mode)}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition ${
+            themeMode === mode ? 'bg-lime-300 text-black' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100'
+          }`}
+        >
+          {mode === 'dark' ? <IconMoon size={16} /> : mode === 'light' ? <IconSun size={16} /> : <span className="text-[10px] font-bold">SYS</span>}
+        </button>
       ))}
     </div>
   )
 }
 
-function StoreBadges({ links }) {
-  if (!links?.length) return null
-
+function BrandLockup({ subtitle, onClick }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {links.map((item) => (
-        <Button key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" variant="secondary" size="sm">
-          {item.label}
-        </Button>
-      ))}
-    </div>
-  )
-}
-
-function AppStatusBadge({ status }) {
-  const tone = status === 'Live' ? 'emerald' : status === 'Beta' ? 'amber' : status === 'Internal' ? 'blue' : 'gray'
-  return <Badge color={tone}>{status}</Badge>
-}
-
-function MobileTopBar({ label, onNavigate, themeMode, onThemeChange, showAdminLink = false }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-950 p-4 xl:hidden">
-      <div className="flex items-center gap-3">
-        <img src="/creailogo.svg" alt="CREAI" className="h-10 w-10 rounded-xl bg-zinc-900 p-2" />
-        <div className="grid gap-1">
-          <strong className="text-sm font-semibold tracking-[0.18em] text-zinc-50">CREAI</strong>
-          <span className="text-xs uppercase tracking-[0.22em] text-zinc-500">{label}</span>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {showAdminLink ? (
-          <Button variant="light" size="xs" onClick={() => onNavigate('/admin')}>
-            Admin
-          </Button>
-        ) : null}
-        <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
-      </div>
-    </div>
-  )
-}
-
-function InfoMessage({ children }) {
-  return (
-    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-      <Text>{children}</Text>
-    </Card>
-  )
-}
-
-function AdminStatCard({ label, value, tone = 'lime' }) {
-  return (
-    <Card decoration="top" decorationColor={tone} className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-      <Text>{label}</Text>
-      <Metric>{value}</Metric>
-    </Card>
+    <button className="flex w-full items-center gap-4 text-left" onClick={onClick}>
+      <img src="/creailogo.svg" alt="CREAI" className="h-11 w-11 rounded-xl bg-zinc-900 p-2" />
+      <span className="grid gap-1">
+        <strong className="text-sm font-semibold tracking-[0.22em] text-zinc-50">CREAI</strong>
+        <small className="text-xs uppercase tracking-[0.24em] text-zinc-500">{subtitle}</small>
+      </span>
+    </button>
   )
 }
 
@@ -630,228 +254,66 @@ function AdminSectionHeader({ eyebrow, title, description }) {
   )
 }
 
-function AdminFormFields({ form, updateField, categories, addCategory, disabled = false }) {
-  const [categoryDraft, setCategoryDraft] = useState('')
-
-  const submitCategory = () => {
-    const nextCategory = categoryDraft.trim()
-    if (!nextCategory) return
-    addCategory(nextCategory)
-    updateField('category', nextCategory)
-    setCategoryDraft('')
-  }
+function TokenGlyph({ label, registry }) {
+  const meta = registry[label] || { short: label.slice(0, 2).toUpperCase(), tone: '#c2ff29' }
+  const Logo = logoComponents[label]
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2">
-          <Text>App name</Text>
-          <TextInput
-            value={form.name}
-            onChange={(event) => updateField('name', event.target.value)}
-            placeholder="Signal Deck"
-            disabled={disabled}
-            required
-          />
-        </label>
-        <label className="grid gap-2">
-          <Text>Slug</Text>
-          <TextInput
-            value={form.slug}
-            onChange={(event) => updateField('slug', event.target.value)}
-            placeholder="signal-deck"
-            disabled={disabled}
-            required
-          />
-        </label>
-      </div>
+    <span
+      className="inline-flex h-6 w-6 items-center justify-center rounded-md border text-[10px] font-bold uppercase"
+      style={{ borderColor: `${meta.tone}66`, color: meta.tone, backgroundColor: `${meta.tone}12` }}
+    >
+      {Logo ? <Logo className="h-3.5 w-3.5" /> : meta.short}
+    </span>
+  )
+}
 
-      <label className="grid gap-2">
-        <Text>Description</Text>
-        <TremorTextarea
-          value={form.summary}
-          onChange={(event) => updateField('summary', event.target.value)}
-          placeholder="Short explanation for the public detail page."
-          rows={5}
-          disabled={disabled}
-          required
-        />
-      </label>
+function AppStatusBadge({ status }) {
+  const tone = status === 'Live' ? 'emerald' : status === 'Beta' ? 'amber' : status === 'Internal' ? 'blue' : 'gray'
+  return <Badge color={tone}>{status}</Badge>
+}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2">
-          <Text>Stacks</Text>
-          <TremorMultiSelect
-            value={form.stacks}
-            onValueChange={(value) => updateField('stacks', value)}
-            placeholder="Select stacks"
-            disabled={disabled}
-          >
-            {stackOptions.map((item) => (
-              <MultiSelectItem key={item.id} value={item.label}>
-                <span className="flex items-center gap-2">
-                  <TokenGlyph label={item.label} registry={stackMeta} />
-                  <span>{item.label}</span>
-                </span>
-              </MultiSelectItem>
-            ))}
-          </TremorMultiSelect>
-        </label>
+function InfoCard({ children }) {
+  return (
+    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+      <Text>{children}</Text>
+    </Card>
+  )
+}
 
-        <label className="grid gap-2">
-          <Text>Frameworks</Text>
-          <TremorMultiSelect
-            value={form.frameworks}
-            onValueChange={(value) => updateField('frameworks', value)}
-            placeholder="Select frameworks"
-            disabled={disabled}
-          >
-            {frameworkOptions.map((item) => (
-              <MultiSelectItem key={item.id} value={item.label}>
-                <span className="flex items-center gap-2">
-                  <TokenGlyph label={item.label} registry={frameworkMeta} />
-                  <span>{item.label}</span>
-                </span>
-              </MultiSelectItem>
-            ))}
-          </TremorMultiSelect>
-        </label>
-      </div>
+function openExternal(url) {
+  if (typeof window !== 'undefined') {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="grid gap-2">
-          <Text>Category</Text>
-          <TremorSelect
-            value={form.category}
-            onValueChange={(value) => updateField('category', value)}
-            placeholder="Select a category"
-            disabled={disabled}
-          >
-            {categories.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </TremorSelect>
-          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <TextInput
-              value={categoryDraft}
-              onChange={(event) => setCategoryDraft(event.target.value)}
-              placeholder="Add a new category"
-              disabled={disabled}
-            />
-            <Button type="button" variant="secondary" onClick={submitCategory} disabled={disabled || !categoryDraft.trim()}>
-              Add category
-            </Button>
-          </div>
-        </div>
+function SocialButtons({ links }) {
+  if (!links?.length) return null
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="grid gap-2">
-            <Text>Status</Text>
-            <TremorSelect
-              value={form.status}
-              onValueChange={(value) => updateField('status', value)}
-              placeholder="Select status"
-              disabled={disabled}
-            >
-              {['Live', 'Beta', 'Internal', 'Concept'].map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </TremorSelect>
-          </label>
-          <label className="grid gap-2">
-            <Text>Audience</Text>
-            <TremorSelect
-              value={form.audience}
-              onValueChange={(value) => updateField('audience', value)}
-              placeholder="Select audience"
-              disabled={disabled}
-            >
-              {['Public', 'Client-facing', 'Internal', 'Studio'].map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </TremorSelect>
-          </label>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px]">
-        <label className="grid gap-2">
-          <Text>App URL</Text>
-          <TextInput
-            value={form.url}
-            onChange={(event) => updateField('url', event.target.value)}
-            placeholder="https://app.creai.co/signal-deck"
-            disabled={disabled}
-          />
-        </label>
-        <label className="grid gap-2">
-          <Text>Accent color</Text>
-          <TextInput value={form.accent} onChange={(event) => updateField('accent', event.target.value)} disabled={disabled} />
-        </label>
-        <label className="grid gap-2">
-          <Text>Preview</Text>
-          <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} disabled={disabled} />
-        </label>
-      </div>
-
-      <Divider />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-          <AdminSectionHeader eyebrow="Social" title="Social links" description="Only filled links appear on the public detail page." />
-          <div className="grid gap-4">
-            <label className="grid gap-2">
-              <Text>Website</Text>
-              <TextInput value={form.website} onChange={(event) => updateField('website', event.target.value)} placeholder="https://..." disabled={disabled} />
-            </label>
-            <label className="grid gap-2">
-              <Text>X</Text>
-              <TextInput value={form.x} onChange={(event) => updateField('x', event.target.value)} placeholder="https://x.com/..." disabled={disabled} />
-            </label>
-            <label className="grid gap-2">
-              <Text>Instagram</Text>
-              <TextInput value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." disabled={disabled} />
-            </label>
-            <label className="grid gap-2">
-              <Text>GitHub</Text>
-              <TextInput value={form.github} onChange={(event) => updateField('github', event.target.value)} placeholder="https://github.com/..." disabled={disabled} />
-            </label>
-          </div>
-        </Card>
-
-        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-          <AdminSectionHeader eyebrow="Badges" title="Store badges" description="Show store badges only when URLs are available." />
-          <div className="grid gap-4">
-            <label className="grid gap-2">
-              <Text>Web App</Text>
-              <TextInput value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} placeholder="https://app.creai.co/..." disabled={disabled} />
-            </label>
-            <label className="grid gap-2">
-              <Text>App Store</Text>
-              <TextInput value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} placeholder="https://apps.apple.com/..." disabled={disabled} />
-            </label>
-            <label className="grid gap-2">
-              <Text>Google Play</Text>
-              <TextInput value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} placeholder="https://play.google.com/..." disabled={disabled} />
-            </label>
-          </div>
-        </Card>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        <Button type="button" variant={form.featured ? 'primary' : 'secondary'} onClick={() => updateField('featured', !form.featured)} disabled={disabled}>
-          {form.featured ? 'Featured enabled' : 'Mark as featured'}
+  return (
+    <div className="flex flex-wrap gap-2">
+      {links.map((item) => (
+        <Button key={`${item.label}-${item.url}`} type="button" variant="light" size="xs" onClick={() => openExternal(item.url)}>
+          <span className="inline-flex h-4 w-4 items-center justify-center [&_svg]:h-4 [&_svg]:w-4 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.8]">
+            {socialIcons[item.label] || socialIcons.Website}
+          </span>
+          {item.label}
         </Button>
-        <Button type="button" variant={form.published ? 'primary' : 'secondary'} onClick={() => updateField('published', !form.published)} disabled={disabled}>
-          {form.published ? 'Published' : 'Keep as draft'}
+      ))}
+    </div>
+  )
+}
+
+function StoreButtons({ links }) {
+  if (!links?.length) return null
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {links.map((item) => (
+        <Button key={`${item.label}-${item.url}`} type="button" variant="secondary" size="sm" onClick={() => openExternal(item.url)}>
+          {item.label}
         </Button>
-      </div>
+      ))}
     </div>
   )
 }
@@ -872,9 +334,7 @@ function LandingView() {
   }, [])
 
   useEffect(() => {
-    if (reducedMotion) {
-      return undefined
-    }
+    if (reducedMotion) return undefined
 
     const ctx = gsap.context(() => {
       gsap.to('.landing-ambient-one', {
@@ -960,75 +420,160 @@ function LandingView() {
   )
 }
 
-function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, themeMode, onThemeChange }) {
-  const visibleApps = useMemo(() => {
-    return apps.filter((app) => {
-      const categoryMatch = category === 'All' || app.category === category
-      return categoryMatch && app.published
-    })
-  }, [apps, category])
+function WorkspaceSidebar({ admin = false, section, onSectionChange, dashboardView, onDashboardViewChange, onNavigate, themeMode, onThemeChange }) {
+  return (
+    <aside className="sticky top-0 hidden h-screen flex-col gap-4 overflow-y-auto border-r border-zinc-800/80 bg-black/95 p-5 xl:flex">
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+        <div className="grid gap-5">
+          <BrandLockup subtitle={admin ? 'Admin Control' : 'App Directory'} onClick={() => onNavigate(admin ? '/admin' : '/directory')} />
+          <div className="flex items-center justify-between gap-3">
+            <Badge color="lime">{admin ? 'Tremor Admin' : 'Tremor Directory'}</Badge>
+            <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
+          </div>
+          <Divider />
+          {admin ? (
+            <div className="grid gap-3">
+              {adminSections.map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.id} className="grid gap-2">
+                    <Button type="button" variant={section === item.id ? 'primary' : 'light'} className="justify-start" onClick={() => onSectionChange(item.id)}>
+                      <Icon size={16} />
+                      {item.label}
+                    </Button>
+                    {item.id === 'dashboard' && section === 'dashboard' ? (
+                      <div className="grid gap-2 pl-3">
+                        {[
+                          ['overview', 'Overview'],
+                          ['recent', 'Recent'],
+                          ['taxonomy', 'Taxonomy'],
+                        ].map(([id, label]) => (
+                          <Button key={id} type="button" variant={dashboardView === id ? 'secondary' : 'light'} className="justify-start" onClick={() => onDashboardViewChange(id)}>
+                            {label}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <Button variant="primary" className="justify-start" onClick={() => onNavigate('/directory')}>
+                <IconLayoutGrid size={16} />
+                Directory
+              </Button>
+              <Button variant="light" className="justify-start" onClick={() => onNavigate('/admin')}>
+                <IconLayoutDashboard size={16} />
+                Admin
+              </Button>
+              <Button variant="secondary" className="justify-start" onClick={() => onNavigate('/')}>
+                <IconHome size={16} />
+                CREAI landing
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
 
-  const recentApps = useMemo(
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+        <div className="grid gap-3">
+          <Text>{admin ? 'Workspace status' : 'Studio channels'}</Text>
+          {admin ? (
+            <>
+              <Metric>{section === 'dashboard' ? 'Focus' : 'Edit'}</Metric>
+              <Text>Internal operations, publishing, and catalog management live here.</Text>
+            </>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {brandContent.socialLinks.map((item) => (
+                <Button key={item.label} type="button" variant="light" size="xs" onClick={() => openExternal(item.url)}>
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+    </aside>
+  )
+}
+
+function WorkspaceTopBar({ label, onNavigate, themeMode, onThemeChange, admin = false }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-950 p-4 xl:hidden">
+      <BrandLockup subtitle={label} onClick={() => onNavigate(admin ? '/admin' : '/directory')} />
+      <ThemeToggle themeMode={themeMode} onThemeChange={onThemeChange} />
+    </div>
+  )
+}
+
+function PublicDirectory({ apps, category, onCategoryChange, onNavigate, loading, themeMode, onThemeChange }) {
+  const [query, setQuery] = useState('')
+
+  const visibleApps = useMemo(
     () =>
-      [...apps]
-        .filter((app) => app.published)
-        .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
-        .slice(0, 4),
-    [apps],
+      apps.filter((app) => {
+        const categoryMatch = category === 'All' || app.category === category
+        const queryMatch = !query.trim() || `${app.name} ${app.summary}`.toLowerCase().includes(query.toLowerCase())
+        return app.published && categoryMatch && queryMatch
+      }),
+    [apps, category, query],
   )
 
-  const categoryStats = useMemo(
-    () =>
-      appCategories
-        .filter((item) => item !== 'All')
-        .map((item) => ({
-          name: item,
-          count: apps.filter((app) => app.published && app.category === item).length,
-        }))
-        .filter((item) => item.count > 0),
+  const recentApps = useMemo(
+    () => [...apps].filter((app) => app.published).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 4),
     [apps],
   )
 
   return (
     <section className="grid gap-6">
-      <MobileTopBar label="Directory" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} showAdminLink />
+      <WorkspaceTopBar label="Directory" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
 
       <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="grid gap-4">
-            <Badge color="lime">Directory</Badge>
+            <Badge color="lime">Public Catalog</Badge>
             <Title>Launch-ready apps, prototypes, and internal products.</Title>
-            <Text>Browse the CREAI catalog with a cleaner Tremor-led shell, faster category filtering, and more structured app surfaces.</Text>
+            <Text>A fresh Tremor-first directory for the CREAI product ecosystem, separate from the landing page visual system.</Text>
+            <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search apps, summaries, or internal launches" />
             <div className="flex flex-wrap gap-2">
               {appCategories.map((item) => (
-                <Button key={item} variant={category === item ? 'primary' : 'light'} size="xs" onClick={() => onCategoryChange(item)}>
+                <Button key={item} type="button" size="xs" variant={category === item ? 'primary' : 'light'} onClick={() => onCategoryChange(item)}>
                   {item}
                 </Button>
               ))}
             </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
-            <AdminStatCard label="Published apps" value={apps.filter((app) => app.published).length} tone="lime" />
-            <AdminStatCard label="AI workspaces" value={apps.filter((app) => app.category === 'AI Workspace' && app.published).length} tone="emerald" />
+            <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+              <Text>Published apps</Text>
+              <Metric>{apps.filter((app) => app.published).length}</Metric>
+            </Card>
+            <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+              <Text>AI workspaces</Text>
+              <Metric>{apps.filter((app) => app.published && app.category === 'AI Workspace').length}</Metric>
+            </Card>
           </div>
         </div>
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_360px]">
-        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-          <AdminSectionHeader eyebrow="Directory" title="Category map" description="Browse the public inventory by launch type and operating context." />
+        <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+          <AdminSectionHeader eyebrow="Taxonomy" title="Category map" description="Active categories across the current published catalog." />
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {categoryStats.map((item) => (
-              <Card key={item.name} className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
-                <Text>{item.name}</Text>
-                <Metric>{item.count}</Metric>
+            {appCategories.filter((item) => item !== 'All').map((item) => (
+              <Card key={item} className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+                <Text>{item}</Text>
+                <Metric>{apps.filter((app) => app.published && app.category === item).length}</Metric>
               </Card>
             ))}
           </div>
         </Card>
 
-        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-          <AdminSectionHeader eyebrow="Directory" title="Recently updated" description="The latest movements across tools, experiments, and internal systems." />
+        <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+          <AdminSectionHeader eyebrow="Recent" title="Recently updated" description="Latest app activity across the CREAI product shelf." />
           <div className="grid gap-3">
             {recentApps.map((app) => (
               <div key={app.id} className="flex items-start justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900 p-4">
@@ -1043,11 +588,11 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, 
         </Card>
       </div>
 
-      {loading ? <InfoMessage>Loading app inventory...</InfoMessage> : null}
+      {loading ? <InfoCard>Loading app inventory...</InfoCard> : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
         {visibleApps.map((app) => (
-          <Card key={app.id} className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}18` }}>
+          <Card key={app.id} className="border !border-zinc-800/80 !bg-zinc-950 shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}22` }}>
             <div className="grid gap-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap gap-2">
@@ -1062,7 +607,7 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, 
                 <Text>{app.summary}</Text>
               </div>
               <div className="flex flex-wrap gap-2">
-                {app.stacks?.slice(0, 4).map((stack) => (
+                {app.stacks.slice(0, 4).map((stack) => (
                   <Badge key={stack} color="gray">
                     {stack}
                   </Badge>
@@ -1070,7 +615,7 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, 
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <Text>Updated {formatDate(app.updatedAt)}</Text>
-                <Button variant="secondary" onClick={() => onNavigate(`/apps/${app.slug}`)}>
+                <Button type="button" variant="secondary" onClick={() => onNavigate(`/apps/${app.slug}`)}>
                   View details
                 </Button>
               </div>
@@ -1082,24 +627,28 @@ function DirectoryView({ apps, category, onCategoryChange, loading, onNavigate, 
   )
 }
 
-function DetailView({ app, relatedApps, onNavigate }) {
+function AppDetail({ app, relatedApps, onNavigate, themeMode, onThemeChange }) {
   if (!app) {
     return (
       <section className="grid gap-6">
-        <InfoMessage>This app could not be found or is not published yet.</InfoMessage>
+        <WorkspaceTopBar label="App Detail" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
+        <InfoCard>This app could not be found or is not published yet.</InfoCard>
       </section>
     )
   }
 
   return (
     <section className="grid gap-6">
+      <WorkspaceTopBar label="App Detail" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
+
       <div className="flex flex-wrap gap-3">
-        <Button variant="light" icon={IconArrowLeft} onClick={() => onNavigate('/directory')}>
+        <Button type="button" variant="light" onClick={() => onNavigate('/directory')}>
+          <IconArrowLeft size={16} />
           Back to directory
         </Button>
       </div>
 
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}22` }}>
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none" style={{ boxShadow: `inset 0 0 0 1px ${app.accent}22` }}>
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_340px]">
           <div className="grid gap-4">
             <div className="flex flex-wrap gap-2">
@@ -1109,39 +658,39 @@ function DetailView({ app, relatedApps, onNavigate }) {
             </div>
             <Title>{app.name}</Title>
             <Text>{app.summary}</Text>
-            <AppSocialLinks links={app.socialLinks} />
-            <StoreBadges links={app.storeLinks} />
+            <SocialButtons links={app.socialLinks} />
+            <StoreButtons links={app.storeLinks} />
           </div>
           <div className="grid gap-4">
             <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
-              <Text>Last updated</Text>
+              <Text>Updated</Text>
               <Metric>{formatDate(app.updatedAt)}</Metric>
             </Card>
             <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
-              <Text>Published stack items</Text>
-              <Metric>{app.stacks?.length || 0}</Metric>
+              <Text>Stack count</Text>
+              <Metric>{app.stacks.length}</Metric>
             </Card>
           </div>
         </div>
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-          <AdminSectionHeader eyebrow="App Detail" title="Stack" description="The tools and systems behind this app." />
+        <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+          <AdminSectionHeader eyebrow="Build" title="Stack" description="Core systems behind this app." />
           <div className="flex flex-wrap gap-2">
-            {app.stacks?.length ? app.stacks.map((stack) => <Badge key={stack} color="gray">{stack}</Badge>) : <Text>No stack information yet.</Text>}
+            {app.stacks.length ? app.stacks.map((stack) => <Badge key={stack} color="gray">{stack}</Badge>) : <Text>No stack information yet.</Text>}
           </div>
         </Card>
-        <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-          <AdminSectionHeader eyebrow="App Detail" title="Frameworks" description="Primary frameworks used across the product build." />
+        <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+          <AdminSectionHeader eyebrow="Build" title="Frameworks" description="Primary frameworks used across the product build." />
           <div className="flex flex-wrap gap-2">
-            {app.frameworks?.length ? app.frameworks.map((framework) => <Badge key={framework} color="gray">{framework}</Badge>) : <Text>No frameworks listed yet.</Text>}
+            {app.frameworks.length ? app.frameworks.map((framework) => <Badge key={framework} color="gray">{framework}</Badge>) : <Text>No frameworks listed yet.</Text>}
           </div>
         </Card>
       </div>
 
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-        <AdminSectionHeader eyebrow="App Detail" title="More from CREAI" description="Related releases and systems from the directory." />
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+        <AdminSectionHeader eyebrow="Explore" title="More from CREAI" description="Related releases and systems from the directory." />
         <div className="grid gap-4 xl:grid-cols-2">
           {relatedApps.map((item) => (
             <Card key={item.id} className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
@@ -1156,7 +705,7 @@ function DetailView({ app, relatedApps, onNavigate }) {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <Text>{formatDate(item.updatedAt)}</Text>
-                  <Button variant="secondary" onClick={() => onNavigate(`/apps/${item.slug}`)}>
+                  <Button type="button" variant="secondary" onClick={() => onNavigate(`/apps/${item.slug}`)}>
                     View details
                   </Button>
                 </div>
@@ -1169,11 +718,12 @@ function DetailView({ app, relatedApps, onNavigate }) {
   )
 }
 
-function SetupPanel() {
+function SetupPanel({ onNavigate, themeMode, onThemeChange }) {
   return (
     <section className="grid gap-6">
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-        <AdminSectionHeader eyebrow="Supabase Setup" title="Connect the directory to a real backend." description="Add these variables in Cloudflare Pages and your local .env.local file." />
+      <WorkspaceTopBar label="Setup" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
+      <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+        <AdminSectionHeader eyebrow="Supabase Setup" title="Connect the admin workspace to a real backend." description="Add the public Supabase values to Cloudflare Pages and redeploy." />
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
             <Text>NEXT_PUBLIC_SUPABASE_URL</Text>
@@ -1189,7 +739,7 @@ function SetupPanel() {
   )
 }
 
-function AdminSignIn({ onSignedIn }) {
+function AdminSignIn() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -1197,10 +747,9 @@ function AdminSignIn({ onSignedIn }) {
   const signIn = async (event) => {
     event.preventDefault()
     if (!supabase) {
-      setMessage('Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Cloudflare Pages, then redeploy.')
+      setMessage('Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, then redeploy.')
       return
     }
-
     if (username !== staticAdminUsername) {
       setMessage('Invalid username.')
       return
@@ -1212,136 +761,255 @@ function AdminSignIn({ onSignedIn }) {
     })
 
     if (error) {
-      if (error.message.toLowerCase().includes('invalid login credentials')) {
-        setMessage('Invalid credentials. Check that `root-admin@creai.co` exists in Supabase Auth and that the password matches.')
-      } else {
-        setMessage(error.message)
-      }
-    } else {
-      setMessage('Signed in successfully.')
+      setMessage(error.message.toLowerCase().includes('invalid login credentials')
+        ? 'Invalid credentials. Confirm that root-admin@creai.co exists in Supabase Auth and that the password matches.'
+        : error.message)
     }
-
-    if (!error) onSignedIn()
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4 py-10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(194,255,41,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(194,255,41,0.08),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent)]" aria-hidden="true" />
-      <div className="absolute inset-0 opacity-20" aria-hidden="true">
-        {landingScanLines.map((line, index) => (
-          <span
-            key={`auth-${line.left}-${index}`}
-            className="absolute top-0 h-full w-px bg-gradient-to-b from-transparent via-lime-300/70 to-transparent"
-            style={{ left: line.left }}
-          />
-        ))}
-      </div>
       <Card className="relative z-10 w-full max-w-md border !border-zinc-800/80 !bg-zinc-950 shadow-none">
-        <AdminSectionHeader
-          eyebrow="Admin Access"
-          title="Sign in to the CREAI admin workspace."
-          description="This interface is isolated from the landing and runs as a dedicated internal control surface."
-        />
-        <form className="auth-form admin-auth-form" onSubmit={signIn}>
+        <AdminSectionHeader eyebrow="Admin Access" title="Sign in to the CREAI admin workspace." description="A dedicated Tremor control surface for the app catalog." />
+        <form className="grid gap-4" onSubmit={signIn}>
           <label className="grid gap-2">
             <Text>Username</Text>
-            <TextInput
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              placeholder="Username"
-              autoComplete="new-password"
-              autoCapitalize="none"
-              spellCheck="false"
-              required
-            />
+            <TextInput value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Username" required />
           </label>
           <label className="grid gap-2">
             <Text>Password</Text>
-            <TextInput
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••••"
-              autoComplete="new-password"
-              required
-            />
+            <TextInput type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••" required />
           </label>
-          <Button type="submit" size="lg" className="admin-primary-button justify-center">
+          <Button type="submit" size="lg">
             Sign in
           </Button>
         </form>
-        {message ? <Text className="helper-copy">{message}</Text> : null}
+        {message ? <Text className="mt-4">{message}</Text> : null}
       </Card>
     </main>
   )
 }
 
-function AdminView({ apps, setApps, session, setSession, loading, error, activeSection, activeDashboardBlock, onDashboardBlockChange, onSectionChange, onNavigate, themeMode, onThemeChange }) {
+function AdminFormFields({ form, updateField, categories, addCategory, disabled = false }) {
+  const [categoryDraft, setCategoryDraft] = useState('')
+
+  const submitCategory = () => {
+    const next = categoryDraft.trim()
+    if (!next) return
+    addCategory(next)
+    updateField('category', next)
+    setCategoryDraft('')
+  }
+
+  return (
+    <div className="grid gap-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <Text>App name</Text>
+          <TextInput value={form.name} onChange={(event) => updateField('name', event.target.value)} placeholder="Signal Deck" disabled={disabled} required />
+        </label>
+        <label className="grid gap-2">
+          <Text>Slug</Text>
+          <TextInput value={form.slug} onChange={(event) => updateField('slug', event.target.value)} placeholder="signal-deck" disabled={disabled} required />
+        </label>
+      </div>
+
+      <label className="grid gap-2">
+        <Text>Description</Text>
+        <Textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} rows={5} disabled={disabled} required />
+      </label>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <Text>Stacks</Text>
+          <MultiSelect value={form.stacks} onValueChange={(value) => updateField('stacks', value)} placeholder="Select stacks" disabled={disabled}>
+            {stackOptions.map((item) => (
+              <MultiSelectItem key={item.id} value={item.label}>
+                <span className="flex items-center gap-2">
+                  <TokenGlyph label={item.label} registry={stackMeta} />
+                  <span>{item.label}</span>
+                </span>
+              </MultiSelectItem>
+            ))}
+          </MultiSelect>
+        </label>
+        <label className="grid gap-2">
+          <Text>Frameworks</Text>
+          <MultiSelect value={form.frameworks} onValueChange={(value) => updateField('frameworks', value)} placeholder="Select frameworks" disabled={disabled}>
+            {frameworkOptions.map((item) => (
+              <MultiSelectItem key={item.id} value={item.label}>
+                <span className="flex items-center gap-2">
+                  <TokenGlyph label={item.label} registry={frameworkMeta} />
+                  <span>{item.label}</span>
+                </span>
+              </MultiSelectItem>
+            ))}
+          </MultiSelect>
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-2">
+          <Text>Category</Text>
+          <Select value={form.category} onValueChange={(value) => updateField('category', value)} placeholder="Select category" disabled={disabled}>
+            {categories.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </Select>
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <TextInput value={categoryDraft} onChange={(event) => setCategoryDraft(event.target.value)} placeholder="Add new category" disabled={disabled} />
+            <Button type="button" variant="secondary" onClick={submitCategory} disabled={!categoryDraft.trim() || disabled}>
+              Add
+            </Button>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2">
+            <Text>Status</Text>
+            <Select value={form.status} onValueChange={(value) => updateField('status', value)} disabled={disabled}>
+              {['Live', 'Beta', 'Internal', 'Concept'].map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </Select>
+          </label>
+          <label className="grid gap-2">
+            <Text>Audience</Text>
+            <Select value={form.audience} onValueChange={(value) => updateField('audience', value)} disabled={disabled}>
+              {['Public', 'Client-facing', 'Internal', 'Studio'].map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </Select>
+          </label>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px]">
+        <label className="grid gap-2">
+          <Text>App URL</Text>
+          <TextInput value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://app.creai.co/signal-deck" disabled={disabled} />
+        </label>
+        <label className="grid gap-2">
+          <Text>Accent color</Text>
+          <TextInput value={form.accent} onChange={(event) => updateField('accent', event.target.value)} disabled={disabled} />
+        </label>
+        <label className="grid gap-2">
+          <Text>Preview</Text>
+          <input type="color" value={form.accent} onChange={(event) => updateField('accent', event.target.value)} disabled={disabled} className="h-11 rounded-xl border border-zinc-800 bg-zinc-900 p-1" />
+        </label>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+          <AdminSectionHeader eyebrow="Social" title="Social links" description="Links only render on the public page when filled." />
+          <div className="grid gap-4">
+            <label className="grid gap-2">
+              <Text>Website</Text>
+              <TextInput value={form.website} onChange={(event) => updateField('website', event.target.value)} disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>X</Text>
+              <TextInput value={form.x} onChange={(event) => updateField('x', event.target.value)} disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>Instagram</Text>
+              <TextInput value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>GitHub</Text>
+              <TextInput value={form.github} onChange={(event) => updateField('github', event.target.value)} disabled={disabled} />
+            </label>
+          </div>
+        </Card>
+
+        <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+          <AdminSectionHeader eyebrow="Stores" title="Store badges" description="Store links are optional but recommended." />
+          <div className="grid gap-4">
+            <label className="grid gap-2">
+              <Text>Web App</Text>
+              <TextInput value={form.webApp} onChange={(event) => updateField('webApp', event.target.value)} disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>App Store</Text>
+              <TextInput value={form.appStore} onChange={(event) => updateField('appStore', event.target.value)} disabled={disabled} />
+            </label>
+            <label className="grid gap-2">
+              <Text>Google Play</Text>
+              <TextInput value={form.googlePlay} onChange={(event) => updateField('googlePlay', event.target.value)} disabled={disabled} />
+            </label>
+          </div>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Button type="button" variant={form.featured ? 'primary' : 'secondary'} onClick={() => updateField('featured', !form.featured)} disabled={disabled}>
+          {form.featured ? 'Featured enabled' : 'Mark as featured'}
+        </Button>
+        <Button type="button" variant={form.published ? 'primary' : 'secondary'} onClick={() => updateField('published', !form.published)} disabled={disabled}>
+          {form.published ? 'Published' : 'Keep as draft'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function AdminWorkspace({ apps, setApps, setSession, loading, error, onNavigate, themeMode, onThemeChange }) {
+  const [section, setSection] = useState('dashboard')
+  const [dashboardView, setDashboardView] = useState('overview')
   const [form, setForm] = useState(initialForm)
   const [selectedAppId, setSelectedAppId] = useState('')
   const [feedback, setFeedback] = useState('')
   const [customCategories, setCustomCategories] = useState([])
 
   const categories = useMemo(() => {
-    const catalog = new Set([
-      ...appCategories.filter((item) => item !== 'All'),
-      ...customCategories,
-      ...apps.map((app) => app.category).filter(Boolean),
-    ])
+    const catalog = new Set([...appCategories.filter((item) => item !== 'All'), ...customCategories, ...apps.map((app) => app.category).filter(Boolean)])
     return [...catalog]
   }, [apps, customCategories])
 
   const selectedApp = useMemo(() => apps.find((app) => app.id === selectedAppId) || null, [apps, selectedAppId])
-  const recentAddedApps = useMemo(() => [...apps].slice(0, 5), [apps])
-  const recentUpdatedApps = useMemo(() => [...apps].sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt)).slice(0, 5), [apps])
-  const categoryBreakdown = useMemo(() => categories.map((name) => ({ name, count: apps.filter((app) => app.category === name).length })).sort((a, b) => b.count - a.count), [apps, categories])
-  const activityFeed = useMemo(() => [...apps].sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt)).slice(0, 8).map((app, index) => ({
-    id: `${app.id}-${index}`,
-    title: index % 2 === 0 ? `${app.name} updated` : `${app.name} reviewed`,
-    detail: `${app.category} / ${app.status}`,
-    date: formatDate(app.updatedAt),
-  })), [apps])
-  const showDashboardBlock = (blockId) => activeDashboardBlock === blockId
+  const recentApps = useMemo(() => [...apps].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5), [apps])
 
-  const updateField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }))
+  const totals = {
+    total: apps.length,
+    published: apps.filter((app) => app.published).length,
+    featured: apps.filter((app) => app.featured).length,
+    categories: categories.length,
   }
 
-  const addCategory = (category) => {
-    setCustomCategories((current) => (current.includes(category) ? current : [...current, category]))
-  }
+  const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
+  const addCategory = (value) => setCustomCategories((current) => (current.includes(value) ? current : [...current, value]))
 
-  const buildPayload = () => {
-    const socialLinks = [
+  const buildPayload = () => ({
+    name: form.name,
+    slug: form.slug,
+    category: form.category,
+    status: form.status,
+    summary: form.summary,
+    audience: form.audience,
+    stacks: form.stacks,
+    frameworks: form.frameworks,
+    social_links: [
       form.website ? { label: 'Website', url: form.website } : null,
       form.x ? { label: 'X', url: form.x } : null,
       form.instagram ? { label: 'Instagram', url: form.instagram } : null,
       form.github ? { label: 'GitHub', url: form.github } : null,
-    ].filter(Boolean)
-
-    const storeLinks = [
+    ].filter(Boolean),
+    store_links: [
       form.webApp ? { label: 'Web App', url: form.webApp } : null,
       form.appStore ? { label: 'App Store', url: form.appStore } : null,
       form.googlePlay ? { label: 'Google Play', url: form.googlePlay } : null,
-    ].filter(Boolean)
-
-    return {
-      name: form.name,
-      slug: form.slug,
-      category: form.category,
-      status: form.status,
-      summary: form.summary,
-      audience: form.audience,
-      stacks: form.stacks,
-      frameworks: form.frameworks,
-      social_links: socialLinks,
-      store_links: storeLinks,
-      url: form.url,
-      accent: form.accent,
-      featured: form.featured,
-      published: form.published,
-    }
-  }
+    ].filter(Boolean),
+    url: form.url,
+    accent: form.accent,
+    featured: form.featured,
+    published: form.published,
+  })
 
   const fillFormFromApp = (app) => {
     setForm({
@@ -1370,13 +1038,11 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
   const submitForm = async (event) => {
     event.preventDefault()
     if (!supabase) return
-
     const { data, error: insertError } = await supabase.from('apps').insert(buildPayload()).select().single()
     if (insertError) {
       setFeedback(insertError.message)
       return
     }
-
     setApps((current) => [mapAppRow(data), ...current])
     setForm(initialForm)
     setFeedback('App created successfully.')
@@ -1385,50 +1051,22 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
   const updateApp = async (event) => {
     event.preventDefault()
     if (!supabase || !selectedAppId) return
-
-    const { data, error: updateError } = await supabase
-      .from('apps')
-      .update(buildPayload())
-      .eq('id', selectedAppId)
-      .select()
-      .single()
-
+    const { data, error: updateError } = await supabase.from('apps').update(buildPayload()).eq('id', selectedAppId).select().single()
     if (updateError) {
       setFeedback(updateError.message)
       return
     }
-
     setApps((current) => current.map((app) => (app.id === selectedAppId ? mapAppRow(data) : app)))
     setFeedback('App updated successfully.')
   }
 
-  const toggleField = async (id, field, currentValue) => {
-    if (!supabase) return
-
-    const { data, error: updateError } = await supabase
-      .from('apps')
-      .update({ [field]: !currentValue })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (updateError) {
-      setFeedback(updateError.message)
-      return
-    }
-
-    setApps((current) => current.map((app) => (app.id === id ? mapAppRow(data) : app)))
-  }
-
   const deleteApp = async (id) => {
     if (!supabase) return
-
     const { error: deleteError } = await supabase.from('apps').delete().eq('id', id)
     if (deleteError) {
       setFeedback(deleteError.message)
       return
     }
-
     setApps((current) => current.filter((app) => app.id !== id))
     if (selectedAppId === id) {
       setSelectedAppId('')
@@ -1443,285 +1081,178 @@ function AdminView({ apps, setApps, session, setSession, loading, error, activeS
     setSession(null)
   }
 
-  if (!isSupabaseConfigured) {
-    return <SetupPanel />
-  }
-
-  if (!session) {
-    return <AdminSignIn onSignedIn={() => setFeedback('')} />
-  }
-
-  const totals = {
-    total: apps.length,
-    published: apps.filter((app) => app.published).length,
-    featured: apps.filter((app) => app.featured).length,
-    categories: categories.length,
-  }
-
   return (
-    <section className="grid gap-6">
-      <MobileTopBar label="Admin" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
-      <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
-          <div className="grid gap-4">
-            <Badge color="lime">Admin</Badge>
-            <Title>
-              {activeSection === 'Dashboard'
-                ? 'Monitor the directory and recent changes.'
-                : activeSection === 'Add a New App'
-                  ? 'Create a new app entry with structured metadata.'
-                  : 'Update existing apps and their content.'}
-            </Title>
-            <Text>Everything in this workspace now sits on a Tremor-first shell so the dashboard and the public directory feel like one product system.</Text>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-            <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
-              <Text>Signed in as</Text>
-              <Metric>{staticAdminUsername}</Metric>
-            </Card>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="secondary" onClick={() => onNavigate('/directory')}>
-                Open directory
-              </Button>
-              <Button variant="light" color="red" onClick={signOut}>
-                Sign out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Card>
+    <div className="mx-auto grid min-h-screen max-w-[1680px] grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <WorkspaceSidebar admin section={section} onSectionChange={setSection} dashboardView={dashboardView} onDashboardViewChange={setDashboardView} onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} />
+      <main className="min-w-0 bg-zinc-100 p-5 text-zinc-950 dark:bg-black dark:text-zinc-50 xl:h-screen xl:overflow-y-auto xl:p-6">
+        <section className="grid gap-6">
+          <WorkspaceTopBar label="Admin" onNavigate={onNavigate} themeMode={themeMode} onThemeChange={onThemeChange} admin />
 
-      {loading ? <InfoMessage>Syncing dashboard...</InfoMessage> : null}
-      {error ? <InfoMessage>{error}</InfoMessage> : null}
-
-      {activeSection === 'Dashboard' ? (
-        <div className="admin-dashboard-grid">
-          {showDashboardBlock('dashboard-overview') ? <section id="dashboard-overview" className="detail-panel">
-            <AdminSectionHeader eyebrow="Dashboard" title="Overview" description="High-level view of your current app catalog." />
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <AdminStatCard label="Total apps" value={totals.total} tone="lime" />
-              <AdminStatCard label="Published" value={totals.published} tone="emerald" />
-              <AdminStatCard label="Featured" value={totals.featured} tone="amber" />
-              <AdminStatCard label="Categories" value={totals.categories} tone="cyan" />
-            </div>
-            <div className="grid gap-4 xl:grid-cols-2">
-              <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-                <Title>Publishing snapshot</Title>
-                <div className="mt-4 grid gap-3">
-                  <div className="mini-stat">
-                    <strong>{apps.filter((app) => !app.published).length}</strong>
-                    <span>Draft items</span>
-                  </div>
-                  <div className="mini-stat">
-                    <strong>{apps.filter((app) => app.status === 'Live').length}</strong>
-                    <span>Live status</span>
-                  </div>
-                </div>
-              </Card>
-              <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-                <Title>Coverage snapshot</Title>
-                <div className="mt-4 grid gap-3">
-                  <div className="mini-stat">
-                    <strong>{apps.filter((app) => app.socialLinks?.length).length}</strong>
-                    <span>Apps with social links</span>
-                  </div>
-                  <div className="mini-stat">
-                    <strong>{apps.filter((app) => app.storeLinks?.length).length}</strong>
-                    <span>Apps with store badges</span>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </section> : null}
-
-          {showDashboardBlock('dashboard-recent') ? <section id="dashboard-recent" className="detail-panel">
-              <AdminSectionHeader eyebrow="Dashboard" title="Recent updates" description="Latest added and recently updated app records." />
-              <div className="grid gap-4 xl:grid-cols-2">
-                <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-                  <Title>Recently added</Title>
-                  <div className="mt-4 stack-list">
-                    {recentAddedApps.map((app) => (
-                      <article key={`added-${app.id}`} className="stack-item compact">
-                        <div>
-                          <strong>{app.name}</strong>
-                          <p>Added to directory / {app.category}</p>
-                        </div>
-                        <span>{formatDate(app.updatedAt)}</span>
-                      </article>
-                    ))}
-                  </div>
+          <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
+              <div className="grid gap-4">
+                <Badge color="lime">Admin Workspace</Badge>
+                <Title>{section === 'dashboard' ? 'Monitor the catalog and recent changes.' : section === 'create' ? 'Create new apps for the public directory.' : 'Update existing apps and publishing state.'}</Title>
+                <Text>A clean Tremor-first admin rebuilt separately from the landing experience.</Text>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                <Card className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+                  <Text>Signed in as</Text>
+                  <Metric>{staticAdminUsername}</Metric>
                 </Card>
-                <Card className="border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-                  <Title>Recently updated</Title>
-                  <div className="mt-4 stack-list">
-                    {recentUpdatedApps.map((app) => (
-                      <article key={`updated-${app.id}`} className="stack-item compact">
-                        <div>
-                          <strong>{app.name}</strong>
-                          <p>Last updated / {app.category}</p>
-                        </div>
-                        <span>{formatDate(app.updatedAt)}</span>
-                      </article>
-                    ))}
-                  </div>
-                </Card>
+                <div className="flex flex-wrap gap-3">
+                  <Button type="button" variant="secondary" onClick={() => onNavigate('/directory')}>
+                    Directory
+                  </Button>
+                  <Button type="button" variant="light" onClick={signOut}>
+                    Sign out
+                  </Button>
+                </div>
               </div>
-            </section> : null}
-
-          {showDashboardBlock('dashboard-categories') ? <section id="dashboard-categories" className="detail-panel">
-              <AdminSectionHeader eyebrow="Dashboard" title="Category distribution" description="How apps are distributed across your current taxonomy." />
-              <div className="stack-list">
-                {categoryBreakdown.map((item) => (
-                  <article key={item.name} className="stack-item compact">
-                    <div>
-                      <strong>{item.name}</strong>
-                      <p>Apps in this category</p>
-                    </div>
-                    <span>{item.count}</span>
-                  </article>
-                ))}
-              </div>
-            </section> : null}
-
-          {showDashboardBlock('dashboard-actions') ? <section id="dashboard-actions" className="detail-panel">
-              <AdminSectionHeader eyebrow="Dashboard" title="Quick actions" description="Jump straight into common admin flows." />
-              <div className="flex flex-wrap gap-3">
-                <Button type="button" onClick={() => onSectionChange?.('Add a New App')}>
-                  Add a new app
-                </Button>
-                <Button type="button" variant="secondary" onClick={() => onSectionChange?.('Update Apps')}>
-                  Update apps
-                </Button>
-                <Button type="button" variant="light" onClick={() => onNavigate('/directory')}>
-                  Open directory
-                </Button>
-              </div>
-            </section> : null}
-
-          {showDashboardBlock('dashboard-activity') ? <section id="dashboard-activity" className="detail-panel">
-              <AdminSectionHeader eyebrow="Dashboard" title="Recent admin actions" description="A quick feed of the latest content movements." />
-              <div className="stack-list">
-                {activityFeed.slice(0, 5).map((item) => (
-                  <article key={item.id} className="stack-item compact">
-                    <div>
-                      <strong>{item.title}</strong>
-                      <p>{item.detail}</p>
-                    </div>
-                    <span>{item.date}</span>
-                  </article>
-                ))}
-              </div>
-            </section> : null}
-
-          {showDashboardBlock('dashboard-timeline') ? <section id="dashboard-timeline" className="detail-panel">
-            <AdminSectionHeader eyebrow="Dashboard" title="Activity timeline" description="Chronological feed of recent admin-side content events." />
-            <div className="timeline-list">
-              {activityFeed.map((item) => (
-                <article key={`timeline-${item.id}`} className="timeline-item">
-                  <span className="timeline-dot" aria-hidden="true" />
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.detail}</p>
-                  </div>
-                  <span>{item.date}</span>
-                </article>
-              ))}
             </div>
-          </section> : null}
-        </div>
-      ) : null}
-
-      {activeSection === 'Add a New App' ? (
-        <div className="w-full">
-          <Card className="admin-panel form-panel admin-editor-panel border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-            <form className="grid gap-6" onSubmit={submitForm}>
-              <AdminSectionHeader eyebrow="Admin" title="Add new app" description="Create a new directory entry for app.creai.co." />
-              <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} />
-              <div className="flex flex-wrap gap-3">
-                <Button type="submit" size="lg" className="admin-primary-button">
-                  Create app entry
-                </Button>
-                <Button type="button" variant="secondary" onClick={() => setForm(initialForm)}>
-                  Reset
-                </Button>
-              </div>
-              {feedback ? <Text className="helper-copy">{feedback}</Text> : null}
-            </form>
           </Card>
-        </div>
-      ) : null}
 
-      {activeSection === 'Update Apps' ? (
-        <div className="admin-layout">
-          <Card className="admin-panel list-panel border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-            <AdminSectionHeader eyebrow="Admin" title="Update apps" description="Choose an existing app to edit or remove." />
-            <Table className="table-shell">
-              <TableHead>
-                <TableRow>
-                  <TableHeaderCell>App</TableHeaderCell>
-                  <TableHeaderCell>Category</TableHeaderCell>
-                  <TableHeaderCell>Status</TableHeaderCell>
-                  <TableHeaderCell>Audience</TableHeaderCell>
-                  <TableHeaderCell>Actions</TableHeaderCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {apps.map((app) => (
-                  <TableRow key={app.id} className={selectedAppId === app.id ? 'is-selected' : ''}>
-                    <TableCell>{app.name}</TableCell>
-                    <TableCell>{app.category}</TableCell>
-                    <TableCell>
-                      <Badge color={app.status === 'Live' ? 'emerald' : app.status === 'Beta' ? 'amber' : 'gray'}>
-                        {app.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{app.audience}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="xs"
-                          onClick={() => {
-                            setSelectedAppId(app.id)
-                            fillFormFromApp(app)
-                          }}
-                        >
-                          Update
-                        </Button>
-                        <Button type="button" variant="light" color="red" size="xs" onClick={() => deleteApp(app.id)}>
-                          Remove
-                        </Button>
+          {loading ? <InfoCard>Syncing dashboard...</InfoCard> : null}
+          {error ? <InfoCard>{error}</InfoCard> : null}
+
+          {section === 'dashboard' ? (
+            <div className="grid gap-4">
+              {dashboardView === 'overview' ? (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none"><Text>Total apps</Text><Metric>{totals.total}</Metric></Card>
+                    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none"><Text>Published</Text><Metric>{totals.published}</Metric></Card>
+                    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none"><Text>Featured</Text><Metric>{totals.featured}</Metric></Card>
+                    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none"><Text>Categories</Text><Metric>{totals.categories}</Metric></Card>
+                  </div>
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+                      <AdminSectionHeader eyebrow="Publishing" title="State snapshot" description="Quick health view of the current catalog." />
+                      <div className="grid gap-3">
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900 p-4"><Text>Draft items</Text><Metric>{apps.filter((app) => !app.published).length}</Metric></div>
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900 p-4"><Text>Live items</Text><Metric>{apps.filter((app) => app.status === 'Live').length}</Metric></div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                    </Card>
+                    <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+                      <AdminSectionHeader eyebrow="Coverage" title="Link coverage" description="How complete the public app pages are." />
+                      <div className="grid gap-3">
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900 p-4"><Text>Apps with social links</Text><Metric>{apps.filter((app) => app.socialLinks?.length).length}</Metric></div>
+                        <div className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900 p-4"><Text>Apps with store links</Text><Metric>{apps.filter((app) => app.storeLinks?.length).length}</Metric></div>
+                      </div>
+                    </Card>
+                  </div>
+                </>
+              ) : null}
 
-          <Card className="admin-panel form-panel admin-editor-panel border !border-zinc-800/80 !bg-zinc-950/90 shadow-none">
-            <form className="grid gap-6" onSubmit={updateApp}>
-              <AdminSectionHeader
-                eyebrow="Admin"
-                title="Update selected app"
-                description={selectedApp ? `Editing ${selectedApp.name}` : 'Select an app from the table to begin editing.'}
-              />
-              <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} disabled={!selectedApp} />
-              <div className="flex flex-wrap gap-3">
-                <Button type="submit" size="lg" className="admin-primary-button" disabled={!selectedApp}>
-                  Save changes
-                </Button>
-                <Button type="button" variant="secondary" disabled={!selectedApp} onClick={() => selectedApp && fillFormFromApp(selectedApp)}>
-                  Reset fields
-                </Button>
-              </div>
-              {feedback ? <Text className="helper-copy">{feedback}</Text> : null}
-            </form>
-          </Card>
-        </div>
-      ) : null}
-    </section>
+              {dashboardView === 'recent' ? (
+                <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+                  <AdminSectionHeader eyebrow="Recent" title="Latest app updates" description="Most recent app activity across the admin workspace." />
+                  <div className="grid gap-3">
+                    {recentApps.map((app) => (
+                      <div key={app.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900 p-4">
+                        <div className="grid gap-1">
+                          <Text>{app.name}</Text>
+                          <div className="flex gap-2">
+                            <Badge color="gray">{app.category}</Badge>
+                            <AppStatusBadge status={app.status} />
+                          </div>
+                        </div>
+                        <Text>{formatDate(app.updatedAt)}</Text>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+
+              {dashboardView === 'taxonomy' ? (
+                <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+                  <AdminSectionHeader eyebrow="Taxonomy" title="Category distribution" description="Current app totals by category." />
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {categories.map((item) => (
+                      <Card key={item} className="border !border-zinc-800/80 !bg-zinc-900 shadow-none">
+                        <Text>{item}</Text>
+                        <Metric>{apps.filter((app) => app.category === item).length}</Metric>
+                      </Card>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+            </div>
+          ) : null}
+
+          {section === 'create' ? (
+            <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+              <form className="grid gap-6" onSubmit={submitForm}>
+                <AdminSectionHeader eyebrow="Create" title="Add new app" description="Create a new directory entry from scratch." />
+                <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} />
+                <div className="flex flex-wrap gap-3">
+                  <Button type="submit" size="lg">
+                    Create app entry
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={() => setForm(initialForm)}>
+                    Reset
+                  </Button>
+                </div>
+                {feedback ? <Text>{feedback}</Text> : null}
+              </form>
+            </Card>
+          ) : null}
+
+          {section === 'update' ? (
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+              <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+                <AdminSectionHeader eyebrow="Update" title="Existing apps" description="Select an app to edit or remove." />
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell>App</TableHeaderCell>
+                      <TableHeaderCell>Category</TableHeaderCell>
+                      <TableHeaderCell>Status</TableHeaderCell>
+                      <TableHeaderCell>Actions</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {apps.map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell>{app.name}</TableCell>
+                        <TableCell>{app.category}</TableCell>
+                        <TableCell><AppStatusBadge status={app.status} /></TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant="secondary" size="xs" onClick={() => { setSelectedAppId(app.id); fillFormFromApp(app) }}>
+                              Update
+                            </Button>
+                            <Button type="button" variant="light" size="xs" onClick={() => deleteApp(app.id)}>
+                              Remove
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+
+              <Card className="border !border-zinc-800/80 !bg-zinc-950 shadow-none">
+                <form className="grid gap-6" onSubmit={updateApp}>
+                  <AdminSectionHeader eyebrow="Update" title="Edit selected app" description={selectedApp ? `Editing ${selectedApp.name}` : 'Select an app from the table to begin editing.'} />
+                  <AdminFormFields form={form} updateField={updateField} categories={categories} addCategory={addCategory} disabled={!selectedApp} />
+                  <div className="flex flex-wrap gap-3">
+                    <Button type="submit" size="lg" disabled={!selectedApp}>
+                      Save changes
+                    </Button>
+                    <Button type="button" variant="secondary" disabled={!selectedApp} onClick={() => selectedApp && fillFormFromApp(selectedApp)}>
+                      Reset fields
+                    </Button>
+                  </div>
+                  {feedback ? <Text>{feedback}</Text> : null}
+                </form>
+              </Card>
+            </div>
+          ) : null}
+        </section>
+      </main>
+    </div>
   )
 }
 
@@ -1729,8 +1260,6 @@ export default function App({ initialPath = '/', initialHost = '' }) {
   const [path, setPath] = useState(initialPath)
   const [host, setHost] = useState(initialHost)
   const [category, setCategory] = useState('All')
-  const [adminSection, setAdminSection] = useState('Dashboard')
-  const [adminDashboardBlock, setAdminDashboardBlock] = useState('dashboard-overview')
   const [themeMode, setThemeMode] = useState(() => (typeof window === 'undefined' ? 'system' : window.localStorage.getItem('creai-theme') || 'system'))
   const { apps, session, loading, error, setApps, setSession } = useSupabaseApps()
   const route = parsePath(path, host)
@@ -1745,39 +1274,11 @@ export default function App({ initialPath = '/', initialHost = '' }) {
   }, [])
 
   useEffect(() => {
-    if (route.view === 'landing') {
-      document.title = 'CREAI | Imagine Beyond'
-      return
-    }
-
-    if (route.view === 'admin') {
-      document.title = 'CREAI Admin | Imagine Beyond'
-      return
-    }
-
-    if (route.view === 'detail') {
-      const current = apps.find((app) => app.slug === route.slug)
-      document.title = current ? `${current.name} | CREAI Apps` : 'CREAI App | Imagine Beyond'
-      return
-    }
-
-    document.title = 'CREAI Apps | Imagine Beyond'
-  }, [route, apps])
-
-  useEffect(() => {
-    const shouldLockScroll = route.view === 'admin'
-    document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
-
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [route.view, session])
-
-  useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: light)')
     const applyTheme = () => {
       const resolved = themeMode === 'system' ? (media.matches ? 'light' : 'dark') : themeMode
       document.documentElement.dataset.theme = resolved
+      document.documentElement.classList.toggle('dark', resolved === 'dark')
       window.localStorage.setItem('creai-theme', themeMode)
     }
 
@@ -1787,26 +1288,48 @@ export default function App({ initialPath = '/', initialHost = '' }) {
   }, [themeMode])
 
   useEffect(() => {
-    if (route.view !== 'admin' || adminSection !== 'Dashboard') return
-    const target = document.getElementById(adminDashboardBlock)
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (route.view === 'landing') {
+      document.title = 'CREAI | Imagine Beyond'
+      return
     }
-  }, [route.view, adminSection, adminDashboardBlock])
+    if (route.view === 'admin') {
+      document.title = 'CREAI Admin | Imagine Beyond'
+      return
+    }
+    if (route.view === 'detail') {
+      const current = apps.find((app) => app.slug === route.slug)
+      document.title = current ? `${current.name} | CREAI Apps` : 'CREAI Apps | Imagine Beyond'
+      return
+    }
+    document.title = 'CREAI Apps | Imagine Beyond'
+  }, [route, apps])
+
+  useEffect(() => {
+    document.body.style.overflow = route.view === 'admin' ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [route.view])
 
   const navigate = (nextPath) => {
-    if (typeof window === 'undefined') return
-    if (nextPath === path) return
+    if (typeof window === 'undefined' || nextPath === path) return
     window.history.pushState({}, '', nextPath)
     setPath(nextPath)
   }
 
-  if (route.view === 'landing') {
-    return <LandingView />
-  }
+  if (route.view === 'landing') return <LandingView />
 
   if (route.view === 'admin' && !isSupabaseConfigured) {
-    return <SetupPanel />
+    return (
+      <main className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-black dark:text-zinc-50">
+        <div className="mx-auto grid min-h-screen max-w-[1680px] grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <WorkspaceSidebar admin section="dashboard" dashboardView="overview" onSectionChange={() => {}} onDashboardViewChange={() => {}} onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
+          <main className="min-w-0 bg-zinc-100 p-5 text-zinc-950 dark:bg-black dark:text-zinc-50 xl:p-6">
+            <SetupPanel onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
+          </main>
+        </div>
+      </main>
+    )
   }
 
   if (route.view === 'admin' && loading && isSupabaseConfigured && !session) {
@@ -1819,68 +1342,37 @@ export default function App({ initialPath = '/', initialHost = '' }) {
     )
   }
 
-  if (route.view === 'admin' && !session) {
-    return <AdminSignIn onSignedIn={() => {}} />
-  }
+  if (route.view === 'admin' && !session) return <AdminSignIn />
 
   if (route.view === 'admin') {
-    return (
-      <main className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-black dark:text-zinc-50">
-        <div className="mx-auto grid min-h-screen max-w-[1680px] grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <AdminSidebar
-          activeSection={adminSection}
-          activeDashboardBlock={adminDashboardBlock}
-          onSectionChange={setAdminSection}
-          onDashboardBlockChange={setAdminDashboardBlock}
-          onNavigate={navigate}
-          themeMode={themeMode}
-          onThemeChange={setThemeMode}
-        />
-        <section className="min-w-0 overflow-y-auto p-5 xl:h-screen xl:p-6">
-          <AdminView
-            apps={apps}
-            setApps={setApps}
-            session={session}
-            setSession={setSession}
-            loading={loading}
-            error={error}
-            activeSection={adminSection}
-            activeDashboardBlock={adminDashboardBlock}
-            onDashboardBlockChange={setAdminDashboardBlock}
-            onSectionChange={setAdminSection}
-            onNavigate={navigate}
-            themeMode={themeMode}
-            onThemeChange={setThemeMode}
-          />
-        </section>
-        </div>
-      </main>
-    )
+    return <AdminWorkspace apps={apps} setApps={setApps} setSession={setSession} loading={loading} error={error} onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
   }
 
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-black dark:text-zinc-50">
       <div className="mx-auto grid min-h-screen max-w-[1680px] grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)]">
-      <Sidebar onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
-      <section className="min-w-0 p-5 xl:p-6">
-        {route.view === 'detail' ? (
-          <DetailView
-            app={apps.find((app) => app.slug === route.slug && app.published)}
-            relatedApps={apps.filter((app) => app.slug !== route.slug && app.published).slice(0, 2)}
-            onNavigate={navigate}
-          />
-        ) : (
-          <DirectoryView
-            apps={apps}
-            category={category}
-            onCategoryChange={setCategory}
-            loading={loading}
-            onNavigate={navigate}
-            themeMode={themeMode}
-            onThemeChange={setThemeMode}
-          />
-        )}
-      </section>
+        <WorkspaceSidebar onNavigate={navigate} themeMode={themeMode} onThemeChange={setThemeMode} />
+        <main className="min-w-0 bg-zinc-100 p-5 text-zinc-950 dark:bg-black dark:text-zinc-50 xl:p-6">
+          {route.view === 'detail' ? (
+            <AppDetail
+              app={apps.find((app) => app.slug === route.slug && app.published)}
+              relatedApps={apps.filter((app) => app.slug !== route.slug && app.published).slice(0, 2)}
+              onNavigate={navigate}
+              themeMode={themeMode}
+              onThemeChange={setThemeMode}
+            />
+          ) : (
+            <PublicDirectory
+              apps={apps}
+              category={category}
+              onCategoryChange={setCategory}
+              onNavigate={navigate}
+              loading={loading}
+              themeMode={themeMode}
+              onThemeChange={setThemeMode}
+            />
+          )}
+        </main>
       </div>
     </main>
   )
