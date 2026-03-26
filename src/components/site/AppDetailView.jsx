@@ -43,6 +43,13 @@ const storeMeta = {
   web_app: { label: 'Web App', icon: RiGlobalLine },
 }
 
+function normalizeExternalUrl(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://${trimmed.replace(/^\/+/, '')}`
+}
+
 function formatDate(value) {
   if (!value) return 'Recently updated'
   return new Date(value).toLocaleDateString('en-US', {
@@ -132,7 +139,7 @@ export default function AppDetailView({ slug, publicRoot }) {
             </Link>
             <div>
               <Title>App detail</Title>
-              <Text>Published product profile for app.creai.co</Text>
+              <Text>Product profile for app.creai.co</Text>
             </div>
           </div>
           <ThemeToggle />
@@ -181,7 +188,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                       const meta = socialMeta[key]
                       if (!meta) return null
                       return (
-                        <a key={key} href={value} target="_blank" rel="noreferrer">
+                        <a key={key} href={normalizeExternalUrl(value)} target="_blank" rel="noreferrer">
                           <Button variant="secondary" icon={meta.icon} size="xs" className="creai-button-secondary">
                             {meta.label}
                           </Button>
@@ -209,7 +216,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                         const meta = storeMeta[key]
                         if (!meta) return null
                         return (
-                          <a key={key} href={value} target="_blank" rel="noreferrer">
+                          <a key={key} href={normalizeExternalUrl(value)} target="_blank" rel="noreferrer">
                             <Button icon={meta.icon} className="creai-button-primary">
                               {meta.label}
                             </Button>

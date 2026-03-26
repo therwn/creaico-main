@@ -72,11 +72,12 @@ using (true)
 with check (true);
 
 drop policy if exists "public apps read published" on public.apps;
-create policy "public apps read published"
+drop policy if exists "public apps read all" on public.apps;
+create policy "public apps read all"
 on public.apps
 for select
 to public
-using (status = 'published');
+using (true);
 
 drop policy if exists "authenticated apps manage" on public.apps;
 create policy "authenticated apps manage"

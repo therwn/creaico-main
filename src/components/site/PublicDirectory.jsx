@@ -152,7 +152,7 @@ export default function PublicDirectory() {
     return (
       <SetupState
         title="Prepare the CREAI app directory"
-        description="The Tremor public catalog is ready. Connect Supabase to load published apps here."
+        description="The Tremor public catalog is ready. Connect Supabase to load app records here."
       />
     )
   }
@@ -282,7 +282,7 @@ export default function PublicDirectory() {
               <div className="mt-auto space-y-3 border-t border-mist-200/80 pt-4 dark:border-ink-700">
                 <ThemeToggle />
                 <Text className="text-xs text-mist-500 dark:text-mist-400">
-                  Browse published CREAI products, stacks, and launch surfaces from one catalog.
+                  Browse CREAI products, stacks, and launch surfaces from one catalog.
                 </Text>
               </div>
             </div>
@@ -315,7 +315,7 @@ export default function PublicDirectory() {
 
               <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
                 <Card decoration="top" decorationColor="lime" className="rounded-3xl">
-                  <Text>Total published apps</Text>
+                  <Text>Total apps</Text>
                   <Metric>{loading ? '...' : metrics.total}</Metric>
                 </Card>
                 <Card decoration="top" decorationColor="lime" className="rounded-3xl">
@@ -348,7 +348,7 @@ export default function PublicDirectory() {
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="space-y-2">
                       <Title>Recently updated</Title>
-                      <Text>Quick access to the latest published app changes.</Text>
+                      <Text>Quick access to the latest app changes.</Text>
                     </div>
                     <Badge color="slate" icon={RiTimeLine}>
                       Live directory data

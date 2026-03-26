@@ -109,6 +109,88 @@ function formatDate(value) {
   })
 }
 
+function formatDateTime(value) {
+  if (!value) return 'Pending'
+  return new Date(value).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function normalizeExternalUrl(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://${trimmed.replace(/^\/+/, '')}`
+}
+
+function humanizeFieldName(value) {
+  const labels = {
+    short_description: 'short description',
+    description: 'description',
+    accent_color: 'accent color',
+    social_links: 'social links',
+    store_links: 'store links',
+    logo_url: 'logo',
+    category: 'category',
+    stacks: 'stacks',
+    frameworks: 'frameworks',
+    slug: 'slug',
+    name: 'name',
+    status: 'store status',
+  }
+
+  return labels[value] || value.replace(/_/g, ' ')
+}
+
+function ActivityEntry({ item, compact = false }) {
+  const details = item.details ?? {}
+  const changedFields = Array.isArray(details.changedFields) ? details.changedFields : []
+
+  return (
+    <div className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge color="lime" className="creai-badge">{item.action}</Badge>
+        <Badge color="gray">{item.entity_type}</Badge>
+        <Text>{item.actor_email || 'Unknown user'}</Text>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        <Text className="font-medium text-ink-950 dark:text-mist-200">{details.message || 'Workspace activity recorded.'}</Text>
+
+        <div className="flex flex-wrap gap-2">
+          {details.name ? <Badge color="gray">{details.name}</Badge> : null}
+          {details.slug ? <Badge color="gray">slug: {details.slug}</Badge> : null}
+          {details.status ? <Badge color="gray">store: {details.status}</Badge> : null}
+          {typeof details.stackCount === 'number' ? <Badge color="gray">stacks: {details.stackCount}</Badge> : null}
+          {typeof details.frameworkCount === 'number' ? <Badge color="gray">frameworks: {details.frameworkCount}</Badge> : null}
+          {typeof details.socialCount === 'number' ? <Badge color="gray">social: {details.socialCount}</Badge> : null}
+          {typeof details.storeCount === 'number' ? <Badge color="gray">store links: {details.storeCount}</Badge> : null}
+        </div>
+
+        {changedFields.length ? (
+          <Text>
+            Changed: {changedFields.map(humanizeFieldName).join(', ')}
+          </Text>
+        ) : null}
+
+        {details.previousStatus && details.previousStatus !== details.status ? (
+          <Text>
+            Store status moved from {details.previousStatus} to {details.status}.
+          </Text>
+        ) : null}
+
+        <Text className="text-xs text-mist-500 dark:text-mist-400">
+          {compact ? formatDate(item.created_at) : formatDateTime(item.created_at)}
+        </Text>
+      </div>
+    </div>
+  )
+}
+
 function NavTree({ groups, currentPath }) {
   return (
     <div className="space-y-5">
@@ -184,7 +266,11 @@ function AdminOptionsMenu({ onSignOut }) {
 }
 
 function sanitizeLinks(group) {
-  return Object.fromEntries(Object.entries(group).filter(([, value]) => value?.trim()))
+  return Object.fromEntries(
+    Object.entries(group)
+      .map(([key, value]) => [key, normalizeExternalUrl(value)])
+      .filter(([, value]) => value),
+  )
 }
 
 function appPayloadFromForm(form, logoUrl) {
@@ -407,14 +493,14 @@ function AppForm({
             />
           </div>
           <div className="space-y-2">
-            <Text>Status</Text>
+            <Text>Store status</Text>
             <SearchableSelect
               value={form.status}
               onChange={(value) => onChange('status', value)}
               options={statusOptions}
-              placeholder="Select status"
-              searchPlaceholder="Search status..."
-              emptyMessage="No status found."
+              placeholder="Select store status"
+              searchPlaceholder="Search store status..."
+              emptyMessage="No store status found."
             />
           </div>
           <div className="space-y-2">
@@ -671,7 +757,11 @@ export default function AdminWorkspace({ route }) {
         entityType: 'category',
         entityId: category.id,
         actorEmail: session.user.email,
-        details: { name: category.name },
+        details: {
+          name: category.name,
+          slug: category.slug,
+          message: `Created category ${category.name}`,
+        },
       })
       setCategories((current) => [...current, category].sort((a, b) => a.name.localeCompare(b.name)))
       const targetSetter = categoryTarget === 'edit' ? setEditForm : setCreateForm
@@ -808,7 +898,7 @@ export default function AdminWorkspace({ route }) {
               <TableHead>
                 <TableRow>
                   <TableHeaderCell>App</TableHeaderCell>
-                  <TableHeaderCell>Status</TableHeaderCell>
+                  <TableHeaderCell>Store status</TableHeaderCell>
                   <TableHeaderCell>Updated</TableHeaderCell>
                 </TableRow>
               </TableHead>
@@ -843,7 +933,7 @@ export default function AdminWorkspace({ route }) {
           <Grid numItemsLg={2} className="gap-4">
             <Card className="rounded-3xl p-6">
               <Title>Create a new app</Title>
-              <Text className="mt-2">Open the app creation form and publish a new product entry.</Text>
+              <Text className="mt-2">Open the app creation form and add a new product entry.</Text>
               <Link href="/admin/add" className="mt-6 inline-flex">
                 <Button icon={RiAddCircleLine} className="creai-button-primary">Go to Add a New App</Button>
               </Link>
@@ -864,18 +954,9 @@ export default function AdminWorkspace({ route }) {
         return (
           <Card className="rounded-3xl p-6">
             <Title>{view.section === 'recent-activity' ? 'Recent activity' : 'Activity timeline'}</Title>
-            <Text className="mt-2">A rolling log of admin actions recorded in Supabase.</Text>
+            <Text className="mt-2">A detailed log of category creation, app updates, store status changes, and link metadata edits.</Text>
             <div className="mt-6 space-y-4">
-              {activity.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge color="lime" className="creai-badge">{item.action}</Badge>
-                    <Badge color="gray">{item.entity_type}</Badge>
-                    <Text>{item.actor_email || 'Unknown user'}</Text>
-                  </div>
-                  <Text className="mt-2">{formatDate(item.created_at)}</Text>
-                </div>
-              ))}
+              {activity.map((item) => <ActivityEntry key={item.id} item={item} />)}
             </div>
           </Card>
         )
@@ -889,7 +970,7 @@ export default function AdminWorkspace({ route }) {
                 <Title className="mt-2">{dashboardMetrics.totalApps}</Title>
               </Card>
               <Card className="rounded-3xl">
-                <Text>Published</Text>
+                <Text>Store published</Text>
                 <Title className="mt-2">{dashboardMetrics.publishedApps}</Title>
               </Card>
               <Card className="rounded-3xl">
@@ -923,12 +1004,7 @@ export default function AdminWorkspace({ route }) {
               <Card className="rounded-3xl p-6">
                 <Title>Recent activity</Title>
                 <div className="mt-4 space-y-3">
-                  {activity.slice(0, 5).map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
-                      <Text className="font-medium capitalize">{item.action}</Text>
-                      <Text>{item.actor_email || 'Unknown user'}</Text>
-                    </div>
-                  ))}
+                  {activity.slice(0, 5).map((item) => <ActivityEntry key={item.id} item={item} compact />)}
                 </div>
               </Card>
             </Grid>

@@ -1,5 +1,43 @@
 import { getSupabaseBrowserClient } from './supabase'
 
+function countLinks(group) {
+  return Object.values(group ?? {}).filter(Boolean).length
+}
+
+function summarizeAppRecord(row) {
+  if (!row) return {}
+
+  return {
+    name: row.name,
+    slug: row.slug,
+    status: row.status,
+    categoryId: row.category_id ?? null,
+    stackCount: Array.isArray(row.stacks) ? row.stacks.length : 0,
+    frameworkCount: Array.isArray(row.frameworks) ? row.frameworks.length : 0,
+    socialCount: countLinks(row.social_links),
+    storeCount: countLinks(row.store_links),
+  }
+}
+
+function buildChangedFields(previous, next) {
+  const fields = [
+    ['name', previous?.name, next?.name],
+    ['slug', previous?.slug, next?.slug],
+    ['status', previous?.status, next?.status],
+    ['category', previous?.category_id ?? null, next?.category_id ?? null],
+    ['description', previous?.description, next?.description],
+    ['short_description', previous?.short_description, next?.short_description],
+    ['accent_color', previous?.accent_color, next?.accent_color],
+    ['stacks', JSON.stringify(previous?.stacks ?? []), JSON.stringify(next?.stacks ?? [])],
+    ['frameworks', JSON.stringify(previous?.frameworks ?? []), JSON.stringify(next?.frameworks ?? [])],
+    ['social_links', JSON.stringify(previous?.social_links ?? {}), JSON.stringify(next?.social_links ?? {})],
+    ['store_links', JSON.stringify(previous?.store_links ?? {}), JSON.stringify(next?.store_links ?? {})],
+    ['logo_url', previous?.logo_url ?? null, next?.logo_url ?? null],
+  ]
+
+  return fields.filter(([, before, after]) => before !== after).map(([name]) => name)
+}
+
 function normalizeApp(row) {
   if (!row) return null
 
@@ -55,7 +93,6 @@ export async function fetchPublishedApps() {
         slug
       )
     `)
-    .eq('status', 'published')
     .order('updated_at', { ascending: false })
 
   if (error) throw error
@@ -91,7 +128,6 @@ export async function fetchPublishedAppBySlug(slug) {
       )
     `)
     .eq('slug', slug)
-    .eq('status', 'published')
     .maybeSingle()
 
   if (error) throw error
@@ -235,7 +271,10 @@ export async function createAppRecord(payload, actorEmail) {
     entityType: 'app',
     entityId: data.id,
     actorEmail,
-    details: { name: data.name, status: data.status },
+    details: {
+      ...summarizeAppRecord(data),
+      message: `Created ${data.name}`,
+    },
   })
 
   return normalizeApp(data)
@@ -244,6 +283,16 @@ export async function createAppRecord(payload, actorEmail) {
 export async function updateAppRecord(id, payload, actorEmail) {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) throw new Error('Supabase env is missing.')
+
+  const { data: previous, error: previousError } = await supabase
+    .from('apps')
+    .select(
+      'id, name, slug, short_description, description, category_id, logo_url, accent_color, stacks, frameworks, social_links, store_links, status',
+    )
+    .eq('id', id)
+    .single()
+
+  if (previousError) throw previousError
 
   const { data, error } = await supabase
     .from('apps')
@@ -280,7 +329,12 @@ export async function updateAppRecord(id, payload, actorEmail) {
     entityType: 'app',
     entityId: data.id,
     actorEmail,
-    details: { name: data.name, status: data.status },
+    details: {
+      ...summarizeAppRecord(data),
+      previousStatus: previous.status,
+      changedFields: buildChangedFields(previous, payload),
+      message: `Updated ${data.name}`,
+    },
   })
 
   return normalizeApp(data)
