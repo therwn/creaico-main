@@ -94,7 +94,7 @@ export function createEmptyAppForm() {
     stacks: [],
     frameworks: [],
     accentColor: '#c2ff29',
-    status: 'draft',
+    status: 'published',
     socialLinks: {
       website: '',
       x: '',

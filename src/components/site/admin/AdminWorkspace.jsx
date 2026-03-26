@@ -618,6 +618,12 @@ export default function AdminWorkspace({ route }) {
     }
   }, [selectedApp])
 
+  useEffect(() => {
+    if (session) {
+      loadSnapshot()
+    }
+  }, [route.path, session])
+
   const updateFormState = (setter, key, value) => {
     setter((current) => ({ ...current, [key]: value }))
   }
@@ -1021,7 +1027,14 @@ export default function AdminWorkspace({ route }) {
                       </TableHead>
                       <TableBody>
                         {apps.map((app) => (
-                          <TableRow key={app.id}>
+                          <TableRow
+                            key={app.id}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setSelectedAppId(app.id)
+                              setEditForm(hydrateForm(app))
+                            }}
+                          >
                             <TableCell>{app.name}</TableCell>
                             <TableCell>{app.category?.name ?? 'Uncategorized'}</TableCell>
                             <TableCell>
@@ -1033,7 +1046,8 @@ export default function AdminWorkspace({ route }) {
                                 size="xs"
                                 icon={RiEdit2Line}
                                 variant={selectedAppId === app.id ? 'primary' : 'secondary'}
-                                onClick={() => {
+                                onClick={(event) => {
+                                  event.stopPropagation()
                                   setSelectedAppId(app.id)
                                   setEditForm(hydrateForm(app))
                                 }}
