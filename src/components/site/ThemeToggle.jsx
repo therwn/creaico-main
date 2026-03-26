@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Select, SelectItem } from '@tremor/react'
-import { RiComputerLine, RiMoonClearLine, RiPaletteLine, RiSunLine } from '@remixicon/react'
+import { RiComputerLine, RiMoonClearLine, RiSunLine } from '@remixicon/react'
 
 const themeOptions = [
   { value: 'light', label: 'Light', icon: RiSunLine },
@@ -21,13 +21,9 @@ export default function ThemeToggle() {
   }, [])
 
   return (
-    <div className="min-w-[168px]">
-      <Select
-        value={mounted ? activeTheme : 'system'}
-        onValueChange={setTheme}
-        icon={RiPaletteLine}
-        placeholder="Theme"
-      >
+    <div className="min-w-[168px] space-y-2">
+      <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Theme</span>
+      <Select value={mounted ? activeTheme : 'system'} onValueChange={setTheme} placeholder="Theme">
         {themeOptions.map((option) => {
           const Icon = option.icon
           return (
