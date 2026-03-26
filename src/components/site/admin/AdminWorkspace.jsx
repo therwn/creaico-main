@@ -21,7 +21,6 @@ import {
   TableHeaderCell,
   TableRow,
   Text,
-  TextInput,
   Textarea,
   Title,
 } from '@tremor/react'
@@ -57,6 +56,7 @@ import {
   storeFieldOptions,
 } from '../../../lib/app-options'
 import { getSupabaseBrowserClient, hasSupabaseEnv } from '../../../lib/supabase'
+import Input from '../../ui/Input'
 import ThemeToggle from '../ThemeToggle'
 import SetupState from '../SetupState'
 
@@ -177,7 +177,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
         <form className="mt-6 space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Text>Email</Text>
-            <TextInput
+            <Input
               type="email"
               placeholder="admin@creai.co"
               value={credentials.email}
@@ -186,7 +186,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
           </div>
           <div className="space-y-2">
             <Text>Password</Text>
-            <TextInput
+            <Input
               type="password"
               placeholder="Password"
               value={credentials.password}
@@ -210,7 +210,7 @@ function CategoryCreator({ value, onChange, onSubmit, loading }) {
         <Text>Create a category if the dropdown does not contain the one you need.</Text>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <TextInput value={value} placeholder="e.g. Wellness AI" onChange={(event) => onChange(event.target.value)} />
+        <Input value={value} placeholder="e.g. Wellness AI" onChange={(event) => onChange(event.target.value)} />
         <Button icon={RiAddCircleLine} loading={loading} onClick={onSubmit}>
           Add category
         </Button>
@@ -243,17 +243,17 @@ function AppForm({
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <div className="space-y-2">
             <Text>Name</Text>
-            <TextInput value={form.name} placeholder="Pulseboard" onChange={(event) => onChange('name', event.target.value)} />
+            <Input value={form.name} placeholder="Pulseboard" onChange={(event) => onChange('name', event.target.value)} />
           </div>
           <div className="space-y-2">
             <Text>Slug</Text>
-            <TextInput value={form.slug} placeholder="pulseboard" onChange={(event) => onChange('slug', event.target.value)} />
+            <Input value={form.slug} placeholder="pulseboard" onChange={(event) => onChange('slug', event.target.value)} />
           </div>
         </div>
 
         <div className="mt-4 space-y-2">
           <Text>Short description</Text>
-          <TextInput
+          <Input
             value={form.shortDescription}
             placeholder="A short summary for the public catalog."
             onChange={(event) => onChange('shortDescription', event.target.value)}
@@ -364,7 +364,7 @@ function AppForm({
           {socialFieldOptions.map((field) => (
             <div key={field.key} className="space-y-2">
               <Text>{field.label}</Text>
-              <TextInput
+              <Input
                 value={form.socialLinks[field.key]}
                 placeholder={`https://${field.label.toLowerCase()}.com/...`}
                 onChange={(event) => onLinksChange('socialLinks', field.key, event.target.value)}
@@ -381,7 +381,7 @@ function AppForm({
           {storeFieldOptions.map((field) => (
             <div key={field.key} className="space-y-2">
               <Text>{field.label}</Text>
-              <TextInput
+              <Input
                 value={form.storeLinks[field.key]}
                 placeholder={`Paste the ${field.label} URL`}
                 onChange={(event) => onLinksChange('storeLinks', field.key, event.target.value)}
