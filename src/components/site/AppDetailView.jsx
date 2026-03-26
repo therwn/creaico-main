@@ -102,9 +102,9 @@ export default function AppDetailView({ slug, publicRoot }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-6 dark:bg-slate-950 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-mist-100 px-4 py-6 dark:bg-ink-950 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-soft dark:border-slate-800/80 dark:bg-slate-950/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 rounded-3xl border border-mist-200/80 bg-white/90 p-6 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <Link href={publicRoot}>
               <Button variant="secondary" icon={RiArrowLeftLine}>
@@ -137,17 +137,17 @@ export default function AppDetailView({ slug, publicRoot }) {
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex items-start gap-4">
                   {app.logoUrl ? (
-                    <img src={app.logoUrl} alt={`${app.name} logo`} className="h-16 w-16 rounded-3xl border border-slate-200/80 object-cover dark:border-slate-800/80" />
+                    <img src={app.logoUrl} alt={`${app.name} logo`} className="h-16 w-16 rounded-3xl border border-mist-200/80 object-cover dark:border-ink-700/80" />
                   ) : (
                     <div
-                      className="flex h-16 w-16 items-center justify-center rounded-3xl text-lg font-semibold text-slate-900"
+                      className="flex h-16 w-16 items-center justify-center rounded-3xl text-lg font-semibold text-ink-950"
                       style={{ backgroundColor: app.accentColor || '#c2ff29' }}
                     >
                       {app.name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
                   <div className="space-y-2">
-                    <Badge color="emerald">{app.category?.name ?? 'Uncategorized'}</Badge>
+                    <Badge color="lime">{app.category?.name ?? 'Uncategorized'}</Badge>
                     <Title>{app.name}</Title>
                     <Text>{app.shortDescription}</Text>
                     <Text>{formatDate(app.updatedAt)}</Text>
@@ -189,7 +189,7 @@ export default function AppDetailView({ slug, publicRoot }) {
                         if (!meta) return null
                         return (
                           <a key={key} href={value} target="_blank" rel="noreferrer">
-                            <Button color="emerald" icon={meta.icon}>
+                            <Button color="lime" icon={meta.icon}>
                               {meta.label}
                             </Button>
                           </a>
@@ -212,15 +212,15 @@ export default function AppDetailView({ slug, publicRoot }) {
               <Card className="rounded-3xl p-6">
                 <Title>Frameworks</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {app.frameworks.length ? app.frameworks.map((item) => <Badge key={item} color="cyan">{item}</Badge>) : <Text>No framework tags added.</Text>}
+                  {app.frameworks.length ? app.frameworks.map((item) => <Badge key={item} color="lime">{item}</Badge>) : <Text>No framework tags added.</Text>}
                 </div>
               </Card>
 
               <Card className="rounded-3xl p-6">
                 <Title>Availability</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge color={socialLinks.length ? 'emerald' : 'gray'}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
-                  <Badge color={storeLinks.length ? 'emerald' : 'gray'}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
+                  <Badge color={socialLinks.length ? 'lime' : 'gray'}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
+                  <Badge color={storeLinks.length ? 'lime' : 'gray'}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
                   <Badge color="slate" icon={RiExternalLinkLine}>
                     {app.status}
                   </Badge>

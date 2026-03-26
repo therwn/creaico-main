@@ -22,7 +22,7 @@ export default function ThemeToggle() {
 
   return (
     <div className="min-w-[168px] space-y-2">
-      <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Theme</span>
+      <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Theme</span>
       <Select value={mounted ? activeTheme : 'system'} onValueChange={setTheme} placeholder="Theme">
         {themeOptions.map((option) => {
           const Icon = option.icon

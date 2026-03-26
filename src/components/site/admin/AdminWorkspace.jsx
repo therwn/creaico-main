@@ -109,9 +109,9 @@ function NavTree({ groups, currentPath }) {
           <div key={group.label} className="space-y-2">
             <div className="flex items-center gap-2 px-1">
               <GroupIcon className="h-4 w-4 text-brand-500" />
-              <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{group.label}</Text>
+              <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">{group.label}</Text>
             </div>
-            <div className="space-y-1 border-l border-slate-200 pl-4 dark:border-slate-800">
+            <div className="space-y-1 border-l border-mist-200 pl-4 dark:border-ink-700">
               {group.links.map((item) => {
                 const isActive = currentPath === item.href || (item.href === '/admin/dashboard' && currentPath === '/admin')
                 return (
@@ -120,8 +120,8 @@ function NavTree({ groups, currentPath }) {
                     href={item.href}
                     className={`block rounded-xl px-3 py-2 text-sm transition ${
                       isActive
-                        ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-white dark:ring-slate-800'
-                        : 'text-slate-600 hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white'
+                        ? 'bg-white text-ink-950 shadow-sm ring-1 ring-mist-200 dark:bg-ink-800 dark:text-mist-200 dark:ring-ink-700'
+                        : 'text-mist-500 hover:bg-white hover:text-ink-950 dark:text-mist-300 dark:hover:bg-ink-800 dark:hover:text-mist-200'
                     }`}
                   >
                     {item.label}
@@ -187,7 +187,7 @@ function hydrateForm(app) {
 
 function EmptyCard({ title, description }) {
   return (
-    <Card className="rounded-3xl border border-dashed border-slate-300 bg-slate-50/80 p-8 dark:border-slate-800 dark:bg-slate-900/60">
+    <Card className="rounded-3xl border border-dashed border-mist-300 bg-mist-50/80 p-8 dark:border-ink-700 dark:bg-ink-900/60">
       <Title>{title}</Title>
       <Text className="mt-2">{description}</Text>
     </Card>
@@ -197,9 +197,9 @@ function EmptyCard({ title, description }) {
 function LoginView({ credentials, onChange, onSubmit, error, loading }) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-soft dark:border-slate-800/80 dark:bg-slate-950/85 dark:shadow-soft-dark">
+      <Card className="w-full rounded-3xl border border-mist-200/80 bg-white/90 p-8 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/85 dark:shadow-soft-dark">
         <div className="space-y-3 text-center">
-          <Badge color="emerald">CREAI Admin</Badge>
+          <Badge color="lime">CREAI Admin</Badge>
           <Title>Sign in to manage the app catalog</Title>
           <Text>Use your Supabase email and password to access the Tremor workspace.</Text>
         </div>
@@ -229,7 +229,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
               onChange={(event) => onChange('password', event.target.value)}
             />
           </div>
-          <Button type="submit" loading={loading} color="emerald" className="w-full rounded-2xl">
+          <Button type="submit" loading={loading} color="lime" className="w-full rounded-2xl">
             Sign in
           </Button>
         </form>
@@ -240,7 +240,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
 
 function CategoryCreator({ value, onChange, onSubmit, loading }) {
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+    <div className="rounded-2xl border border-mist-200/70 bg-mist-50/80 p-4 dark:border-ink-700 dark:bg-ink-900/60">
       <div className="mb-3">
         <Text className="font-medium">Add a new category</Text>
         <Text>Create a category if the dropdown does not contain the one you need.</Text>
@@ -330,7 +330,7 @@ function AppForm({
               type="color"
               value={form.accentColor}
               onChange={(event) => onChange('accentColor', event.target.value)}
-              className="h-11 w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-2 py-2 dark:border-slate-700 dark:bg-slate-900"
+              className="h-11 w-full cursor-pointer rounded-xl border border-mist-300 bg-white px-2 py-2 dark:border-ink-700 dark:bg-ink-900"
             />
           </div>
         </div>
@@ -377,9 +377,9 @@ function AppForm({
         <Title>Brand assets</Title>
         <Text className="mt-2">Upload a single product logo for the directory and detail page.</Text>
         <div className="mt-6 space-y-3">
-          <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-slate-300 px-4 py-4 dark:border-slate-700">
+          <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-mist-300 px-4 py-4 dark:border-ink-700">
             <RiImageAddLine className="h-5 w-5 text-brand-500" />
-            <span className="text-sm text-slate-600 dark:text-slate-300">
+            <span className="text-sm text-mist-500 dark:text-mist-300">
               {form.logoFile ? form.logoFile.name : form.logoUrl ? 'Existing logo attached' : 'Choose a logo file'}
             </span>
             <input
@@ -427,7 +427,7 @@ function AppForm({
         </div>
       </Card>
 
-      <Button loading={loading} color="emerald" className="w-full rounded-2xl" onClick={onSubmit}>
+      <Button loading={loading} color="lime" className="w-full rounded-2xl" onClick={onSubmit}>
         {submitLabel}
       </Button>
     </div>
@@ -701,7 +701,7 @@ export default function AdminWorkspace({ route }) {
                   <TableRow key={app.id}>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>
-                      <Badge color={app.status === 'published' ? 'emerald' : 'amber'}>{app.status}</Badge>
+                      <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
                     </TableCell>
                     <TableCell>{formatDate(app.updatedAt)}</TableCell>
                   </TableRow>
@@ -751,9 +751,9 @@ export default function AdminWorkspace({ route }) {
             <Text className="mt-2">A rolling log of admin actions recorded in Supabase.</Text>
             <div className="mt-6 space-y-4">
               {activity.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200/70 p-4 dark:border-slate-800">
+                <div key={item.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge color="emerald">{item.action}</Badge>
+                    <Badge color="lime">{item.action}</Badge>
                     <Badge color="gray">{item.entity_type}</Badge>
                     <Text>{item.actor_email || 'Unknown user'}</Text>
                   </div>
@@ -791,13 +791,13 @@ export default function AdminWorkspace({ route }) {
                 <Title>Recently updated apps</Title>
                 <div className="mt-4 space-y-3">
                   {apps.slice(0, 5).map((app) => (
-                    <div key={app.id} className="rounded-2xl border border-slate-200/70 p-4 dark:border-slate-800">
+                    <div key={app.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <Text className="font-medium">{app.name}</Text>
                           <Text>{app.category?.name ?? 'Uncategorized'}</Text>
                         </div>
-                        <Badge color={app.status === 'published' ? 'emerald' : 'amber'}>{app.status}</Badge>
+                        <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
                       </div>
                     </div>
                   ))}
@@ -808,7 +808,7 @@ export default function AdminWorkspace({ route }) {
                 <Title>Recent activity</Title>
                 <div className="mt-4 space-y-3">
                   {activity.slice(0, 5).map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-slate-200/70 p-4 dark:border-slate-800">
+                    <div key={item.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
                       <Text className="font-medium capitalize">{item.action}</Text>
                       <Text>{item.actor_email || 'Unknown user'}</Text>
                     </div>
@@ -822,30 +822,30 @@ export default function AdminWorkspace({ route }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 dark:bg-slate-950 lg:p-5">
-      <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-950 dark:shadow-soft-dark">
+    <div className="min-h-screen bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
+      <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-mist-200/80 bg-white shadow-soft dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
-        <aside className="flex w-full flex-col gap-6 border-b border-slate-200/80 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
+        <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
           <div className="space-y-6">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink-950 text-mist-200 dark:bg-mist-200 dark:text-ink-950">
                     <RiDashboardLine className="h-5 w-5" />
                   </div>
                   <div>
-                    <Text className="text-xs uppercase tracking-[0.24em] text-slate-500">CREAI</Text>
+                    <Text className="text-xs uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">CREAI</Text>
                     <Title>Admin</Title>
                   </div>
                 </div>
-                <Badge color="emerald">{apps.length}</Badge>
+                <Badge color="lime">{apps.length}</Badge>
               </div>
               <Text>Manage categories, products, publishing state, and activity from one catalog workspace.</Text>
             </div>
 
             <NavTree groups={navGroups} currentPath={route.path} />
 
-            <div className="mt-auto space-y-3 border-t border-slate-200/80 pt-4 dark:border-slate-800">
+            <div className="mt-auto space-y-3 border-t border-mist-200/80 pt-4 dark:border-ink-700">
               <ThemeToggle />
               <div className="flex flex-wrap gap-2">
                 <Button icon={RiLogoutBoxRLine} variant="secondary" onClick={handleSignOut} className="rounded-2xl">
@@ -862,10 +862,10 @@ export default function AdminWorkspace({ route }) {
               flexDirection="col"
               justifyContent="between"
               alignItems="start"
-              className="gap-4 rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-soft dark:border-slate-800/80 dark:bg-slate-950/80 dark:shadow-soft-dark lg:flex-row lg:items-center"
+              className="gap-4 rounded-[2rem] border border-mist-200/80 bg-white/90 p-6 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/80 dark:shadow-soft-dark lg:flex-row lg:items-center"
             >
               <div className="space-y-2">
-                <Badge color="emerald">{view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : 'Update Apps'}</Badge>
+                <Badge color="lime">{view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : 'Update Apps'}</Badge>
                 <Title>
                   {view.page === 'dashboard'
                     ? 'Manage the CREAI app directory'
@@ -885,7 +885,7 @@ export default function AdminWorkspace({ route }) {
             </Flex>
 
             {notice ? (
-              <Callout color="emerald" title="Success">
+              <Callout color="lime" title="Success">
                 {notice}
               </Callout>
             ) : null}
@@ -942,7 +942,7 @@ export default function AdminWorkspace({ route }) {
                             <TableCell>{app.name}</TableCell>
                             <TableCell>{app.category?.name ?? 'Uncategorized'}</TableCell>
                             <TableCell>
-                              <Badge color={app.status === 'published' ? 'emerald' : 'amber'}>{app.status}</Badge>
+                              <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
                             </TableCell>
                             <TableCell>{formatDate(app.updatedAt)}</TableCell>
                             <TableCell>

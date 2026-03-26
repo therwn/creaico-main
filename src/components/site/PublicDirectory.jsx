@@ -69,23 +69,23 @@ function hasLinks(group) {
 
 function AppCard({ app }) {
   return (
-    <Card className="rounded-3xl border border-slate-200/80 p-6 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-soft dark:border-slate-800/80 dark:hover:border-slate-700 dark:hover:shadow-soft-dark">
+    <Card className="rounded-3xl border border-mist-200/80 p-6 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
       <div className="flex items-start justify-between gap-3">
         {app.logoUrl ? (
           <img
             src={app.logoUrl}
             alt={`${app.name} logo`}
-            className="h-12 w-12 rounded-2xl border border-slate-200/80 object-cover dark:border-slate-800/80"
+            className="h-12 w-12 rounded-2xl border border-mist-200/80 object-cover dark:border-ink-700/80"
           />
         ) : (
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-semibold text-slate-900"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-semibold text-ink-950"
             style={{ backgroundColor: app.accentColor || '#c2ff29' }}
           >
             {app.name.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <Badge color={app.status === 'published' ? 'emerald' : 'amber'}>{app.status}</Badge>
+        <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
       </div>
 
       <div className="mt-5 space-y-1.5">
@@ -102,7 +102,7 @@ function AppCard({ app }) {
           </Badge>
         ))}
         {app.frameworks.slice(0, 1).map((item) => (
-          <Badge key={item} color="cyan">
+          <Badge key={item} color="lime">
             {item}
           </Badge>
         ))}
@@ -213,22 +213,22 @@ export default function PublicDirectory() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 dark:bg-slate-950 lg:p-5">
-      <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-950 dark:shadow-soft-dark">
+    <div className="min-h-screen bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
+      <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-mist-200/80 bg-white shadow-soft dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
-          <aside className="flex w-full flex-col gap-6 border-b border-slate-200/80 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
+          <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink-950 text-mist-200 dark:bg-mist-200 dark:text-ink-950">
                     <RiCompass3Line className="h-5 w-5" />
                   </div>
                   <div>
-                    <Text className="text-xs uppercase tracking-[0.24em] text-slate-500">CREAI</Text>
+                    <Text className="text-xs uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">CREAI</Text>
                     <Title>Directory</Title>
                   </div>
                 </div>
-                <Badge color="emerald">{metrics.total}</Badge>
+                <Badge color="lime">{metrics.total}</Badge>
               </div>
 
               <div>
@@ -243,7 +243,7 @@ export default function PublicDirectory() {
 
             <div className="space-y-5">
               <div className="space-y-2">
-                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Browse</Text>
+                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Browse</Text>
                 <div className="space-y-1">
                   <button
                     type="button"
@@ -253,8 +253,8 @@ export default function PublicDirectory() {
                     }}
                     className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
                       directoryTab === 'directory'
-                        ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-900 dark:text-white'
-                        : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                        ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                        : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -268,8 +268,8 @@ export default function PublicDirectory() {
                     onClick={() => setDirectoryTab('active')}
                     className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
                       directoryTab === 'active'
-                        ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-900 dark:text-white'
-                        : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                        ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                        : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -281,7 +281,7 @@ export default function PublicDirectory() {
                   <button
                     type="button"
                     onClick={() => setAvailabilityFilter('store')}
-                    className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-slate-600 transition hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900"
+                    className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
                   >
                     <span className="flex items-center gap-3">
                       <RiStore2Line className="h-4 w-4" />
@@ -292,7 +292,7 @@ export default function PublicDirectory() {
                   <button
                     type="button"
                     onClick={() => setAvailabilityFilter('social')}
-                    className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-slate-600 transition hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900"
+                    className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
                   >
                     <span className="flex items-center gap-3">
                       <RiGlobalLine className="h-4 w-4" />
@@ -304,15 +304,15 @@ export default function PublicDirectory() {
               </div>
 
               <div className="space-y-2">
-                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Collections</Text>
+                <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Collections</Text>
                 <div className="space-y-1">
                   <button
                     type="button"
                     onClick={() => setSelectedCategory('all')}
                     className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
                       selectedCategory === 'all'
-                        ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-900 dark:text-white'
-                        : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                        ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                        : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -330,8 +330,8 @@ export default function PublicDirectory() {
                         onClick={() => setSelectedCategory(category.id)}
                         className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
                           selectedCategory === category.id
-                            ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-900 dark:text-white'
-                            : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                            ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                            : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
                         }`}
                       >
                         <span className="flex items-center gap-3">
@@ -346,9 +346,9 @@ export default function PublicDirectory() {
               </div>
             </div>
 
-            <div className="mt-auto space-y-3 border-t border-slate-200/80 pt-4 dark:border-slate-800">
+            <div className="mt-auto space-y-3 border-t border-mist-200/80 pt-4 dark:border-ink-700">
               <ThemeToggle />
-              <Text className="text-xs text-slate-500 dark:text-slate-400">
+              <Text className="text-xs text-mist-500 dark:text-mist-400">
                 Browse published CREAI products, stacks, and launch surfaces from one catalog.
               </Text>
             </div>
@@ -371,7 +371,7 @@ export default function PublicDirectory() {
                   index={directoryTabs.findIndex((item) => item.value === directoryTab)}
                   onIndexChange={(index) => setDirectoryTab(directoryTabs[index]?.value ?? 'directory')}
                 >
-                  <TabList variant="line" color="emerald">
+                  <TabList variant="line" color="lime">
                     {directoryTabs.map((item) => (
                       <Tab key={item.value}>{item.label}</Tab>
                     ))}
@@ -386,7 +386,7 @@ export default function PublicDirectory() {
               ) : null}
 
               <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
-                <Card decoration="top" decorationColor="emerald" className="rounded-3xl">
+                <Card decoration="top" decorationColor="lime" className="rounded-3xl">
                   <Text>Total published apps</Text>
                   <Metric>{loading ? '...' : metrics.total}</Metric>
                 </Card>
@@ -394,7 +394,7 @@ export default function PublicDirectory() {
                   <Text>Categories</Text>
                   <Metric>{loading ? '...' : metrics.categories}</Metric>
                 </Card>
-                <Card decoration="top" decorationColor="cyan" className="rounded-3xl">
+                <Card decoration="top" decorationColor="lime" className="rounded-3xl">
                   <Text>Store-ready apps</Text>
                   <Metric>{loading ? '...' : metrics.storeReady}</Metric>
                 </Card>
@@ -405,7 +405,7 @@ export default function PublicDirectory() {
               </Grid>
 
               <Card className="rounded-[2rem] p-6">
-                <div className="flex flex-col gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800 xl:flex-row xl:items-end xl:justify-between">
+                <div className="flex flex-col gap-4 border-b border-mist-200/80 pb-6 dark:border-ink-700 xl:flex-row xl:items-end xl:justify-between">
                   <div className="space-y-2">
                     <Title>Directory</Title>
                     <Text>Filter the directory by category and readiness to surface the right product faster.</Text>
@@ -445,7 +445,7 @@ export default function PublicDirectory() {
                     ))}
                   </Grid>
                 ) : (
-                  <Card className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-slate-50/80 p-10 text-center dark:border-slate-800 dark:bg-slate-900/60">
+                  <Card className="mt-6 rounded-3xl border border-dashed border-mist-300 bg-mist-50/80 p-10 text-center dark:border-ink-700 dark:bg-ink-900/60">
                     <Text>No apps match the current filters yet.</Text>
                   </Card>
                 )}
@@ -476,7 +476,7 @@ export default function PublicDirectory() {
                       {apps.slice(0, 8).map((app) => (
                         <TableRow key={app.id}>
                           <TableCell>
-                            <Link href={`/apps/${app.slug}`} className="font-medium text-slate-900 dark:text-slate-50">
+                            <Link href={`/apps/${app.slug}`} className="font-medium text-ink-950 dark:text-mist-200">
                               {app.name}
                             </Link>
                           </TableCell>
@@ -497,7 +497,7 @@ export default function PublicDirectory() {
                 <div className="space-y-6">
                   <Card className="rounded-[2rem] p-6">
                     <div className="space-y-2">
-                      <Badge color="cyan" icon={RiPulseLine}>Spotlight</Badge>
+                      <Badge color="lime" icon={RiPulseLine}>Spotlight</Badge>
                       <Title>{latestUpdatedApp ? latestUpdatedApp.name : 'Your next featured app'}</Title>
                       <Text>
                         {latestUpdatedApp
@@ -509,7 +509,7 @@ export default function PublicDirectory() {
                       <>
                         <div className="mt-4 flex flex-wrap gap-2">
                           <Badge color="gray">{latestUpdatedApp.category?.name ?? 'Uncategorized'}</Badge>
-                          <Badge color="emerald">{formatDate(latestUpdatedApp.updatedAt)}</Badge>
+                          <Badge color="lime">{formatDate(latestUpdatedApp.updatedAt)}</Badge>
                         </div>
                         <Link href={`/apps/${latestUpdatedApp.slug}`} className="mt-6 inline-flex">
                           <Button icon={RiArrowRightUpLine}>Open spotlight</Button>
@@ -525,7 +525,7 @@ export default function PublicDirectory() {
                         highlightedCategories.map((category) => {
                           const count = apps.filter((app) => app.category?.id === category.id).length
                           return (
-                            <div key={category.id} className="flex items-center justify-between rounded-2xl border border-slate-200/70 px-4 py-3 dark:border-slate-800">
+                            <div key={category.id} className="flex items-center justify-between rounded-2xl border border-mist-200/70 px-4 py-3 dark:border-ink-700">
                               <div className="flex items-center gap-3">
                                 <RiShapesLine className="h-4 w-4 text-brand-500" />
                                 <Text className="font-medium">{category.name}</Text>
