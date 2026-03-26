@@ -34,7 +34,6 @@ import {
   RiPulseLine,
   RiSearchLine,
   RiShapesLine,
-  RiSparklingLine,
   RiStore2Line,
   RiTimeLine,
 } from '@remixicon/react'
@@ -232,17 +231,13 @@ export default function PublicDirectory() {
                 <Badge color="emerald">{metrics.total}</Badge>
               </div>
 
-              <div className="relative">
-                <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <div>
                 <Input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search apps, stack, category..."
-                  className="pl-10 pr-16"
+                  icon={RiSearchLine}
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:border-slate-700 dark:bg-slate-900">
-                  Search
-                </span>
               </div>
             </div>
 
@@ -353,11 +348,9 @@ export default function PublicDirectory() {
 
             <div className="mt-auto space-y-3 border-t border-slate-200/80 pt-4 dark:border-slate-800">
               <ThemeToggle />
-              <Link href="/admin" className="block">
-                <Button icon={RiArrowRightUpLine} color="emerald" className="w-full rounded-2xl">
-                  Open admin
-                </Button>
-              </Link>
+              <Text className="text-xs text-slate-500 dark:text-slate-400">
+                Browse published CREAI products, stacks, and launch surfaces from one catalog.
+              </Text>
             </div>
           </aside>
 
@@ -371,16 +364,6 @@ export default function PublicDirectory() {
                       Explore CREAI-built products through a cleaner directory surface with searchable entries,
                       category filters, and product cards.
                     </Text>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <Button variant="secondary" icon={RiSparklingLine} className="rounded-2xl">
-                      Curated by CREAI
-                    </Button>
-                    <Link href="/admin">
-                      <Button icon={RiArrowRightUpLine} color="emerald" className="rounded-2xl">
-                        Add app
-                      </Button>
-                    </Link>
                   </div>
                 </div>
 

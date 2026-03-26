@@ -100,6 +100,42 @@ function formatDate(value) {
   })
 }
 
+function NavTree({ groups, currentPath }) {
+  return (
+    <div className="space-y-5">
+      {groups.map((group) => {
+        const GroupIcon = group.icon
+        return (
+          <div key={group.label} className="space-y-2">
+            <div className="flex items-center gap-2 px-1">
+              <GroupIcon className="h-4 w-4 text-brand-500" />
+              <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{group.label}</Text>
+            </div>
+            <div className="space-y-1 border-l border-slate-200 pl-4 dark:border-slate-800">
+              {group.links.map((item) => {
+                const isActive = currentPath === item.href || (item.href === '/admin/dashboard' && currentPath === '/admin')
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`block rounded-xl px-3 py-2 text-sm transition ${
+                      isActive
+                        ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-white dark:ring-slate-800'
+                        : 'text-slate-600 hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function sanitizeLinks(group) {
   return Object.fromEntries(Object.entries(group).filter(([, value]) => value?.trim()))
 }
@@ -786,57 +822,33 @@ export default function AdminWorkspace({ route }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">
-        <aside className="w-full border-b border-slate-200/80 bg-white/90 p-4 shadow-soft dark:border-slate-800/80 dark:bg-slate-950/85 dark:shadow-soft-dark lg:sticky lg:top-0 lg:h-screen lg:w-80 lg:border-b-0 lg:border-r lg:p-6">
+    <div className="min-h-screen bg-slate-100 p-4 dark:bg-slate-950 lg:p-5">
+      <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-950 dark:shadow-soft-dark">
+        <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
+        <aside className="flex w-full flex-col gap-6 border-b border-slate-200/80 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/70 lg:min-h-full lg:w-[280px] lg:border-b-0 lg:border-r">
           <div className="space-y-6">
-            <div className="space-y-2">
-              <Badge color="emerald">CREAI Admin</Badge>
-              <Title>Catalog workspace</Title>
-              <Text>Manage categories, products, publishing state, and activity from one Tremor control room.</Text>
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+                    <RiDashboardLine className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <Text className="text-xs uppercase tracking-[0.24em] text-slate-500">CREAI</Text>
+                    <Title>Admin</Title>
+                  </div>
+                </div>
+                <Badge color="emerald">{apps.length}</Badge>
+              </div>
+              <Text>Manage categories, products, publishing state, and activity from one catalog workspace.</Text>
             </div>
 
-            <div className="space-y-3">
-              {navGroups.map((group) => {
-                const GroupIcon = group.icon
-                return (
-                  <Card key={group.label} className="rounded-3xl p-4">
-                    <div className="mb-3 flex items-center gap-2">
-                      <GroupIcon className="h-4 w-4 text-brand-500" />
-                      <Text className="font-semibold">{group.label}</Text>
-                    </div>
-                    <div className="space-y-1">
-                      {group.links.map((item) => {
-                        const isActive = route.path === item.href || (item.href === '/admin/dashboard' && route.path === '/admin')
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`block rounded-2xl px-3 py-2 text-sm transition ${
-                              isActive
-                                ? 'bg-brand-400/15 text-slate-950 dark:bg-brand-400/20 dark:text-white'
-                                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
-                            }`}
-                          >
-                            {item.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
+            <NavTree groups={navGroups} currentPath={route.path} />
 
-            <div className="space-y-3">
+            <div className="mt-auto space-y-3 border-t border-slate-200/80 pt-4 dark:border-slate-800">
               <ThemeToggle />
               <div className="flex flex-wrap gap-2">
-                <Link href={route.publicRoot}>
-                  <Button icon={RiApps2Line} variant="secondary">
-                    View public app
-                  </Button>
-                </Link>
-                <Button icon={RiLogoutBoxRLine} variant="secondary" onClick={handleSignOut}>
+                <Button icon={RiLogoutBoxRLine} variant="secondary" onClick={handleSignOut} className="rounded-2xl">
                   Sign out
                 </Button>
               </div>
@@ -844,13 +856,13 @@ export default function AdminWorkspace({ route }) {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:h-screen lg:overflow-y-auto lg:px-8">
+        <main className="min-w-0 flex-1 p-6 lg:h-[calc(100vh-2.5rem)] lg:overflow-y-auto lg:p-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-8">
             <Flex
               flexDirection="col"
               justifyContent="between"
               alignItems="start"
-              className="gap-4 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-soft dark:border-slate-800/80 dark:bg-slate-950/80 dark:shadow-soft-dark lg:flex-row lg:items-center"
+              className="gap-4 rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-soft dark:border-slate-800/80 dark:bg-slate-950/80 dark:shadow-soft-dark lg:flex-row lg:items-center"
             >
               <div className="space-y-2">
                 <Badge color="emerald">{view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : 'Update Apps'}</Badge>
@@ -865,7 +877,9 @@ export default function AdminWorkspace({ route }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link href={route.publicRoot}>
-                  <Button icon={RiArrowRightUpLine}>Open public directory</Button>
+                  <Button icon={RiArrowRightUpLine} variant="secondary" className="rounded-2xl">
+                    Open public directory
+                  </Button>
                 </Link>
               </div>
             </Flex>
@@ -976,6 +990,7 @@ export default function AdminWorkspace({ route }) {
             ) : null}
           </div>
         </main>
+        </div>
       </div>
     </div>
   )
