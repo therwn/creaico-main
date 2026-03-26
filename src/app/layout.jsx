@@ -2,7 +2,7 @@ import './globals.css'
 
 export const metadata = {
   title: 'CREAI | Imagine Beyond',
-  description: 'CREAI app directory and admin workspace.',
+  description: 'CREAI creative AI studio landing page.',
 }
 
 export default function RootLayout({ children }) {

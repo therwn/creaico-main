@@ -1,8 +1,4 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/forms";
 @import "../styles.css";
-
-@custom-variant dark (&:where(.dark, .dark *));
 
 html {
   min-height: 100%;
