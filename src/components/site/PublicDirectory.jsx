@@ -419,7 +419,7 @@ export default function PublicDirectory() {
                           return (
                             <div key={category.id} className="flex items-center justify-between rounded-2xl border border-mist-200/70 px-4 py-3 dark:border-ink-700">
                               <div className="flex items-center gap-3">
-                                <RiShapesLine className="h-4 w-4 text-brand-500" />
+                                <RiShapesLine className="h-4 w-4 text-mist-500 dark:text-brand-300" />
                                 <Text className="font-medium">{category.name}</Text>
                               </div>
                               <Badge color="gray">{count}</Badge>

@@ -117,7 +117,7 @@ function NavTree({ groups, currentPath }) {
         return (
           <div key={group.label} className="space-y-2">
             <div className="flex items-center gap-2 px-1">
-              <GroupIcon className="h-4 w-4 text-brand-500" />
+              <GroupIcon className="h-4 w-4 text-mist-500 dark:text-brand-300" />
               <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">{group.label}</Text>
             </div>
             <div className="space-y-1 border-l border-mist-200 pl-4 dark:border-ink-700">
@@ -467,7 +467,7 @@ function AppForm({
         <Text className="mt-2">Upload a single product logo for the directory and detail page.</Text>
         <div className="mt-6 space-y-3">
           <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-mist-300 px-4 py-4 dark:border-ink-700">
-            <RiImageAddLine className="h-5 w-5 text-brand-500" />
+            <RiImageAddLine className="h-5 w-5 text-mist-500 dark:text-brand-300" />
             <span className="text-sm text-mist-500 dark:text-mist-300">
               {form.logoFile ? form.logoFile.name : form.logoUrl ? 'Existing logo attached' : 'Choose a logo file'}
             </span>

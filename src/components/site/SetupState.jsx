@@ -18,7 +18,7 @@ export default function SetupState({ title, description }) {
 
         <div className="mt-6 rounded-2xl border border-mist-200/70 bg-mist-50/80 p-5 dark:border-ink-700 dark:bg-ink-800/70">
           <div className="mb-3 flex items-center gap-2">
-            <RiSettings3Line className="h-4 w-4 text-brand-500" />
+            <RiSettings3Line className="h-4 w-4 text-mist-500 dark:text-brand-300" />
             <Text className="font-medium">Required environment variables</Text>
           </div>
           <List>
