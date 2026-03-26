@@ -28,7 +28,7 @@ const paths = [
   },
 ]
 
-export default function CreaiLogo() {
+export default function CreaiLogo({ className = '' }) {
   const svgRef = useRef(null)
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function CreaiLogo() {
   return (
     <svg
       ref={svgRef}
-      className="creai-logo-svg"
+      className={`creai-logo-svg ${className}`.trim()}
       viewBox="0 0 659 200"
       aria-label="CREAI logo"
       role="img"
