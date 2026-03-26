@@ -14,6 +14,7 @@ create table if not exists public.apps (
   short_description text not null default '',
   description text not null default '',
   category_id uuid references public.app_categories(id) on delete set null,
+  category_ids uuid[] not null default '{}',
   logo_url text,
   accent_color text not null default '#c2ff29',
   stacks text[] not null default '{}',

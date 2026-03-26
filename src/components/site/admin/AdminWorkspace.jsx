@@ -11,8 +11,6 @@ import {
   Divider,
   Flex,
   Grid,
-  MultiSelect,
-  MultiSelectItem,
   Select,
   SelectItem,
   Table,
@@ -37,6 +35,7 @@ import {
   RiInstagramLine,
   RiLinkedinLine,
   RiLogoutBoxRLine,
+  RiShapesLine,
   RiMore2Line,
   RiTimeLine,
   RiTwitterXLine,
@@ -59,6 +58,7 @@ import {
 } from '../../../lib/app-options'
 import { getSupabaseBrowserClient, hasSupabaseEnv } from '../../../lib/supabase'
 import Input from '../../ui/Input'
+import SearchableSelect from '../../ui/SearchableSelect'
 import ThemeToggle from '../ThemeToggle'
 import SetupState from '../SetupState'
 import WorkspaceBrand from '../WorkspaceBrand'
@@ -184,7 +184,8 @@ function appPayloadFromForm(form, logoUrl) {
     name: form.name.trim(),
     short_description: form.shortDescription.trim(),
     description: form.description.trim(),
-    category_id: form.categoryId || null,
+    category_id: form.categoryIds[0] || null,
+    category_ids: form.categoryIds,
     logo_url: logoUrl || form.logoUrl || null,
     accent_color: form.accentColor || '#c2ff29',
     stacks: form.stacks,
@@ -201,7 +202,7 @@ function hydrateForm(app) {
     slug: app.slug ?? '',
     shortDescription: app.shortDescription ?? '',
     description: app.description ?? '',
-    categoryId: app.category?.id ?? '',
+    categoryIds: app.categoryIds ?? (app.category?.id ? [app.category.id] : []),
     stacks: app.stacks ?? [],
     frameworks: app.frameworks ?? [],
     accentColor: app.accentColor ?? '#c2ff29',
@@ -276,29 +277,10 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
   )
 }
 
-function CategoryCreator({ value, onChange, onSubmit, loading }) {
-  return (
-    <div className="rounded-2xl border border-mist-200/70 bg-mist-50/80 p-4 dark:border-ink-700 dark:bg-ink-900/60">
-      <div className="mb-3">
-        <Text className="font-medium">Add a new category</Text>
-        <Text>Create a category if the dropdown does not contain the one you need.</Text>
-      </div>
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input value={value} placeholder="e.g. Wellness AI" onChange={(event) => onChange(event.target.value)} />
-        <Button icon={RiAddCircleLine} loading={loading} onClick={onSubmit}>
-          Add category
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 function AppForm({
   title,
   form,
   categories,
-  categoryDraft,
-  onCategoryDraftChange,
   onCreateCategory,
   onChange,
   onLinksChange,
@@ -306,6 +288,13 @@ function AppForm({
   submitLabel,
   loading,
 }) {
+  const categoryOptions = categories.map((category) => ({
+    value: category.id,
+    label: category.name,
+    icon: RiShapesLine,
+    keywords: [category.slug],
+  }))
+
   return (
     <div className="space-y-6">
       <Card className="rounded-3xl p-6">
@@ -346,14 +335,19 @@ function AppForm({
 
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
           <div className="space-y-2">
-            <Text>Category</Text>
-            <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </Select>
+            <Text>Categories</Text>
+            <SearchableSelect
+              multi
+              value={form.categoryIds}
+              onChange={(value) => onChange('categoryIds', value)}
+              options={categoryOptions}
+              placeholder="Select categories"
+              searchPlaceholder="Search categories..."
+              emptyMessage="No categories found."
+              actionLabel={categories.length ? 'Add category' : 'Add new category'}
+              onAction={onCreateCategory}
+              icon={RiShapesLine}
+            />
           </div>
           <div className="space-y-2">
             <Text>Status</Text>
@@ -373,14 +367,6 @@ function AppForm({
           </div>
         </div>
 
-        <div className="mt-6">
-          <CategoryCreator
-            value={categoryDraft}
-            onChange={onCategoryDraftChange}
-            onSubmit={onCreateCategory}
-            loading={loading}
-          />
-        </div>
       </Card>
 
       <Card className="rounded-3xl p-6">
@@ -390,23 +376,27 @@ function AppForm({
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <div className="space-y-2">
             <Text>Stacks</Text>
-            <MultiSelect value={form.stacks} onValueChange={(value) => onChange('stacks', value)}>
-              {stackOptions.map((item) => (
-                <MultiSelectItem key={item} value={item}>
-                  {item}
-                </MultiSelectItem>
-              ))}
-            </MultiSelect>
+            <SearchableSelect
+              multi
+              value={form.stacks}
+              onChange={(value) => onChange('stacks', value)}
+              options={stackOptions}
+              placeholder="Select stacks"
+              searchPlaceholder="Search stacks..."
+              emptyMessage="No stack matched."
+            />
           </div>
           <div className="space-y-2">
             <Text>Frameworks</Text>
-            <MultiSelect value={form.frameworks} onValueChange={(value) => onChange('frameworks', value)}>
-              {frameworkOptions.map((item) => (
-                <MultiSelectItem key={item} value={item}>
-                  {item}
-                </MultiSelectItem>
-              ))}
-            </MultiSelect>
+            <SearchableSelect
+              multi
+              value={form.frameworks}
+              onChange={(value) => onChange('frameworks', value)}
+              options={frameworkOptions}
+              placeholder="Select frameworks"
+              searchPlaceholder="Search frameworks..."
+              emptyMessage="No framework matched."
+            />
           </div>
         </div>
       </Card>
@@ -488,7 +478,6 @@ export default function AdminWorkspace({ route }) {
   const [createForm, setCreateForm] = useState(createEmptyAppForm())
   const [editForm, setEditForm] = useState(createEmptyAppForm())
   const [selectedAppId, setSelectedAppId] = useState('')
-  const [categoryDraft, setCategoryDraft] = useState('')
 
   const view = adminViewFromPath(route.path)
   const selectedApp = useMemo(() => apps.find((item) => item.id === selectedAppId) || null, [apps, selectedAppId])
@@ -502,6 +491,12 @@ export default function AdminWorkspace({ route }) {
   }, [activity.length, apps, categories.length])
 
   const supabase = hasSupabaseEnv ? getSupabaseBrowserClient() : null
+
+  useEffect(() => {
+    if (!notice) return undefined
+    const timeoutId = window.setTimeout(() => setNotice(''), 3200)
+    return () => window.clearTimeout(timeoutId)
+  }, [notice])
 
   async function loadSnapshot() {
     if (!supabase) return
@@ -583,15 +578,17 @@ export default function AdminWorkspace({ route }) {
     }))
   }
 
-  async function handleCreateCategory(targetSetter, setCategoryId) {
-    if (!categoryDraft.trim()) return
+  async function handleCreateCategory(targetSetter) {
     if (!session) return
+
+    const nextName = window.prompt('New category name')
+    if (!nextName?.trim()) return
 
     setOperationLoading(true)
     setError('')
 
     try {
-      const category = await insertCategory(categoryDraft)
+      const category = await insertCategory(nextName)
       await recordActivity({
         action: 'created',
         entityType: 'category',
@@ -600,9 +597,10 @@ export default function AdminWorkspace({ route }) {
         details: { name: category.name },
       })
       setCategories((current) => [...current, category].sort((a, b) => a.name.localeCompare(b.name)))
-      targetSetter((current) => ({ ...current, categoryId: category.id }))
-      setCategoryId(category.id)
-      setCategoryDraft('')
+      targetSetter((current) => ({
+        ...current,
+        categoryIds: current.categoryIds.includes(category.id) ? current.categoryIds : [...current.categoryIds, category.id],
+      }))
       setNotice(`Created category "${category.name}".`)
       await loadSnapshot()
     } catch (reason) {
@@ -906,9 +904,14 @@ export default function AdminWorkspace({ route }) {
             </Flex>
 
             {notice ? (
-              <Callout color="lime" title="Success">
-                {notice}
-              </Callout>
+              <div className="fixed right-6 top-6 z-50 max-w-sm">
+                <Card className="rounded-2xl border border-brand-200/80 bg-white/95 p-4 shadow-soft dark:border-brand-700/70 dark:bg-ink-900/95 dark:shadow-soft-dark">
+                  <div className="flex items-start gap-3">
+                    <Badge color="lime">Saved</Badge>
+                    <Text>{notice}</Text>
+                  </div>
+                </Card>
+              </div>
             ) : null}
 
             {error ? (
@@ -930,9 +933,7 @@ export default function AdminWorkspace({ route }) {
                 title="New app entry"
                 form={createForm}
                 categories={categories}
-                categoryDraft={categoryDraft}
-                onCategoryDraftChange={setCategoryDraft}
-                onCreateCategory={() => handleCreateCategory(setCreateForm, (value) => updateFormState(setCreateForm, 'categoryId', value))}
+                onCreateCategory={() => handleCreateCategory(setCreateForm)}
                 onChange={(key, value) => updateFormState(setCreateForm, key, value)}
                 onLinksChange={(group, key, value) => updateNestedLinkState(setCreateForm, group, key, value)}
                 onSubmit={handleCreateApp}
@@ -993,9 +994,7 @@ export default function AdminWorkspace({ route }) {
                     title={`Editing ${selectedApp.name}`}
                     form={editForm}
                     categories={categories}
-                    categoryDraft={categoryDraft}
-                    onCategoryDraftChange={setCategoryDraft}
-                    onCreateCategory={() => handleCreateCategory(setEditForm, (value) => updateFormState(setEditForm, 'categoryId', value))}
+                    onCreateCategory={() => handleCreateCategory(setEditForm)}
                     onChange={(key, value) => updateFormState(setEditForm, key, value)}
                     onLinksChange={(group, key, value) => updateNestedLinkState(setEditForm, group, key, value)}
                     onSubmit={handleUpdateApp}

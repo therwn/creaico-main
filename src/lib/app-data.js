@@ -10,6 +10,11 @@ function normalizeApp(row) {
     shortDescription: row.short_description ?? '',
     description: row.description ?? '',
     category: row.category ?? null,
+    categoryIds: Array.isArray(row.category_ids)
+      ? row.category_ids
+      : row.category?.id
+        ? [row.category.id]
+        : [],
     logoUrl: row.logo_url ?? '',
     accentColor: row.accent_color ?? '#c2ff29',
     stacks: Array.isArray(row.stacks) ? row.stacks : [],
@@ -34,6 +39,7 @@ export async function fetchPublishedApps() {
       name,
       short_description,
       description,
+      category_ids,
       logo_url,
       accent_color,
       stacks,
@@ -68,6 +74,7 @@ export async function fetchPublishedAppBySlug(slug) {
       name,
       short_description,
       description,
+      category_ids,
       logo_url,
       accent_color,
       stacks,
@@ -105,6 +112,7 @@ export async function fetchAdminSnapshot() {
           name,
           short_description,
           description,
+          category_ids,
           logo_url,
           accent_color,
           stacks,
@@ -203,6 +211,7 @@ export async function createAppRecord(payload, actorEmail) {
       short_description,
       description,
       logo_url,
+      category_ids,
       accent_color,
       stacks,
       frameworks,
@@ -247,6 +256,7 @@ export async function updateAppRecord(id, payload, actorEmail) {
       short_description,
       description,
       logo_url,
+      category_ids,
       accent_color,
       stacks,
       frameworks,
