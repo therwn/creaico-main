@@ -2,17 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import * as Dialog from '@radix-ui/react-dialog'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   Badge,
   Button,
   Callout,
   Card,
-  Divider,
   Flex,
   Grid,
-  Select,
-  SelectItem,
   Table,
   TableBody,
   TableCell,
@@ -39,6 +37,7 @@ import {
   RiMore2Line,
   RiTimeLine,
   RiTwitterXLine,
+  RiCloseLine,
 } from '@remixicon/react'
 import {
   createAppRecord,
@@ -233,6 +232,50 @@ function EmptyCard({ title, description }) {
   )
 }
 
+function CategoryDialog({ open, onOpenChange, value, onValueChange, onSubmit, loading }) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-ink-950/45 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-mist-200/80 bg-white p-6 shadow-soft outline-none dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <Badge color="lime">New category</Badge>
+              <Title>Create a category</Title>
+              <Text>Add a new category without leaving the app form.</Text>
+            </div>
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                aria-label="Close category dialog"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-mist-200/80 text-mist-500 transition hover:border-mist-300 hover:text-ink-950 dark:border-ink-700 dark:text-mist-400 dark:hover:border-ink-600 dark:hover:text-mist-200"
+              >
+                <RiCloseLine className="h-4 w-4" />
+              </button>
+            </Dialog.Close>
+          </div>
+
+          <div className="mt-6 space-y-2">
+            <Text>Name</Text>
+            <Input value={value} placeholder="e.g. Wellness AI" onChange={(event) => onValueChange(event.target.value)} />
+          </div>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <Dialog.Close asChild>
+              <Button type="button" variant="secondary" className="rounded-2xl">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button type="button" loading={loading} className="rounded-2xl" onClick={onSubmit}>
+              Save category
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 function LoginView({ credentials, onChange, onSubmit, error, loading }) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-12 sm:px-6 lg:px-8">
@@ -294,6 +337,10 @@ function AppForm({
     icon: RiShapesLine,
     keywords: [category.slug],
   }))
+  const statusOptions = [
+    { value: 'draft', label: 'Draft' },
+    { value: 'published', label: 'Published' },
+  ]
 
   return (
     <div className="space-y-6">
@@ -351,10 +398,14 @@ function AppForm({
           </div>
           <div className="space-y-2">
             <Text>Status</Text>
-            <Select value={form.status} onValueChange={(value) => onChange('status', value)}>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-            </Select>
+            <SearchableSelect
+              value={form.status}
+              onChange={(value) => onChange('status', value)}
+              options={statusOptions}
+              placeholder="Select status"
+              searchPlaceholder="Search status..."
+              emptyMessage="No status found."
+            />
           </div>
           <div className="space-y-2">
             <Text>Accent color</Text>
@@ -478,6 +529,9 @@ export default function AdminWorkspace({ route }) {
   const [createForm, setCreateForm] = useState(createEmptyAppForm())
   const [editForm, setEditForm] = useState(createEmptyAppForm())
   const [selectedAppId, setSelectedAppId] = useState('')
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [categoryDialogValue, setCategoryDialogValue] = useState('')
+  const [categoryTarget, setCategoryTarget] = useState('create')
 
   const view = adminViewFromPath(route.path)
   const selectedApp = useMemo(() => apps.find((item) => item.id === selectedAppId) || null, [apps, selectedAppId])
@@ -578,17 +632,21 @@ export default function AdminWorkspace({ route }) {
     }))
   }
 
-  async function handleCreateCategory(targetSetter) {
-    if (!session) return
+  function openCategoryDialog(target) {
+    setCategoryTarget(target)
+    setCategoryDialogValue('')
+    setCategoryDialogOpen(true)
+  }
 
-    const nextName = window.prompt('New category name')
-    if (!nextName?.trim()) return
+  async function handleCreateCategory() {
+    if (!session) return
+    if (!categoryDialogValue.trim()) return
 
     setOperationLoading(true)
     setError('')
 
     try {
-      const category = await insertCategory(nextName)
+      const category = await insertCategory(categoryDialogValue)
       await recordActivity({
         action: 'created',
         entityType: 'category',
@@ -597,10 +655,13 @@ export default function AdminWorkspace({ route }) {
         details: { name: category.name },
       })
       setCategories((current) => [...current, category].sort((a, b) => a.name.localeCompare(b.name)))
+      const targetSetter = categoryTarget === 'edit' ? setEditForm : setCreateForm
       targetSetter((current) => ({
         ...current,
         categoryIds: current.categoryIds.includes(category.id) ? current.categoryIds : [...current.categoryIds, category.id],
       }))
+      setCategoryDialogValue('')
+      setCategoryDialogOpen(false)
       setNotice(`Created category "${category.name}".`)
       await loadSnapshot()
     } catch (reason) {
@@ -933,7 +994,7 @@ export default function AdminWorkspace({ route }) {
                 title="New app entry"
                 form={createForm}
                 categories={categories}
-                onCreateCategory={() => handleCreateCategory(setCreateForm)}
+                onCreateCategory={() => openCategoryDialog('create')}
                 onChange={(key, value) => updateFormState(setCreateForm, key, value)}
                 onLinksChange={(group, key, value) => updateNestedLinkState(setCreateForm, group, key, value)}
                 onSubmit={handleCreateApp}
@@ -994,7 +1055,7 @@ export default function AdminWorkspace({ route }) {
                     title={`Editing ${selectedApp.name}`}
                     form={editForm}
                     categories={categories}
-                    onCreateCategory={() => handleCreateCategory(setEditForm)}
+                    onCreateCategory={() => openCategoryDialog('edit')}
                     onChange={(key, value) => updateFormState(setEditForm, key, value)}
                     onLinksChange={(group, key, value) => updateNestedLinkState(setEditForm, group, key, value)}
                     onSubmit={handleUpdateApp}
@@ -1012,6 +1073,14 @@ export default function AdminWorkspace({ route }) {
         </main>
         </div>
       </div>
+      <CategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        value={categoryDialogValue}
+        onValueChange={setCategoryDialogValue}
+        onSubmit={handleCreateCategory}
+        loading={operationLoading}
+      />
     </div>
   )
 }
