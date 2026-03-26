@@ -9,8 +9,6 @@ import {
   Card,
   Grid,
   Metric,
-  Select,
-  SelectItem,
   Tab,
   TabGroup,
   TabList,
@@ -28,7 +26,6 @@ import {
   RiAppsLine,
   RiArrowRightUpLine,
   RiCompass3Line,
-  RiFilter3Line,
   RiFolderOpenLine,
   RiGlobalLine,
   RiPulseLine,
@@ -40,6 +37,7 @@ import {
 import { fetchPublishedApps } from '../../lib/app-data'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import Input from '../ui/Input'
+import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
 
@@ -65,59 +63,6 @@ function formatDate(value) {
 
 function hasLinks(group) {
   return Object.values(group ?? {}).some(Boolean)
-}
-
-function AppCard({ app }) {
-  return (
-    <Card className="rounded-3xl border border-mist-200/80 p-6 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
-      <div className="flex items-start justify-between gap-3">
-        {app.logoUrl ? (
-          <img
-            src={app.logoUrl}
-            alt={`${app.name} logo`}
-            className="h-12 w-12 rounded-2xl border border-mist-200/80 object-cover dark:border-ink-700/80"
-          />
-        ) : (
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-semibold text-ink-950"
-            style={{ backgroundColor: app.accentColor || '#c2ff29' }}
-          >
-            {app.name.slice(0, 2).toUpperCase()}
-          </div>
-        )}
-        <Badge color={app.status === 'published' ? 'lime' : 'gray'}>{app.status}</Badge>
-      </div>
-
-      <div className="mt-5 space-y-1.5">
-        <Title>{app.name}</Title>
-        <Text>{app.category?.name ?? 'Uncategorized'}</Text>
-      </div>
-
-      <Text className="mt-4 min-h-[56px]">{app.shortDescription || 'No short description added yet.'}</Text>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {app.stacks.slice(0, 2).map((item) => (
-          <Badge key={item} color="gray">
-            {item}
-          </Badge>
-        ))}
-        {app.frameworks.slice(0, 1).map((item) => (
-          <Badge key={item} color="lime">
-            {item}
-          </Badge>
-        ))}
-      </div>
-
-      <div className="mt-6 flex items-center justify-between">
-        <Text>{formatDate(app.updatedAt)}</Text>
-        <Link href={`/apps/${app.slug}`}>
-          <Button size="xs" icon={RiArrowRightUpLine} variant="secondary">
-            Open
-          </Button>
-        </Link>
-      </div>
-    </Card>
-  )
 }
 
 export default function PublicDirectory() {
@@ -379,12 +324,6 @@ export default function PublicDirectory() {
                 </TabGroup>
               </div>
 
-              {error ? (
-                <Callout title="Directory unavailable" color="rose">
-                  {error}
-                </Callout>
-              ) : null}
-
               <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
                 <Card decoration="top" decorationColor="lime" className="rounded-3xl">
                   <Text>Total published apps</Text>
@@ -404,52 +343,16 @@ export default function PublicDirectory() {
                 </Card>
               </Grid>
 
-              <Card className="rounded-[2rem] p-6">
-                <div className="flex flex-col gap-4 border-b border-mist-200/80 pb-6 dark:border-ink-700 xl:flex-row xl:items-end xl:justify-between">
-                  <div className="space-y-2">
-                    <Title>Directory</Title>
-                    <Text>Filter the directory by category and readiness to surface the right product faster.</Text>
-                  </div>
-                  <div className="grid w-full gap-3 md:grid-cols-2 xl:w-auto xl:min-w-[420px]">
-                    <div className="space-y-2">
-                      <Text className="flex items-center gap-2 font-medium">
-                        <RiFilter3Line className="h-4 w-4" />
-                        Category
-                      </Text>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectItem value="all">All categories</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Text className="font-medium">Availability</Text>
-                      <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-                        {availabilityOptions.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                {filteredApps.length ? (
-                  <Grid numItemsMd={2} numItemsLg={4} className="mt-6 gap-4">
-                    {filteredApps.map((app) => (
-                      <AppCard key={app.id} app={app} />
-                    ))}
-                  </Grid>
-                ) : (
-                  <Card className="mt-6 rounded-3xl border border-dashed border-mist-300 bg-mist-50/80 p-10 text-center dark:border-ink-700 dark:bg-ink-900/60">
-                    <Text>No apps match the current filters yet.</Text>
-                  </Card>
-                )}
-              </Card>
+              <DirectoryGridListBlock
+                error={error}
+                categories={categories}
+                filteredApps={filteredApps}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                availabilityFilter={availabilityFilter}
+                setAvailabilityFilter={setAvailabilityFilter}
+                availabilityOptions={availabilityOptions}
+              />
 
               <Grid numItemsLg={3} className="gap-6">
                 <Card className="rounded-[2rem] p-6 lg:col-span-2">
