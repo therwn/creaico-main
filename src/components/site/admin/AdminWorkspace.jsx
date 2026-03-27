@@ -45,6 +45,7 @@ import {
   fetchAdminSnapshot,
   insertCategory,
   recordActivity,
+  upsertWorkspaceSettings,
   updateAppRecord,
   uploadLogo,
 } from '../../../lib/app-data'
@@ -446,7 +447,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
         <div className="space-y-3 text-center">
           <Badge color="lime" className="creai-badge">CREAI Admin</Badge>
           <Title>Sign in to manage the app catalog</Title>
-          <Text>Use your Supabase email and password to access the Tremor workspace.</Text>
+          <Text>Access the catalog dashboard, banner controls, and app management workspace.</Text>
         </div>
 
         {error ? (
@@ -460,7 +461,7 @@ function LoginView({ credentials, onChange, onSubmit, error, loading }) {
             <Text>Email</Text>
             <Input
               type="email"
-              placeholder="admin@creai.co"
+              placeholder="Enter your email"
               value={credentials.email}
               onChange={(event) => onChange('email', event.target.value)}
             />
@@ -568,12 +569,20 @@ function AppForm({
           </div>
           <div className="space-y-2">
             <Text>Accent color</Text>
-            <input
-              type="color"
-              value={form.accentColor}
-              onChange={(event) => onChange('accentColor', event.target.value)}
-              className="h-11 w-full cursor-pointer rounded-xl border border-mist-300 bg-white px-2 py-2 dark:border-ink-700 dark:bg-ink-900"
-            />
+            <div className="flex h-11 items-center gap-3 rounded-xl border border-mist-300 bg-white px-3 dark:border-ink-700 dark:bg-ink-900">
+              <input
+                type="color"
+                value={form.accentColor}
+                onChange={(event) => onChange('accentColor', event.target.value)}
+                className="h-7 w-10 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+              />
+              <Input
+                value={form.accentColor}
+                placeholder="#A3E623"
+                onChange={(event) => onChange('accentColor', event.target.value)}
+                className="border-0 shadow-none"
+              />
+            </div>
           </div>
         </div>
 
@@ -672,6 +681,52 @@ function AppForm({
   )
 }
 
+function BannerSettingsCard({ form, onChange, onSave, loading }) {
+  return (
+    <Card className="rounded-3xl p-6">
+      <div className="space-y-2">
+        <Title>Directory banner</Title>
+        <Text>Control the banner that appears above the catalog grid on the public directory.</Text>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="space-y-2">
+          <Text>Eyebrow</Text>
+          <Input
+            value={form.bannerEyebrow}
+            placeholder="CREAI directory"
+            onChange={(event) => onChange('bannerEyebrow', event.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Text>Title</Text>
+          <Input
+            value={form.bannerTitle}
+            placeholder="Explore CREAI products in one place"
+            onChange={(event) => onChange('bannerTitle', event.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <Text>Description</Text>
+        <Textarea
+          rows={4}
+          value={form.bannerDescription}
+          placeholder="Short supporting description for the public directory banner."
+          onChange={(event) => onChange('bannerDescription', event.target.value)}
+        />
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <Button loading={loading} className="creai-button-primary rounded-2xl" onClick={onSave}>
+          Save banner
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
 export default function AdminWorkspace({ route }) {
   const [credentials, setCredentials] = useState({ email: '', password: '' })
   const [session, setSession] = useState(null)
@@ -685,6 +740,11 @@ export default function AdminWorkspace({ route }) {
   const [apps, setApps] = useState([])
   const [categories, setCategories] = useState([])
   const [activity, setActivity] = useState([])
+  const [settingsForm, setSettingsForm] = useState({
+    bannerEyebrow: 'CREAI directory',
+    bannerTitle: 'Explore CREAI products in one place',
+    bannerDescription: 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+  })
   const [createForm, setCreateForm] = useState(createEmptyAppForm())
   const [editForm, setEditForm] = useState(createEmptyAppForm())
   const [selectedAppId, setSelectedAppId] = useState('')
@@ -726,6 +786,7 @@ export default function AdminWorkspace({ route }) {
       setApps(snapshot.apps)
       setCategories(snapshot.categories)
       setActivity(snapshot.activity)
+      setSettingsForm(snapshot.settings)
     } catch (reason) {
       setError(reason.message || 'Unable to load admin data.')
     } finally {
@@ -834,6 +895,35 @@ export default function AdminWorkspace({ route }) {
       await loadSnapshot()
     } catch (reason) {
       setError(reason.message || 'Unable to create category.')
+    } finally {
+      setOperationLoading(false)
+    }
+  }
+
+  async function handleSaveSettings() {
+    if (!session) return
+
+    setOperationLoading(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const nextSettings = await upsertWorkspaceSettings(settingsForm)
+      setSettingsForm(nextSettings)
+      await recordActivity({
+        action: 'updated',
+        entityType: 'workspace',
+        entityId: null,
+        actorEmail: session.user.email,
+        details: {
+          message: 'Updated the public directory banner',
+          section: 'banner',
+        },
+      })
+      setNotice('Updated the directory banner.')
+      await loadSnapshot()
+    } catch (reason) {
+      setError(reason.message || 'Unable to update the directory banner.')
     } finally {
       setOperationLoading(false)
     }
@@ -1024,7 +1114,7 @@ export default function AdminWorkspace({ route }) {
         )
       case 'quick-actions':
         return (
-          <Grid numItemsLg={2} className="gap-4">
+          <Grid numItemsLg={3} className="gap-4">
             <Card className="rounded-3xl p-6">
               <Title>Create a new app</Title>
               <Text className="mt-2">Open the app creation form and add a new product entry.</Text>
@@ -1041,14 +1131,21 @@ export default function AdminWorkspace({ route }) {
                 </Button>
               </Link>
             </Card>
+            <Card className="rounded-3xl p-6">
+              <Title>Edit the public banner</Title>
+              <Text className="mt-2">Open the dashboard overview to manage the banner shown above the catalog grid.</Text>
+              <Link href="/admin/dashboard" className="mt-6 inline-flex">
+                <Button className="creai-button-primary">Open dashboard overview</Button>
+              </Link>
+            </Card>
           </Grid>
         )
       case 'recent-activity':
       case 'activity-timeline':
         return (
           <Card className="rounded-3xl p-6">
-            <Title>{view.section === 'recent-activity' ? 'Recent activity' : 'Activity timeline'}</Title>
-            <Text className="mt-2">A detailed log of category creation, app updates, store status changes, and link metadata edits.</Text>
+            <Title>Recent activity</Title>
+            <Text className="mt-2">Detailed log of banner edits, category creation, app updates, store status changes, and metadata edits.</Text>
             <div className="mt-6 space-y-4">
               {activity.map((item) => <ActivityEntry key={item.id} item={item} />)}
             </div>
@@ -1064,7 +1161,7 @@ export default function AdminWorkspace({ route }) {
                 <Title className="mt-2">{dashboardMetrics.totalApps}</Title>
               </Card>
               <Card className="rounded-3xl">
-                <Text>Store published</Text>
+                <Text>Store live</Text>
                 <Title className="mt-2">{dashboardMetrics.publishedApps}</Title>
               </Card>
               <Card className="rounded-3xl">
@@ -1077,33 +1174,51 @@ export default function AdminWorkspace({ route }) {
               </Card>
             </Grid>
 
-            <Grid numItemsLg={2} className="gap-6">
-              <Card className="rounded-3xl p-6">
+            <Grid numItemsLg={3} className="gap-6">
+              <Card className="rounded-3xl p-6 lg:col-span-2">
                 <Title>Recently updated apps</Title>
-                <div className="mt-4 space-y-3">
-                  {apps.slice(0, 5).map((app) => (
-                    <div key={app.id} className="rounded-2xl border border-mist-200/70 p-4 dark:border-ink-700">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <Text className="font-medium">{app.name}</Text>
-                          <Text>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Text>
-                        </div>
-                        <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
-                          {getStoreStatusMeta(app.status).shortLabel}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <Text className="mt-2">Quick operational snapshot of the latest apps touched in the workspace.</Text>
+                <Table className="mt-6">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell>App</TableHeaderCell>
+                      <TableHeaderCell>Categories</TableHeaderCell>
+                      <TableHeaderCell>Store</TableHeaderCell>
+                      <TableHeaderCell>Updated</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {apps.slice(0, 6).map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell>{app.name}</TableCell>
+                        <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
+                        <TableCell>
+                          <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
+                            {getStoreStatusMeta(app.status).shortLabel}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatDate(app.updatedAt)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </Card>
 
               <Card className="rounded-3xl p-6">
                 <Title>Recent activity</Title>
+                <Text className="mt-2">Latest actions across apps, categories, and banner settings.</Text>
                 <div className="mt-4 space-y-3">
                   {activity.slice(0, 5).map((item) => <ActivityEntry key={item.id} item={item} compact />)}
                 </div>
               </Card>
             </Grid>
+
+            <BannerSettingsCard
+              form={settingsForm}
+              onChange={(key, value) => setSettingsForm((current) => ({ ...current, [key]: value }))}
+              onSave={handleSaveSettings}
+              loading={operationLoading}
+            />
           </div>
         )
     }

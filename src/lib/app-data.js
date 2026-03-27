@@ -151,6 +151,14 @@ function normalizeApp(row, categoryMap = new Map()) {
   }
 }
 
+function normalizeWorkspaceSettings(row) {
+  return {
+    bannerEyebrow: row?.banner_eyebrow ?? 'CREAI directory',
+    bannerTitle: row?.banner_title ?? 'Explore CREAI products in one place',
+    bannerDescription: row?.banner_description ?? 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+  }
+}
+
 export async function fetchApps() {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return []
@@ -224,11 +232,25 @@ export async function fetchAppBySlug(slug) {
   return normalizeApp(data, categoryMap)
 }
 
+export async function fetchWorkspaceSettings() {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return normalizeWorkspaceSettings(null)
+
+  const { data, error } = await supabase
+    .from('workspace_settings')
+    .select('banner_eyebrow, banner_title, banner_description')
+    .eq('id', 'directory')
+    .maybeSingle()
+
+  if (error) throw error
+  return normalizeWorkspaceSettings(data)
+}
+
 export async function fetchAdminSnapshot() {
   const supabase = getSupabaseBrowserClient()
-  if (!supabase) return { apps: [], categories: [], activity: [] }
+  if (!supabase) return { apps: [], categories: [], activity: [], settings: normalizeWorkspaceSettings(null) }
 
-  const [{ data: apps, error: appsError }, { data: categories, error: categoriesError }, { data: activity, error: activityError }] =
+  const [{ data: apps, error: appsError }, { data: categories, error: categoriesError }, { data: activity, error: activityError }, { data: settings, error: settingsError }] =
     await Promise.all([
       supabase
         .from('apps')
@@ -261,11 +283,17 @@ export async function fetchAdminSnapshot() {
         .select('id, action, entity_type, entity_id, actor_email, details, created_at')
         .order('created_at', { ascending: false })
         .limit(50),
+      supabase
+        .from('workspace_settings')
+        .select('banner_eyebrow, banner_title, banner_description')
+        .eq('id', 'directory')
+        .maybeSingle(),
     ])
 
   if (appsError) throw appsError
   if (categoriesError) throw categoriesError
   if (activityError) throw activityError
+  if (settingsError) throw settingsError
 
   const categoryMap = buildCategoryMap(categories ?? [])
 
@@ -273,7 +301,30 @@ export async function fetchAdminSnapshot() {
     apps: (apps ?? []).map((row) => normalizeApp(row, categoryMap)),
     categories: categories ?? [],
     activity: activity ?? [],
+    settings: normalizeWorkspaceSettings(settings),
   }
+}
+
+export async function upsertWorkspaceSettings(payload) {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) throw new Error('Supabase env is missing.')
+
+  const { data, error } = await supabase
+    .from('workspace_settings')
+    .upsert(
+      {
+        id: 'directory',
+        banner_eyebrow: payload.bannerEyebrow?.trim() || null,
+        banner_title: payload.bannerTitle?.trim() || null,
+        banner_description: payload.bannerDescription?.trim() || null,
+      },
+      { onConflict: 'id' },
+    )
+    .select('banner_eyebrow, banner_title, banner_description')
+    .single()
+
+  if (error) throw error
+  return normalizeWorkspaceSettings(data)
 }
 
 export async function insertCategory(name) {

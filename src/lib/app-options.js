@@ -112,7 +112,6 @@ export const dashboardSections = [
   { value: 'categories', label: 'Categories', href: '/admin/dashboard/categories' },
   { value: 'quick-actions', label: 'Quick Actions', href: '/admin/dashboard/quick-actions' },
   { value: 'recent-activity', label: 'Recent Activity', href: '/admin/dashboard/recent-activity' },
-  { value: 'activity-timeline', label: 'Activity Timeline', href: '/admin/dashboard/activity-timeline' },
 ]
 
 export function createEmptyAppForm() {

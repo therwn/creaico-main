@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   Badge,
-  Button,
   Callout,
   Card,
   Grid,
@@ -24,7 +23,6 @@ import {
 import {
   RiApps2Line,
   RiAppsLine,
-  RiArrowRightUpLine,
   RiFolderOpenLine,
   RiGlobalLine,
   RiPulseLine,
@@ -33,7 +31,7 @@ import {
   RiStore2Line,
   RiTimeLine,
 } from '@remixicon/react'
-import { fetchApps } from '../../lib/app-data'
+import { fetchApps, fetchWorkspaceSettings } from '../../lib/app-data'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import Input from '../ui/Input'
 import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
@@ -73,6 +71,11 @@ export default function PublicDirectory() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [directoryTab, setDirectoryTab] = useState('directory')
   const [availabilityFilter, setAvailabilityFilter] = useState('all')
+  const [settings, setSettings] = useState({
+    bannerEyebrow: 'CREAI directory',
+    bannerTitle: 'Explore CREAI products in one place',
+    bannerDescription: 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+  })
 
   useEffect(() => {
     if (!hasSupabaseEnv) {
@@ -83,10 +86,11 @@ export default function PublicDirectory() {
     let isActive = true
     setLoading(true)
 
-    fetchApps()
-      .then((rows) => {
+    Promise.all([fetchApps(), fetchWorkspaceSettings()])
+      .then(([rows, workspaceSettings]) => {
         if (isActive) {
           setApps(rows)
+          setSettings(workspaceSettings)
           setError('')
         }
       })
@@ -147,7 +151,6 @@ export default function PublicDirectory() {
     }
   }, [apps, categories.length])
 
-  const latestUpdatedApp = apps[0] ?? null
   const highlightedCategories = categories.slice(0, 5)
   const activeCount = apps.filter((app) => hasLinks(app.storeLinks) || hasLinks(app.socialLinks)).length
 
@@ -335,6 +338,14 @@ export default function PublicDirectory() {
                 </Card>
               </Grid>
 
+              <Card className="rounded-[2rem] border border-mist-200/80 bg-gradient-to-br from-white to-mist-50/80 p-6 dark:border-ink-700 dark:from-ink-900 dark:to-ink-950">
+                <div className="max-w-3xl space-y-3">
+                  <Badge color="lime" className="creai-badge">{settings.bannerEyebrow}</Badge>
+                  <Title>{settings.bannerTitle}</Title>
+                  <Text>{settings.bannerDescription}</Text>
+                </div>
+              </Card>
+
               <DirectoryGridListBlock
                 error={error}
                 categories={categories}
@@ -346,96 +357,64 @@ export default function PublicDirectory() {
                 availabilityOptions={availabilityOptions}
               />
 
-              <Grid numItemsLg={3} className="gap-6">
-                <Card className="rounded-[2rem] p-6 lg:col-span-2">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-2">
-                      <Title>Recently updated</Title>
-                      <Text>Quick access to the latest app changes across every catalog entry.</Text>
-                    </div>
-                    <Badge color="slate" icon={RiTimeLine}>
-                      Live directory data
-                    </Badge>
+              <Card className="rounded-[2rem] p-6">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="space-y-2">
+                    <Title>Recently updated</Title>
+                    <Text>Structured view of the latest app changes across the directory.</Text>
                   </div>
-
-                  <Table className="mt-6">
-                    <TableHead>
-                      <TableRow>
-                        <TableHeaderCell>App</TableHeaderCell>
-                        <TableHeaderCell>Category</TableHeaderCell>
-                        <TableHeaderCell>Updated</TableHeaderCell>
-                        <TableHeaderCell>Availability</TableHeaderCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {apps.slice(0, 8).map((app) => (
-                        <TableRow key={app.id}>
-                          <TableCell>
-                            <Link href={`/apps/${app.slug}`} className="font-medium text-ink-950 dark:text-mist-200">
-                              {app.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
-                          <TableCell>{formatDate(app.updatedAt)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {hasLinks(app.storeLinks) ? <Badge icon={RiStore2Line}>Store</Badge> : null}
-                              {hasLinks(app.socialLinks) ? <Badge icon={RiApps2Line} color="gray">Social</Badge> : null}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Card>
-
-                <div className="space-y-6">
-                  <Card className="rounded-[2rem] p-6">
-                    <div className="space-y-2">
-                      <Badge color="lime" icon={RiPulseLine} className="creai-badge">Spotlight</Badge>
-                      <Title>{latestUpdatedApp ? latestUpdatedApp.name : 'Your next featured app'}</Title>
-                      <Text>
-                        {latestUpdatedApp
-                          ? latestUpdatedApp.shortDescription || 'Recently updated and ready to be explored.'
-                          : 'Once you publish apps, this panel highlights the freshest release in the directory.'}
-                      </Text>
-                    </div>
-                    {latestUpdatedApp ? (
-                      <>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <Badge color="gray">{latestUpdatedApp.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Badge>
-                          <Badge color="lime" className="creai-badge">{formatDate(latestUpdatedApp.updatedAt)}</Badge>
-                        </div>
-                        <Link href={`/apps/${latestUpdatedApp.slug}`} className="mt-6 inline-flex">
-                          <Button icon={RiArrowRightUpLine} className="creai-button-primary">Open spotlight</Button>
-                        </Link>
-                      </>
-                    ) : null}
-                  </Card>
-
-                  <Card className="rounded-[2rem] p-6">
-                    <Title>Category quick look</Title>
-                    <div className="mt-4 space-y-3">
-                      {highlightedCategories.length ? (
-                        highlightedCategories.map((category) => {
-                          const count = apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length
-                          return (
-                            <div key={category.id} className="flex items-center justify-between rounded-2xl border border-mist-200/70 px-4 py-3 dark:border-ink-700">
-                              <div className="flex items-center gap-3">
-                                <RiShapesLine className="h-4 w-4 text-mist-500 dark:text-brand-300" />
-                                <Text className="font-medium">{category.name}</Text>
-                              </div>
-                              <Badge color="gray">{count}</Badge>
-                            </div>
-                          )
-                        })
-                      ) : (
-                        <Text>No categories are available yet.</Text>
-                      )}
-                    </div>
-                  </Card>
+                  <Badge color="gray" icon={RiTimeLine}>
+                    Last 8 updates
+                  </Badge>
                 </div>
-              </Grid>
+
+                <Table className="mt-6">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell>Product</TableHeaderCell>
+                      <TableHeaderCell>Categories</TableHeaderCell>
+                      <TableHeaderCell>Store</TableHeaderCell>
+                      <TableHeaderCell>Readiness</TableHeaderCell>
+                      <TableHeaderCell>Updated</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {apps.slice(0, 8).map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {app.logoUrl ? (
+                              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">
+                                <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
+                              </div>
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-semibold text-ink-950" style={{ backgroundColor: app.accentColor || '#c2ff29' }}>
+                                {app.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="space-y-1">
+                              <Link href={`/apps/${app.slug}`} className="font-medium text-ink-950 dark:text-mist-200">
+                                {app.name}
+                              </Link>
+                              <Text>{app.shortDescription || 'No short description yet.'}</Text>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
+                        <TableCell>{app.status === 'published' ? 'Store live' : 'Store pending'}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {hasLinks(app.storeLinks) ? <Badge icon={RiStore2Line}>Store</Badge> : null}
+                            {hasLinks(app.socialLinks) ? <Badge icon={RiApps2Line} color="gray">Social</Badge> : null}
+                            {!hasLinks(app.storeLinks) && !hasLinks(app.socialLinks) ? <Text>Metadata only</Text> : null}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(app.updatedAt)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
             </div>
           </main>
         </div>

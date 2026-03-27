@@ -33,10 +33,7 @@ export default function DirectoryGridListBlock({
         </div>
         <div className="grid w-full gap-3 md:grid-cols-2 xl:w-auto xl:min-w-[420px]">
           <div className="space-y-2">
-            <Text className="flex items-center gap-2 font-medium">
-              <RiFilter3Line className="h-4 w-4" />
-              Category
-            </Text>
+            <Text className="font-medium">Category</Text>
             <SearchableSelect
               value={selectedCategory}
               onChange={setSelectedCategory}
@@ -44,7 +41,6 @@ export default function DirectoryGridListBlock({
               placeholder="All categories"
               searchPlaceholder="Search categories..."
               emptyMessage="No category found."
-              icon={RiFilter3Line}
             />
           </div>
           <div className="space-y-2">

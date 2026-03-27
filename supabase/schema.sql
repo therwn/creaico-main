@@ -36,6 +36,15 @@ create table if not exists public.app_activity (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.workspace_settings (
+  id text primary key,
+  banner_eyebrow text,
+  banner_title text,
+  banner_description text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -52,9 +61,16 @@ before update on public.apps
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists workspace_settings_set_updated_at on public.workspace_settings;
+create trigger workspace_settings_set_updated_at
+before update on public.workspace_settings
+for each row
+execute function public.set_updated_at();
+
 alter table public.app_categories enable row level security;
 alter table public.apps enable row level security;
 alter table public.app_activity enable row level security;
+alter table public.workspace_settings enable row level security;
 
 drop policy if exists "public categories read" on public.app_categories;
 create policy "public categories read"
@@ -100,6 +116,30 @@ on public.app_activity
 for insert
 to authenticated
 with check (true);
+
+drop policy if exists "public workspace settings read" on public.workspace_settings;
+create policy "public workspace settings read"
+on public.workspace_settings
+for select
+to public
+using (true);
+
+drop policy if exists "authenticated workspace settings manage" on public.workspace_settings;
+create policy "authenticated workspace settings manage"
+on public.workspace_settings
+for all
+to authenticated
+using (true)
+with check (true);
+
+insert into public.workspace_settings (id, banner_eyebrow, banner_title, banner_description)
+values (
+  'directory',
+  'CREAI directory',
+  'Explore CREAI products in one place',
+  'Discover live apps, browse the stack, and open every product profile from a single catalog surface.'
+)
+on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
