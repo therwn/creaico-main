@@ -84,6 +84,11 @@ const navGroups = [
     icon: RiEdit2Line,
     links: [{ value: 'update', label: 'Manage apps', href: '/admin/update' }],
   },
+  {
+    label: 'Appearance',
+    icon: RiImageAddLine,
+    links: [{ value: 'banner', label: 'Banner', href: '/admin/appearance/banner' }],
+  },
 ]
 
 function adminViewFromPath(path) {
@@ -96,6 +101,7 @@ function adminViewFromPath(path) {
   }
   if (path === '/admin/add') return { page: 'add', section: 'create' }
   if (path === '/admin/update') return { page: 'update', section: 'update', appId: null }
+  if (path === '/admin/appearance/banner') return { page: 'appearance', section: 'banner' }
   if (path.startsWith('/admin/update/')) {
     return {
       page: 'update',
@@ -1282,12 +1288,21 @@ export default function AdminWorkspace({ route }) {
             </Card>
             <Card className="creai-card rounded-3xl p-6">
               <Title>Edit the public banner</Title>
-              <Text className="mt-2">Open the dashboard overview to manage the banner shown above the catalog grid.</Text>
-              <Link href="/admin/dashboard" className="mt-6 inline-flex">
-                <Button className="creai-button-primary">Open dashboard overview</Button>
+              <Text className="mt-2">Open the appearance panel to manage the banner shown above the catalog grid.</Text>
+              <Link href="/admin/appearance/banner" className="mt-6 inline-flex">
+                <Button className="creai-button-primary">Open banner settings</Button>
               </Link>
             </Card>
           </Grid>
+        )
+      case 'banner':
+        return (
+          <BannerSettingsCard
+            form={settingsForm}
+            onChange={(key, value) => setSettingsForm((current) => ({ ...current, [key]: value }))}
+            onSave={handleSaveSettings}
+            loading={operationLoading}
+          />
         )
       case 'recent-activity':
       case 'activity-timeline':
@@ -1304,7 +1319,7 @@ export default function AdminWorkspace({ route }) {
       default:
         return (
           <div className="space-y-6">
-            <Grid numItemsLg={4} className="gap-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
               <Card className="creai-card rounded-3xl">
                 <Text>Total apps</Text>
                 <Title className="mt-2">{dashboardMetrics.totalApps}</Title>
@@ -1321,18 +1336,15 @@ export default function AdminWorkspace({ route }) {
                 <Text>Android-enabled</Text>
                 <Title className="mt-2">{dashboardMetrics.androidEnabledApps}</Title>
               </Card>
-            </Grid>
-
-            <Grid numItemsLg={2} className="gap-4">
               <Card className="creai-card rounded-3xl">
                 <Text>Live platforms</Text>
                 <Title className="mt-2">{dashboardMetrics.livePlatforms}</Title>
               </Card>
               <Card className="creai-card rounded-3xl">
-                <Text>Categories</Text>
-                <Title className="mt-2">{dashboardMetrics.totalCategories}</Title>
+                <Text>Recent activity</Text>
+                <Title className="mt-2">{dashboardMetrics.recentActivity}</Title>
               </Card>
-            </Grid>
+            </div>
 
             <Grid numItemsLg={3} className="gap-6">
               <Card className="creai-card rounded-3xl p-6 lg:col-span-2">
@@ -1380,13 +1392,6 @@ export default function AdminWorkspace({ route }) {
                 </div>
               </Card>
             </Grid>
-
-            <BannerSettingsCard
-              form={settingsForm}
-              onChange={(key, value) => setSettingsForm((current) => ({ ...current, [key]: value }))}
-              onSave={handleSaveSettings}
-              loading={operationLoading}
-            />
           </div>
         )
     }
@@ -1412,7 +1417,7 @@ export default function AdminWorkspace({ route }) {
         </aside>
 
         <main className="min-w-0 flex-1 p-6 lg:h-[calc(100vh-2.5rem)] lg:overflow-y-auto lg:p-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-8">
+          <div className="flex w-full flex-col gap-6 pb-8">
             <Flex
               flexDirection="col"
               justifyContent="between"
@@ -1420,13 +1425,17 @@ export default function AdminWorkspace({ route }) {
               className="gap-4 rounded-[2rem] border border-mist-200/80 bg-white/90 p-6 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/80 dark:shadow-soft-dark lg:flex-row lg:items-center"
             >
               <div className="space-y-2">
-                <Badge color="lime" className="creai-badge">{view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : 'Update Apps'}</Badge>
+                <Badge color="lime" className="creai-badge">
+                  {view.page === 'dashboard' ? 'Dashboard' : view.page === 'add' ? 'Add a New App' : view.page === 'appearance' ? 'Appearance' : 'Update Apps'}
+                </Badge>
                 <Title>
                   {view.page === 'dashboard'
                     ? 'Manage the CREAI app directory'
                     : view.page === 'add'
                       ? 'Create a new app record'
-                      : 'Update existing app records'}
+                      : view.page === 'appearance'
+                        ? 'Manage public directory appearance'
+                        : 'Update existing app records'}
                 </Title>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1462,6 +1471,8 @@ export default function AdminWorkspace({ route }) {
             ) : null}
 
             {!loadingSnapshot && view.page === 'dashboard' ? renderDashboardContent() : null}
+
+            {!loadingSnapshot && view.page === 'appearance' ? renderDashboardContent() : null}
 
             {!loadingSnapshot && view.page === 'add' ? (
               <AppForm
