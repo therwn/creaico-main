@@ -1800,7 +1800,7 @@ export default function AdminWorkspace({ route }) {
 
             {notice ? (
               <div className="fixed right-6 top-6 z-50 max-w-sm">
-                <Card className="creai-card rounded-2xl border border-brand-200/80 p-4 shadow-soft dark:border-brand-700/70 dark:shadow-soft-dark">
+                <Card className="creai-card rounded-2xl p-4 shadow-soft dark:shadow-soft-dark">
                   <div className="flex items-start gap-3">
                     <Badge color="lime" className="creai-badge">Saved</Badge>
                     <Text>{notice}</Text>

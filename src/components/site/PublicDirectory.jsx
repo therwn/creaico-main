@@ -299,23 +299,23 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                    <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
+                    <Card className="creai-card rounded-3xl">
                       <Text>Total apps</Text>
                       <Metric>{loading ? '...' : metrics.total}</Metric>
                     </Card>
-                    <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
+                    <Card className="creai-card rounded-3xl">
                       <Text>Categories</Text>
                       <Metric>{loading ? '...' : metrics.categories}</Metric>
                     </Card>
-                    <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
+                    <Card className="creai-card rounded-3xl">
                       <Text>Web-enabled apps</Text>
                       <Metric>{loading ? '...' : metrics.webEnabled}</Metric>
                     </Card>
-                    <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
+                    <Card className="creai-card rounded-3xl">
                       <Text>iOS-enabled apps</Text>
                       <Metric>{loading ? '...' : metrics.iosEnabled}</Metric>
                     </Card>
-                    <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
+                    <Card className="creai-card rounded-3xl">
                       <Text>Android-enabled apps</Text>
                       <Metric>{loading ? '...' : metrics.androidEnabled}</Metric>
                     </Card>
