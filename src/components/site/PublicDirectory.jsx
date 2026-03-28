@@ -33,6 +33,7 @@ import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
 import WorkspaceBrand from './WorkspaceBrand'
+import AppDetailView from './AppDetailView'
 
 const availabilityOptions = [
   { value: 'all', label: 'All availability' },
@@ -53,7 +54,7 @@ function hasLinks(group) {
   return Object.values(group ?? {}).some(Boolean)
 }
 
-export default function PublicDirectory() {
+export default function PublicDirectory({ publicRoot = '/', detailSlug = null }) {
   const [apps, setApps] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -151,6 +152,8 @@ export default function PublicDirectory() {
     )
   }
 
+  const isDetailView = Boolean(detailSlug)
+
   return (
     <div className="min-h-screen bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
       <div className="mx-auto max-w-[1680px] overflow-hidden rounded-[2rem] border border-mist-200/80 bg-white shadow-soft dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
@@ -239,130 +242,136 @@ export default function PublicDirectory() {
 
           <main className="min-w-0 flex-1 p-6 lg:h-[calc(100vh-2.5rem)] lg:overflow-y-auto lg:p-8">
             <div className="space-y-8">
-              <div className="space-y-6">
-                <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="space-y-3">
-                    <Title>App Directory</Title>
-                    <Text>
-                      Explore CREAI-built products through a cleaner directory surface with searchable entries,
-                      category filters, and product cards.
-                    </Text>
-                  </div>
-                </div>
-              </div>
-
-              <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
-                <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
-                  <Text>Total apps</Text>
-                  <Metric>{loading ? '...' : metrics.total}</Metric>
-                </Card>
-                <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
-                  <Text>Categories</Text>
-                  <Metric>{loading ? '...' : metrics.categories}</Metric>
-                </Card>
-                <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
-                  <Text>Store-ready apps</Text>
-                  <Metric>{loading ? '...' : metrics.storeReady}</Metric>
-                </Card>
-                <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
-                  <Text>Social-ready apps</Text>
-                  <Metric>{loading ? '...' : metrics.socialReady}</Metric>
-                </Card>
-              </Grid>
-
-              <Card className="creai-card overflow-hidden rounded-[2rem] border border-mist-200/80 p-0 dark:border-ink-700">
-                <div className="relative h-[350px] w-full overflow-hidden bg-mist-100 dark:bg-ink-900">
-                  {settings.bannerImageUrl ? (
-                    <img
-                      src={settings.bannerImageUrl}
-                      alt={settings.bannerTitle}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(163,230,35,0.35),_transparent_34%),linear-gradient(135deg,_#0A0A0B_0%,_#111113_55%,_#1A1B1E_100%)]">
-                      <img src="/creailogo.svg" alt="CREAI" className="h-24 w-auto opacity-90" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-6 lg:p-8">
-                    <div className="max-w-3xl space-y-3">
-                      <Badge color="lime" className="creai-badge">{settings.bannerEyebrow}</Badge>
-                      <Title className="!text-white">{settings.bannerTitle}</Title>
-                      <Text className="!text-mist-200">{settings.bannerDescription}</Text>
+              {isDetailView ? (
+                <AppDetailView slug={detailSlug} publicRoot={publicRoot} embedded />
+              ) : (
+                <>
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="space-y-3">
+                        <Title>App Directory</Title>
+                        <Text>
+                          Explore CREAI-built products through a cleaner directory surface with searchable entries,
+                          category filters, and product cards.
+                        </Text>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
 
-              <DirectoryGridListBlock
-                error={error}
-                categories={categories}
-                filteredApps={filteredApps}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-                availabilityFilter={availabilityFilter}
-                setAvailabilityFilter={setAvailabilityFilter}
-                availabilityOptions={availabilityOptions}
-              />
+                  <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
+                    <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
+                      <Text>Total apps</Text>
+                      <Metric>{loading ? '...' : metrics.total}</Metric>
+                    </Card>
+                    <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
+                      <Text>Categories</Text>
+                      <Metric>{loading ? '...' : metrics.categories}</Metric>
+                    </Card>
+                    <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
+                      <Text>Store-ready apps</Text>
+                      <Metric>{loading ? '...' : metrics.storeReady}</Metric>
+                    </Card>
+                    <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
+                      <Text>Social-ready apps</Text>
+                      <Metric>{loading ? '...' : metrics.socialReady}</Metric>
+                    </Card>
+                  </Grid>
 
-              <Card className="creai-card rounded-[2rem] p-6">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="space-y-2">
-                    <Title>Recently updated</Title>
-                    <Text>Structured view of the latest app changes across the directory.</Text>
-                  </div>
-                  <Badge color="gray" icon={RiTimeLine}>
-                    Last 8 updates
-                  </Badge>
-                </div>
+                  <Card className="creai-card overflow-hidden rounded-[2rem] border border-mist-200/80 p-0 dark:border-ink-700">
+                    <div className="relative h-[350px] w-full overflow-hidden bg-mist-100 dark:bg-ink-900">
+                      {settings.bannerImageUrl ? (
+                        <img
+                          src={settings.bannerImageUrl}
+                          alt={settings.bannerTitle}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(163,230,35,0.35),_transparent_34%),linear-gradient(135deg,_#0A0A0B_0%,_#111113_55%,_#1A1B1E_100%)]">
+                          <img src="/creailogo.svg" alt="CREAI" className="h-24 w-auto opacity-90" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-6 lg:p-8">
+                        <div className="max-w-3xl space-y-3">
+                          <Badge color="lime" className="creai-badge">{settings.bannerEyebrow}</Badge>
+                          <Title className="!text-white">{settings.bannerTitle}</Title>
+                          <Text className="!text-mist-200">{settings.bannerDescription}</Text>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
 
-                <Table className="mt-6">
-                  <TableHead>
-                    <TableRow>
-                      <TableHeaderCell>Product</TableHeaderCell>
-                      <TableHeaderCell>Categories</TableHeaderCell>
-                      <TableHeaderCell>Store</TableHeaderCell>
-                      <TableHeaderCell>Readiness</TableHeaderCell>
-                      <TableHeaderCell>Updated</TableHeaderCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {apps.slice(0, 8).map((app) => (
-                      <TableRow key={app.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {app.logoUrl ? (
-                              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">
-                                <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
+                  <DirectoryGridListBlock
+                    error={error}
+                    categories={categories}
+                    filteredApps={filteredApps}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                    availabilityFilter={availabilityFilter}
+                    setAvailabilityFilter={setAvailabilityFilter}
+                    availabilityOptions={availabilityOptions}
+                  />
+
+                  <Card className="creai-card rounded-[2rem] p-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="space-y-2">
+                        <Title>Recently updated</Title>
+                        <Text>Structured view of the latest app changes across the directory.</Text>
+                      </div>
+                      <Badge color="gray" icon={RiTimeLine}>
+                        Last 8 updates
+                      </Badge>
+                    </div>
+
+                    <Table className="mt-6">
+                      <TableHead>
+                        <TableRow>
+                          <TableHeaderCell>Product</TableHeaderCell>
+                          <TableHeaderCell>Categories</TableHeaderCell>
+                          <TableHeaderCell>Store</TableHeaderCell>
+                          <TableHeaderCell>Readiness</TableHeaderCell>
+                          <TableHeaderCell>Updated</TableHeaderCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {apps.slice(0, 8).map((app) => (
+                          <TableRow key={app.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                {app.logoUrl ? (
+                                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">
+                                    <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
+                                  </div>
+                                ) : (
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-semibold text-ink-950" style={{ backgroundColor: app.accentColor || '#c2ff29' }}>
+                                    {app.name.slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="space-y-1">
+                                  <Link href={`/apps/${app.slug}`} className="font-medium text-ink-950 dark:text-mist-200">
+                                    {app.name}
+                                  </Link>
+                                  <Text>{app.shortDescription || 'No short description yet.'}</Text>
+                                </div>
                               </div>
-                            ) : (
-                              <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-semibold text-ink-950" style={{ backgroundColor: app.accentColor || '#c2ff29' }}>
-                                {app.name.slice(0, 2).toUpperCase()}
+                            </TableCell>
+                            <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
+                            <TableCell>{app.status === 'published' ? 'Store live' : 'Store pending'}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {hasLinks(app.storeLinks) ? <Badge icon={RiStore2Line}>Store</Badge> : null}
+                                {hasLinks(app.socialLinks) ? <Badge icon={RiApps2Line} color="gray">Social</Badge> : null}
+                                {!hasLinks(app.storeLinks) && !hasLinks(app.socialLinks) ? <Text>Metadata only</Text> : null}
                               </div>
-                            )}
-                            <div className="space-y-1">
-                              <Link href={`/apps/${app.slug}`} className="font-medium text-ink-950 dark:text-mist-200">
-                                {app.name}
-                              </Link>
-                              <Text>{app.shortDescription || 'No short description yet.'}</Text>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
-                        <TableCell>{app.status === 'published' ? 'Store live' : 'Store pending'}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {hasLinks(app.storeLinks) ? <Badge icon={RiStore2Line}>Store</Badge> : null}
-                            {hasLinks(app.socialLinks) ? <Badge icon={RiApps2Line} color="gray">Social</Badge> : null}
-                            {!hasLinks(app.storeLinks) && !hasLinks(app.socialLinks) ? <Text>Metadata only</Text> : null}
-                          </div>
-                        </TableCell>
-                        <TableCell>{formatDate(app.updatedAt)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Card>
+                            </TableCell>
+                            <TableCell>{formatDate(app.updatedAt)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Card>
+                </>
+              )}
             </div>
           </main>
         </div>

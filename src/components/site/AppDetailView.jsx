@@ -77,7 +77,7 @@ function TechBadge({ value, color = 'gray' }) {
   )
 }
 
-export default function AppDetailView({ slug, publicRoot }) {
+export default function AppDetailView({ slug, publicRoot, embedded = false }) {
   const [app, setApp] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -129,10 +129,9 @@ export default function AppDetailView({ slug, publicRoot }) {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-mist-100 px-4 py-6 dark:bg-ink-950 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div className="flex flex-col gap-4 rounded-3xl border border-mist-200/80 bg-white/90 p-6 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between">
+  const content = (
+      <div className={`${embedded ? 'w-full' : 'mx-auto max-w-6xl'} flex flex-col gap-6`}>
+        <div className={`flex flex-col gap-4 rounded-3xl border border-mist-200/80 p-6 shadow-soft dark:border-ink-700/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between ${embedded ? 'creai-card' : 'bg-white/90 dark:bg-ink-900/80'}`}>
           <div className="flex items-center gap-3">
             <Link href={publicRoot}>
               <Button variant="secondary" icon={RiArrowLeftLine} className="creai-button-secondary">
@@ -144,7 +143,7 @@ export default function AppDetailView({ slug, publicRoot }) {
               <Text>Product profile for app.creai.co</Text>
             </div>
           </div>
-          <ThemeToggle />
+          {!embedded ? <ThemeToggle /> : null}
         </div>
 
         {loading ? (
@@ -265,6 +264,15 @@ export default function AppDetailView({ slug, publicRoot }) {
           </Grid>
         ) : null}
       </div>
+  )
+
+  if (embedded) {
+    return content
+  }
+
+  return (
+    <div className="min-h-screen bg-mist-100 px-4 py-6 dark:bg-ink-950 sm:px-6 lg:px-8">
+      {content}
     </div>
   )
 }

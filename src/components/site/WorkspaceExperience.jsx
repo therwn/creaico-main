@@ -25,7 +25,7 @@ export default function WorkspaceExperience({ route }) {
   }
 
   if (detailSlug) {
-    return <AppDetailView slug={detailSlug} publicRoot={route.publicRoot} />
+    return <PublicDirectory publicRoot={route.publicRoot} detailSlug={detailSlug} />
   }
 
   return <PublicDirectory publicRoot={route.publicRoot} />
