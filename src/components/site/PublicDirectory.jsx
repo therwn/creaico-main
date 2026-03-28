@@ -194,7 +194,7 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
   const isDetailView = Boolean(detailSlug)
 
   return (
-    <div className="h-screen overflow-hidden bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
+    <div className="creai-workspace-shell h-screen overflow-hidden bg-mist-100 p-4 dark:bg-ink-950 lg:p-5">
       <div className="w-full overflow-hidden rounded-[2rem] border border-mist-200/80 bg-white shadow-soft dark:border-ink-700 dark:bg-ink-950 dark:shadow-soft-dark">
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
           <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:h-[calc(100vh-2.5rem)] lg:w-[280px] lg:flex-none lg:border-b-0 lg:border-r lg:overflow-hidden">

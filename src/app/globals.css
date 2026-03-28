@@ -50,6 +50,28 @@ a {
     border-color: #26272b !important;
   }
 
+  .creai-workspace-shell :is(
+    [class*='border-mist-200'],
+    [class*='border-mist-300'],
+    [class*='border-mist-400'],
+    [class*='border-ink-600'],
+    [class*='border-ink-700'],
+    [class*='border-ink-800']
+  ) {
+    border-color: #ebecf5 !important;
+  }
+
+  .dark .creai-workspace-shell :is(
+    [class*='border-mist-200'],
+    [class*='border-mist-300'],
+    [class*='border-mist-400'],
+    [class*='border-ink-600'],
+    [class*='border-ink-700'],
+    [class*='border-ink-800']
+  ) {
+    border-color: #26272b !important;
+  }
+
   .creai-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(163, 230, 35, 0.45) transparent;
