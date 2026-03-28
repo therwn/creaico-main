@@ -21,10 +21,8 @@ import {
   RiApps2Line,
   RiAppsLine,
   RiFolderOpenLine,
-  RiGlobalLine,
   RiSearchLine,
   RiShapesLine,
-  RiStore2Line,
   RiTimeLine,
 } from '@remixicon/react'
 import { fetchApps, fetchWorkspaceSettings } from '../../lib/app-data'
@@ -175,7 +173,10 @@ export default function PublicDirectory() {
                   <div className="space-y-1">
                     <button
                       type="button"
-                      onClick={() => setAvailabilityFilter('all')}
+                      onClick={() => {
+                        setSelectedCategory('all')
+                        setAvailabilityFilter('all')
+                      }}
                       className="flex w-full items-center justify-between rounded-2xl bg-white px-3 py-2 text-left text-sm text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200"
                     >
                       <span className="flex items-center gap-3">
@@ -184,51 +185,24 @@ export default function PublicDirectory() {
                       </span>
                       <Badge color="gray">{metrics.total}</Badge>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setAvailabilityFilter('store')}
-                      className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
-                    >
-                      <span className="flex items-center gap-3">
-                        <RiStore2Line className="h-4 w-4" />
-                        Store-ready
-                      </span>
-                      <Badge color="gray">{metrics.storeReady}</Badge>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAvailabilityFilter('social')}
-                      className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm text-mist-500 transition hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800"
-                    >
-                      <span className="flex items-center gap-3">
-                        <RiGlobalLine className="h-4 w-4" />
-                        Social-ready
-                      </span>
-                      <Badge color="gray">{metrics.socialReady}</Badge>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-mist-500 dark:text-mist-400">Collections</Text>
-                  <div className="space-y-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCategory('all')}
-                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                        selectedCategory === 'all'
-                          ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                          : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <RiAppsLine className="h-4 w-4" />
-                        All categories
-                      </span>
-                      <Badge color="gray">{metrics.categories}</Badge>
-                    </button>
-                    {highlightedCategories.map((category) => {
-      const count = apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length
+                    <div className="space-y-1 border-l border-mist-200 pl-4 dark:border-ink-700">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategory('all')}
+                        className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                          selectedCategory === 'all'
+                            ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
+                            : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <RiAppsLine className="h-4 w-4" />
+                          All categories
+                        </span>
+                        <Badge color="gray">{metrics.categories}</Badge>
+                      </button>
+                      {highlightedCategories.map((category) => {
+                        const count = apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length
                       return (
                         <button
                           key={category.id}
@@ -247,7 +221,8 @@ export default function PublicDirectory() {
                           <Badge color="gray">{count}</Badge>
                         </button>
                       )
-                    })}
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
