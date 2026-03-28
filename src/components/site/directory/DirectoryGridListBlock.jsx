@@ -80,7 +80,7 @@ export default function DirectoryGridListBlock({
       ) : null}
 
       {sortedApps.length ? (
-        <Grid numItemsMd={2} numItemsLg={3} className="mt-6 gap-4 [&>*]:h-full">
+        <Grid numItemsMd={1} numItemsLg={2} className="mt-6 gap-4 [&>*]:h-full">
           {sortedApps.map((app) => (
             <DirectoryGridCard key={app.id} app={app} />
           ))}
