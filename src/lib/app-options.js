@@ -2,7 +2,9 @@ import {
   AppleLight,
   Cloudflare,
   CloudflareWorkers,
+  Expo,
   Firebase,
+  Flutter,
   Nextjs,
   Nodejs,
   OpenAILight,
@@ -11,11 +13,16 @@ import {
   Stripe,
   Supabase,
   Swift,
+  TailwindCSS,
   TypeScript,
+  VercelLight,
 } from '@ridemountainpig/svgl-react'
 import {
+  RiAndroidLine,
+  RiAppleFill,
   RiApps2Line,
   RiBrainLine,
+  RiGlobalLine,
   RiLineChartLine,
   RiMapPin2Line,
   RiRobot2Line,
@@ -34,8 +41,6 @@ export const stackOptions = [
   { value: 'Cloudflare Workers', label: 'Cloudflare Workers', icon: CloudflareWorkers },
   { value: 'Node.js', label: 'Node.js', icon: Nodejs },
   { value: 'TypeScript', label: 'TypeScript', icon: TypeScript },
-  { value: 'React', label: 'React', icon: ReactLight },
-  { value: 'Next.js', label: 'Next.js', icon: Nextjs },
   { value: 'Analytics', label: 'Analytics', icon: RiLineChartLine },
   { value: 'Automation', label: 'Automation', icon: RiRobot2Line },
   { value: 'Voice', label: 'Voice', icon: RiVoiceprintLine },
@@ -43,9 +48,24 @@ export const stackOptions = [
   { value: 'Payments', label: 'Payments', icon: RiSparklingLine },
 ]
 
-export const frameworkOptions = [
+export const webTechnologyOptions = [
+  { value: 'React', label: 'React', icon: ReactLight },
+  { value: 'Next.js', label: 'Next.js', icon: Nextjs },
+  { value: 'Tailwind CSS', label: 'Tailwind CSS', icon: TailwindCSS },
+  { value: 'Vercel', label: 'Vercel', icon: VercelLight },
+  { value: 'Cloudflare Pages', label: 'Cloudflare Pages', icon: Cloudflare },
+  { value: 'Cloudflare Workers', label: 'Cloudflare Workers', icon: CloudflareWorkers },
+  { value: 'Node.js', label: 'Node.js', icon: Nodejs },
+  { value: 'TypeScript', label: 'TypeScript', icon: TypeScript },
+  { value: 'WebRTC', label: 'WebRTC', icon: RiApps2Line },
+]
+
+export const mobileTechnologyOptions = [
   { value: 'SwiftUI', label: 'SwiftUI', icon: Swift },
   { value: 'UIKit', label: 'UIKit', icon: AppleLight },
+  { value: 'React Native', label: 'React Native', icon: ReactLight },
+  { value: 'Expo', label: 'Expo', icon: Expo },
+  { value: 'Flutter', label: 'Flutter', icon: Flutter },
   { value: 'Combine', label: 'Combine', icon: Swift },
   { value: 'WidgetKit', label: 'WidgetKit', icon: AppleLight },
   { value: 'StoreKit', label: 'StoreKit', icon: AppleLight },
@@ -53,7 +73,6 @@ export const frameworkOptions = [
   { value: 'CloudKit', label: 'CloudKit', icon: AppleLight },
   { value: 'HealthKit', label: 'HealthKit', icon: AppleLight },
   { value: 'AVFoundation', label: 'AVFoundation', icon: AppleLight },
-  { value: 'Vision', label: 'Vision', icon: RiApps2Line },
   { value: 'VisionKit', label: 'VisionKit', icon: RiApps2Line },
   { value: 'Core ML', label: 'Core ML', icon: RiBrainLine },
   { value: 'MapKit', label: 'MapKit', icon: RiMapPin2Line },
@@ -61,11 +80,39 @@ export const frameworkOptions = [
   { value: 'App Intents', label: 'App Intents', icon: AppleLight },
 ]
 
-const techOptions = [...stackOptions, ...frameworkOptions]
+const techOptions = [...stackOptions, ...webTechnologyOptions, ...mobileTechnologyOptions]
 const techOptionMap = new Map(techOptions.map((option) => [option.value, option]))
 
 export function getTechOption(value) {
   return techOptionMap.get(value) || null
+}
+
+export const platformOptions = [
+  { key: 'ios', label: 'iOS', shortLabel: 'iOS', icon: RiAppleFill },
+  { key: 'android', label: 'Android', shortLabel: 'Android', icon: RiAndroidLine },
+  { key: 'web', label: 'Web', shortLabel: 'Web', icon: RiGlobalLine },
+]
+
+export const platformStatusOptions = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'coming_soon', label: 'Coming soon' },
+  { value: 'beta', label: 'Beta' },
+  { value: 'live', label: 'Live' },
+]
+
+const platformStatusMeta = {
+  draft: { label: 'Draft', shortLabel: 'Draft', color: 'gray', className: '' },
+  coming_soon: { label: 'Coming soon', shortLabel: 'Soon', color: 'gray', className: '' },
+  beta: { label: 'Beta', shortLabel: 'Beta', color: 'gray', className: '' },
+  live: { label: 'Live', shortLabel: 'Live', color: 'lime', className: 'creai-badge' },
+}
+
+export function getPlatformStatusMeta(value) {
+  return platformStatusMeta[value] || platformStatusMeta.draft
+}
+
+export function getPlatformMeta(key) {
+  return platformOptions.find((platform) => platform.key === key) || null
 }
 
 export const socialFieldOptions = [
@@ -76,36 +123,6 @@ export const socialFieldOptions = [
   { key: 'linkedin', label: 'LinkedIn' },
 ]
 
-export const storeFieldOptions = [
-  { key: 'app_store', label: 'App Store' },
-  { key: 'google_play', label: 'Google Play' },
-  { key: 'web_app', label: 'Web App' },
-]
-
-export const storeStatusOptions = [
-  { value: 'draft', label: 'Store pending' },
-  { value: 'published', label: 'Store live' },
-]
-
-const storeStatusMeta = {
-  draft: {
-    label: 'Store pending',
-    shortLabel: 'Pending',
-    color: 'gray',
-    className: '',
-  },
-  published: {
-    label: 'Store live',
-    shortLabel: 'Live',
-    color: 'lime',
-    className: 'creai-badge',
-  },
-}
-
-export function getStoreStatusMeta(value) {
-  return storeStatusMeta[value] || storeStatusMeta.draft
-}
-
 export const dashboardSections = [
   { value: 'overview', label: 'Overview', href: '/admin/dashboard' },
   { value: 'recent-updates', label: 'Recent Updates', href: '/admin/dashboard/recent-updates' },
@@ -113,6 +130,14 @@ export const dashboardSections = [
   { value: 'quick-actions', label: 'Quick Actions', href: '/admin/dashboard/quick-actions' },
   { value: 'recent-activity', label: 'Recent Activity', href: '/admin/dashboard/recent-activity' },
 ]
+
+export function createEmptyPlatformState() {
+  return {
+    enabled: false,
+    status: 'draft',
+    url: '',
+  }
+}
 
 export function createEmptyAppForm() {
   return {
@@ -122,20 +147,20 @@ export function createEmptyAppForm() {
     description: '',
     categoryIds: [],
     stacks: [],
-    frameworks: [],
+    webTechnologies: [],
+    mobileTechnologies: [],
     accentColor: '#c2ff29',
-    status: 'published',
+    platforms: {
+      ios: createEmptyPlatformState(),
+      android: createEmptyPlatformState(),
+      web: createEmptyPlatformState(),
+    },
     socialLinks: {
       website: '',
       x: '',
       instagram: '',
       github: '',
       linkedin: '',
-    },
-    storeLinks: {
-      app_store: '',
-      google_play: '',
-      web_app: '',
     },
     logoFile: null,
     logoUrl: '',

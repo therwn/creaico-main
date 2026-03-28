@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Badge, Button, Card, Text, Title } from '@tremor/react'
 import { RiArrowRightUpLine } from '@remixicon/react'
-import { getStoreStatusMeta, getTechOption } from '../../../lib/app-options'
+import { getPlatformMeta, getPlatformStatusMeta, getTechOption } from '../../../lib/app-options'
 
 function formatDate(value) {
   if (!value) return 'Recently'
@@ -15,7 +15,8 @@ function formatDate(value) {
 }
 
 export default function DirectoryGridCard({ app }) {
-  const statusMeta = getStoreStatusMeta(app.status)
+  const enabledPlatforms = Object.entries(app.platforms ?? {}).filter(([, platform]) => platform?.enabled)
+  const livePlatforms = enabledPlatforms.filter(([, platform]) => platform?.status === 'live')
   const categoryLabel = app.categories?.map((category) => category.name).join(', ') || app.category?.name || 'Uncategorized'
 
   return (
@@ -37,7 +38,9 @@ export default function DirectoryGridCard({ app }) {
             {app.name.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <Badge color={statusMeta.color} className={statusMeta.className}>{statusMeta.shortLabel}</Badge>
+        <Badge color={livePlatforms.length ? 'lime' : 'gray'} className={livePlatforms.length ? 'creai-badge' : ''}>
+          {livePlatforms.length ? `${livePlatforms.length} live` : `${enabledPlatforms.length || 0} platform`}
+        </Badge>
       </div>
 
       <div className="mt-5 space-y-1.5">
@@ -48,6 +51,15 @@ export default function DirectoryGridCard({ app }) {
       <Text className="mt-4 min-h-[56px]">{app.shortDescription || 'No short description added yet.'}</Text>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        {enabledPlatforms.map(([key, platform]) => {
+          const meta = getPlatformMeta(key)
+          const statusMeta = getPlatformStatusMeta(platform.status)
+          return (
+            <Badge key={key} color={statusMeta.color} className={statusMeta.className} icon={meta?.icon}>
+              {meta?.shortLabel || meta?.label || key}
+            </Badge>
+          )
+        })}
         {app.stacks.slice(0, 2).map((item) => {
           const meta = getTechOption(item)
           return (
@@ -56,7 +68,7 @@ export default function DirectoryGridCard({ app }) {
             </Badge>
           )
         })}
-        {app.frameworks.slice(0, 1).map((item) => {
+        {app.webTechnologies.slice(0, 1).map((item) => {
           const meta = getTechOption(item)
           return (
             <Badge key={item} color="gray" icon={meta?.icon}>

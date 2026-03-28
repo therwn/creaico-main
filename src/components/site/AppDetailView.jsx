@@ -13,18 +13,15 @@ import {
   Title,
 } from '@tremor/react'
 import {
-  RiAppleFill,
   RiArrowLeftLine,
-  RiExternalLinkLine,
   RiGithubLine,
   RiGlobalLine,
-  RiGooglePlayFill,
   RiInstagramLine,
   RiLinkedinLine,
   RiTwitterXLine,
 } from '@remixicon/react'
 import { fetchAppBySlug } from '../../lib/app-data'
-import { getStoreStatusMeta, getTechOption } from '../../lib/app-options'
+import { getPlatformMeta, getPlatformStatusMeta, getTechOption } from '../../lib/app-options'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
@@ -35,12 +32,6 @@ const socialMeta = {
   instagram: { label: 'Instagram', icon: RiInstagramLine },
   github: { label: 'GitHub', icon: RiGithubLine },
   linkedin: { label: 'LinkedIn', icon: RiLinkedinLine },
-}
-
-const storeMeta = {
-  app_store: { label: 'App Store', icon: RiAppleFill },
-  google_play: { label: 'Google Play', icon: RiGooglePlayFill },
-  web_app: { label: 'Web App', icon: RiGlobalLine },
 }
 
 function normalizeExternalUrl(value) {
@@ -74,6 +65,40 @@ function TechBadge({ value, color = 'gray' }) {
         <span>{value}</span>
       </span>
     </Badge>
+  )
+}
+
+function PlatformLaunchCard({ platformKey, platform }) {
+  const meta = getPlatformMeta(platformKey)
+  const statusMeta = getPlatformStatusMeta(platform.status)
+
+  return (
+    <Card className="creai-card rounded-3xl p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-2">
+          <Badge color="gray" icon={meta?.icon}>{meta?.label || platformKey}</Badge>
+          <Title>{meta?.label || platformKey}</Title>
+          <Text>
+            {platform.url
+              ? `Open the ${meta?.label || platformKey} experience.`
+              : `${meta?.label || platformKey} is configured without a public launch URL yet.`}
+          </Text>
+        </div>
+        <Badge color={statusMeta.color} className={statusMeta.className}>
+          {statusMeta.label}
+        </Badge>
+      </div>
+
+      {platform.url ? (
+        <div className="mt-5">
+          <a href={normalizeExternalUrl(platform.url)} target="_blank" rel="noreferrer">
+            <Button icon={meta?.icon} className="creai-button-primary">
+              Open {meta?.label || platformKey}
+            </Button>
+          </a>
+        </div>
+      ) : null}
+    </Card>
   )
 }
 
@@ -114,156 +139,153 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
     return Object.entries(app?.socialLinks ?? {}).filter(([, value]) => Boolean(value))
   }, [app?.socialLinks])
 
-  const storeLinks = useMemo(() => {
-    return Object.entries(app?.storeLinks ?? {}).filter(([, value]) => Boolean(value))
-  }, [app?.storeLinks])
-
-  const statusMeta = getStoreStatusMeta(app?.status)
+  const enabledPlatforms = useMemo(() => {
+    return Object.entries(app?.platforms ?? {}).filter(([, platform]) => platform?.enabled)
+  }, [app?.platforms])
 
   if (!hasSupabaseEnv) {
     return (
       <SetupState
         title="Prepare app detail pages"
-        description="Connect Supabase to load individual app records and their social/store metadata."
+        description="Connect Supabase to load individual app records and their platform launch metadata."
       />
     )
   }
 
   const content = (
-      <div className={`${embedded ? 'w-full' : 'mx-auto max-w-6xl'} flex flex-col gap-6`}>
-        <div className={`flex flex-col gap-4 rounded-3xl border border-mist-200/80 p-6 shadow-soft dark:border-ink-700/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between ${embedded ? 'creai-card' : 'bg-white/90 dark:bg-ink-900/80'}`}>
-          <div className="flex items-center gap-3">
-            <Link href={publicRoot}>
-              <Button variant="secondary" icon={RiArrowLeftLine} className="creai-button-secondary">
-                Back to directory
-              </Button>
-            </Link>
-            <div>
-              <Title>App detail</Title>
-              <Text>Product profile for app.creai.co</Text>
-            </div>
+    <div className={`${embedded ? 'w-full' : 'mx-auto max-w-6xl'} flex flex-col gap-6`}>
+      <div className={`flex flex-col gap-4 rounded-3xl border border-mist-200/80 p-6 shadow-soft dark:border-ink-700/80 dark:shadow-soft-dark lg:flex-row lg:items-center lg:justify-between ${embedded ? 'creai-card' : 'bg-white/90 dark:bg-ink-900/80'}`}>
+        <div className="flex items-center gap-3">
+          <Link href={publicRoot}>
+            <Button variant="secondary" icon={RiArrowLeftLine} className="creai-button-secondary">
+              Back to directory
+            </Button>
+          </Link>
+          <div>
+            <Title>App detail</Title>
+            <Text>Multi-platform product profile</Text>
           </div>
-          {!embedded ? <ThemeToggle /> : null}
         </div>
+        {!embedded ? <ThemeToggle /> : null}
+      </div>
 
-        {loading ? (
-          <Card className="creai-card rounded-3xl p-8">
-            <Text>Loading app details...</Text>
-          </Card>
-        ) : null}
+      {loading ? (
+        <Card className="creai-card rounded-3xl p-8">
+          <Text>Loading app details...</Text>
+        </Card>
+      ) : null}
 
-        {!loading && error ? (
-          <Callout title="Detail unavailable" color="rose">
-            {error}
-          </Callout>
-        ) : null}
+      {!loading && error ? (
+        <Callout title="Detail unavailable" color="rose">
+          {error}
+        </Callout>
+      ) : null}
 
-        {!loading && app ? (
-          <Grid numItemsLg={3} className="gap-6">
-            <Card className="creai-card rounded-3xl p-6 lg:col-span-2">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                <div className="flex items-start gap-4">
-                  {app.logoUrl ? (
-                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-mist-200/80 bg-white p-3 dark:border-ink-700/80 dark:bg-ink-900">
-                      <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
-                    </div>
-                  ) : (
-                    <div
-                      className="flex h-16 w-16 items-center justify-center rounded-3xl text-lg font-semibold text-ink-950"
-                      style={{ backgroundColor: app.accentColor || '#c2ff29' }}
-                    >
-                      {app.name.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-2">
-                      {(app.categories?.length ? app.categories : [app.category].filter(Boolean)).map((category) => (
-                        <Badge key={category.id || category.name} color="lime" className="creai-badge">{category.name}</Badge>
-                      ))}
-                      {!(app.categories?.length || app.category) ? <Badge color="gray">Uncategorized</Badge> : null}
-                    </div>
-                    <Title>{app.name}</Title>
-                    <Text>{app.shortDescription}</Text>
-                    <Text>{formatDate(app.updatedAt)}</Text>
+      {!loading && app ? (
+        <Grid numItemsLg={3} className="gap-6">
+          <Card className="creai-card rounded-3xl p-6 lg:col-span-2">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-start gap-4">
+                {app.logoUrl ? (
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-mist-200/80 bg-white p-3 dark:border-ink-700/80 dark:bg-ink-900">
+                    <img src={app.logoUrl} alt={`${app.name} logo`} className="h-full w-full object-contain" />
                   </div>
-                </div>
-
-                {socialLinks.length ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    {socialLinks.map(([key, value]) => {
-                      const meta = socialMeta[key]
-                      if (!meta) return null
+                ) : (
+                  <div
+                    className="flex h-16 w-16 items-center justify-center rounded-3xl text-lg font-semibold text-ink-950"
+                    style={{ backgroundColor: app.accentColor || '#c2ff29' }}
+                  >
+                    {app.name.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {(app.categories?.length ? app.categories : [app.category].filter(Boolean)).map((category) => (
+                      <Badge key={category.id || category.name} color="lime" className="creai-badge">{category.name}</Badge>
+                    ))}
+                    {enabledPlatforms.map(([key, platform]) => {
+                      const meta = getPlatformMeta(key)
+                      const statusMeta = getPlatformStatusMeta(platform.status)
                       return (
-                        <a key={key} href={normalizeExternalUrl(value)} target="_blank" rel="noreferrer">
-                          <Button variant="secondary" icon={meta.icon} size="xs" className="creai-button-secondary">
-                            {meta.label}
-                          </Button>
-                        </a>
+                        <Badge key={key} color={statusMeta.color} className={statusMeta.className} icon={meta?.icon}>
+                          {meta?.shortLabel || meta?.label || key}
+                        </Badge>
                       )
                     })}
+                    {!(app.categories?.length || app.category) ? <Badge color="gray">Uncategorized</Badge> : null}
                   </div>
-                ) : null}
+                  <Title>{app.name}</Title>
+                  <Text>{app.shortDescription}</Text>
+                  <Text>{formatDate(app.updatedAt)}</Text>
+                </div>
               </div>
 
-              <Divider className="my-6" />
-
-              <div className="space-y-3">
-                <Title>Description</Title>
-                <Text>{app.description || 'No detailed description has been added yet.'}</Text>
-              </div>
-
-              {storeLinks.length ? (
-                <>
-                  <Divider className="my-6" />
-                  <div className="space-y-3">
-                    <Title>Store links</Title>
-                    <div className="flex flex-wrap gap-3">
-                      {storeLinks.map(([key, value]) => {
-                        const meta = storeMeta[key]
-                        if (!meta) return null
-                        return (
-                          <a key={key} href={normalizeExternalUrl(value)} target="_blank" rel="noreferrer">
-                            <Button icon={meta.icon} className="creai-button-primary">
-                              {meta.label}
-                            </Button>
-                          </a>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </>
+              {socialLinks.length ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  {socialLinks.map(([key, value]) => {
+                    const meta = socialMeta[key]
+                    if (!meta) return null
+                    return (
+                      <a key={key} href={normalizeExternalUrl(value)} target="_blank" rel="noreferrer">
+                        <Button variant="secondary" icon={meta.icon} size="xs" className="creai-button-secondary">
+                          {meta.label}
+                        </Button>
+                      </a>
+                    )
+                  })}
+                </div>
               ) : null}
+            </div>
+
+            <Divider className="my-6" />
+
+            <div className="space-y-3">
+              <Title>Description</Title>
+              <Text>{app.description || 'No detailed description has been added yet.'}</Text>
+            </div>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="creai-card rounded-3xl p-6">
+              <Title>Shared stack</Title>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {app.stacks.length ? app.stacks.map((item) => <TechBadge key={item} value={item} />) : <Text>No shared stack tags added.</Text>}
+              </div>
             </Card>
 
-            <div className="space-y-6">
-              <Card className="creai-card rounded-3xl p-6">
-                <Title>Stack</Title>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {app.stacks.length ? app.stacks.map((item) => <TechBadge key={item} value={item} />) : <Text>No stack tags added.</Text>}
-                </div>
-              </Card>
+            <Card className="creai-card rounded-3xl p-6">
+              <Title>Web technologies</Title>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {app.webTechnologies.length ? app.webTechnologies.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No web technologies added.</Text>}
+              </div>
+            </Card>
 
-              <Card className="creai-card rounded-3xl p-6">
-                <Title>Frameworks</Title>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {app.frameworks.length ? app.frameworks.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No framework tags added.</Text>}
-                </div>
-              </Card>
+            <Card className="creai-card rounded-3xl p-6">
+              <Title>Mobile technologies</Title>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {app.mobileTechnologies.length ? app.mobileTechnologies.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No mobile technologies added.</Text>}
+              </div>
+            </Card>
+          </div>
 
-              <Card className="creai-card rounded-3xl p-6">
-                <Title>Availability</Title>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge color={socialLinks.length ? 'gray' : 'gray'}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>
-                  <Badge color={storeLinks.length ? 'gray' : 'gray'}>{storeLinks.length ? 'Store ready' : 'No store links'}</Badge>
-                  <Badge color={statusMeta.color} className={statusMeta.className} icon={RiExternalLinkLine}>
-                    {statusMeta.label}
-                  </Badge>
-                </div>
-              </Card>
-            </div>
-          </Grid>
-        ) : null}
-      </div>
+          <div className="lg:col-span-3">
+            <Title>Platform launch surface</Title>
+            <Text className="mt-2">Launch status and links for every enabled platform.</Text>
+            <Grid numItemsLg={3} className="mt-6 gap-6">
+              {enabledPlatforms.length ? (
+                enabledPlatforms.map(([key, platform]) => (
+                  <PlatformLaunchCard key={key} platformKey={key} platform={platform} />
+                ))
+              ) : (
+                <Card className="creai-card rounded-3xl p-8 lg:col-span-3">
+                  <Text>No platform launches have been configured yet.</Text>
+                </Card>
+              )}
+            </Grid>
+          </div>
+        </Grid>
+      ) : null}
+    </div>
   )
 
   if (embedded) {

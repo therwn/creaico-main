@@ -52,12 +52,14 @@ import {
 import {
   createEmptyAppForm,
   dashboardSections,
-  frameworkOptions,
-  getStoreStatusMeta,
+  getPlatformMeta,
+  getPlatformStatusMeta,
+  mobileTechnologyOptions,
+  platformOptions,
+  platformStatusOptions,
   socialFieldOptions,
   stackOptions,
-  storeStatusOptions,
-  storeFieldOptions,
+  webTechnologyOptions,
 } from '../../../lib/app-options'
 import { getSupabaseBrowserClient, hasSupabaseEnv } from '../../../lib/supabase'
 import Input from '../../ui/Input'
@@ -131,20 +133,24 @@ function normalizeExternalUrl(value) {
   return `https://${trimmed.replace(/^\/+/, '')}`
 }
 
+function getEnabledPlatforms(app) {
+  return Object.entries(app?.platforms ?? {}).filter(([, platform]) => platform?.enabled)
+}
+
 function humanizeFieldName(value) {
   const labels = {
     short_description: 'short description',
     description: 'description',
     accent_color: 'accent color',
     social_links: 'social links',
-    store_links: 'store links',
+    platforms: 'platform launches',
     logo_url: 'logo',
     category_ids: 'categories',
     stacks: 'stacks',
-    frameworks: 'frameworks',
+    web_technologies: 'web technologies',
+    mobile_technologies: 'mobile technologies',
     slug: 'slug',
     name: 'name',
-    status: 'store status',
   }
 
   return labels[value] || value.replace(/_/g, ' ')
@@ -169,11 +175,12 @@ function ActivityEntry({ item, compact = false }) {
         <div className="flex flex-wrap gap-2">
           {details.name ? <Badge color="gray">{details.name}</Badge> : null}
           {details.slug ? <Badge color="gray">slug: {details.slug}</Badge> : null}
-          {details.status ? <Badge color="gray">store: {getStoreStatusMeta(details.status).label}</Badge> : null}
           {typeof details.stackCount === 'number' ? <Badge color="gray">stacks: {details.stackCount}</Badge> : null}
-          {typeof details.frameworkCount === 'number' ? <Badge color="gray">frameworks: {details.frameworkCount}</Badge> : null}
+          {typeof details.webTechnologyCount === 'number' ? <Badge color="gray">web tech: {details.webTechnologyCount}</Badge> : null}
+          {typeof details.mobileTechnologyCount === 'number' ? <Badge color="gray">mobile tech: {details.mobileTechnologyCount}</Badge> : null}
           {typeof details.socialCount === 'number' ? <Badge color="gray">social: {details.socialCount}</Badge> : null}
-          {typeof details.storeCount === 'number' ? <Badge color="gray">store links: {details.storeCount}</Badge> : null}
+          {typeof details.platformCount === 'number' ? <Badge color="gray">platforms: {details.platformCount}</Badge> : null}
+          {typeof details.livePlatformCount === 'number' ? <Badge color="gray">live: {details.livePlatformCount}</Badge> : null}
         </div>
 
         {changedFields.length ? (
@@ -193,12 +200,6 @@ function ActivityEntry({ item, compact = false }) {
               </div>
             ))}
           </div>
-        ) : null}
-
-        {details.previousStatus && details.previousStatus !== details.status ? (
-          <Text>
-            Store status moved from {getStoreStatusMeta(details.previousStatus).label} to {getStoreStatusMeta(details.status).label}.
-          </Text>
         ) : null}
 
         <Text className="text-xs text-mist-500 dark:text-mist-400">
@@ -305,11 +306,23 @@ function validateAppForm(form, apps = [], currentId = null) {
   if (!form.shortDescription.trim()) return 'Short description is required.'
   if (!form.description.trim()) return 'Description is required.'
   if (!form.categoryIds.length) return 'Select at least one category.'
+  if (!Object.values(form.platforms ?? {}).some((platform) => platform.enabled)) return 'Enable at least one platform.'
 
   return ''
 }
 
 function appPayloadFromForm(form, logoUrl) {
+  const normalizedPlatforms = Object.fromEntries(
+    Object.entries(form.platforms).map(([key, platform]) => [
+      key,
+      {
+        enabled: Boolean(platform.enabled),
+        status: platform.status || 'draft',
+        url: platform.enabled ? normalizeExternalUrl(platform.url) : '',
+      },
+    ]),
+  )
+
   return {
     slug: form.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
     name: form.name.trim(),
@@ -320,10 +333,17 @@ function appPayloadFromForm(form, logoUrl) {
     logo_url: logoUrl || form.logoUrl || null,
     accent_color: form.accentColor || '#c2ff29',
     stacks: form.stacks,
-    frameworks: form.frameworks,
+    frameworks: form.mobileTechnologies,
+    web_technologies: form.webTechnologies,
+    mobile_technologies: form.mobileTechnologies,
+    platforms: normalizedPlatforms,
     social_links: sanitizeLinks(form.socialLinks),
-    store_links: sanitizeLinks(form.storeLinks),
-    status: form.status,
+    store_links: {
+      app_store: normalizedPlatforms.ios.url,
+      google_play: normalizedPlatforms.android.url,
+      web_app: normalizedPlatforms.web.url,
+    },
+    status: Object.values(normalizedPlatforms).some((platform) => platform.enabled && platform.status === 'live') ? 'published' : 'draft',
   }
 }
 
@@ -335,20 +355,20 @@ function hydrateForm(app) {
     description: app.description ?? '',
     categoryIds: app.categoryIds ?? (app.category?.id ? [app.category.id] : []),
     stacks: app.stacks ?? [],
-    frameworks: app.frameworks ?? [],
+    webTechnologies: app.webTechnologies ?? [],
+    mobileTechnologies: app.mobileTechnologies ?? [],
     accentColor: app.accentColor ?? '#c2ff29',
-    status: app.status ?? 'draft',
+    platforms: {
+      ios: { enabled: Boolean(app.platforms?.ios?.enabled), status: app.platforms?.ios?.status ?? 'draft', url: app.platforms?.ios?.url ?? '' },
+      android: { enabled: Boolean(app.platforms?.android?.enabled), status: app.platforms?.android?.status ?? 'draft', url: app.platforms?.android?.url ?? '' },
+      web: { enabled: Boolean(app.platforms?.web?.enabled), status: app.platforms?.web?.status ?? 'draft', url: app.platforms?.web?.url ?? '' },
+    },
     socialLinks: {
       website: app.socialLinks?.website ?? '',
       x: app.socialLinks?.x ?? '',
       instagram: app.socialLinks?.instagram ?? '',
       github: app.socialLinks?.github ?? '',
       linkedin: app.socialLinks?.linkedin ?? '',
-    },
-    storeLinks: {
-      app_store: app.storeLinks?.app_store ?? '',
-      google_play: app.storeLinks?.google_play ?? '',
-      web_app: app.storeLinks?.web_app ?? '',
     },
     logoFile: null,
     logoUrl: app.logoUrl ?? '',
@@ -507,7 +527,7 @@ function AppForm({
       <Card className="creai-card rounded-3xl p-6">
         <div className="space-y-2">
           <Title>{title}</Title>
-          <Text>Shape the app metadata, store launch state, and public-facing touchpoints.</Text>
+          <Text>Shape the shared metadata, platform launches, and public-facing touchpoints.</Text>
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -540,7 +560,7 @@ function AppForm({
           />
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="space-y-2">
             <Text>Categories</Text>
             <SearchableSelect
@@ -554,17 +574,6 @@ function AppForm({
               actionLabel={categories.length ? 'Add category' : 'Add new category'}
               onAction={onCreateCategory}
               icon={RiShapesLine}
-            />
-          </div>
-          <div className="space-y-2">
-            <Text>Store status</Text>
-            <SearchableSelect
-              value={form.status}
-              onChange={(value) => onChange('status', value)}
-              options={storeStatusOptions}
-              placeholder="Select store status"
-              searchPlaceholder="Search store status..."
-              emptyMessage="No store status found."
             />
           </div>
           <div className="space-y-2">
@@ -589,34 +598,131 @@ function AppForm({
       </Card>
 
       <Card className="creai-card rounded-3xl p-6">
-        <Title>Product stack</Title>
-        <Text className="mt-2">Select the stack and iOS-focused frameworks used in the app.</Text>
+        <Title>Shared stack</Title>
+        <Text className="mt-2">Choose the backend, infra, and product stack shared across every platform.</Text>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <div className="space-y-2">
-            <Text>Stacks</Text>
-            <SearchableSelect
-              multi
-              value={form.stacks}
-              onChange={(value) => onChange('stacks', value)}
-              options={stackOptions}
-              placeholder="Select stacks"
-              searchPlaceholder="Search stacks..."
-              emptyMessage="No stack matched."
-            />
-          </div>
-          <div className="space-y-2">
-            <Text>Frameworks</Text>
-            <SearchableSelect
-              multi
-              value={form.frameworks}
-              onChange={(value) => onChange('frameworks', value)}
-              options={frameworkOptions}
-              placeholder="Select frameworks"
-              searchPlaceholder="Search frameworks..."
-              emptyMessage="No framework matched."
-            />
-          </div>
+        <div className="mt-6 space-y-2">
+          <Text>Stacks</Text>
+          <SearchableSelect
+            multi
+            value={form.stacks}
+            onChange={(value) => onChange('stacks', value)}
+            options={stackOptions}
+            placeholder="Select stacks"
+            searchPlaceholder="Search stacks..."
+            emptyMessage="No stack matched."
+          />
+        </div>
+      </Card>
+
+      <Card className="creai-card rounded-3xl p-6">
+        <Title>Web technologies</Title>
+        <Text className="mt-2">Select the technologies powering the web experience.</Text>
+
+        <div className="mt-6 space-y-2">
+          <Text>Web technologies</Text>
+          <SearchableSelect
+            multi
+            value={form.webTechnologies}
+            onChange={(value) => onChange('webTechnologies', value)}
+            options={webTechnologyOptions}
+            placeholder="Select web technologies"
+            searchPlaceholder="Search web technologies..."
+            emptyMessage="No web technology matched."
+          />
+        </div>
+      </Card>
+
+      <Card className="creai-card rounded-3xl p-6">
+        <Title>Mobile technologies</Title>
+        <Text className="mt-2">Select the technologies used in iOS and Android builds.</Text>
+
+        <div className="mt-6 space-y-2">
+          <Text>Mobile technologies</Text>
+          <SearchableSelect
+            multi
+            value={form.mobileTechnologies}
+            onChange={(value) => onChange('mobileTechnologies', value)}
+            options={mobileTechnologyOptions}
+            placeholder="Select mobile technologies"
+            searchPlaceholder="Search mobile technologies..."
+            emptyMessage="No mobile technology matched."
+          />
+        </div>
+      </Card>
+
+      <Card className="creai-card rounded-3xl p-6">
+        <Title>Platform launch settings</Title>
+        <Text className="mt-2">Configure the launch state and public URL for each supported platform.</Text>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {platformOptions.map((platform) => (
+            <div key={platform.key} className="rounded-3xl border border-mist-200/80 p-4 dark:border-ink-700">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <platform.icon className="h-4 w-4 text-mist-500 dark:text-mist-300" />
+                  <Text className="font-medium">{platform.label}</Text>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange('platforms', {
+                      ...form.platforms,
+                      [platform.key]: {
+                        ...form.platforms[platform.key],
+                        enabled: !form.platforms[platform.key].enabled,
+                      },
+                    })
+                  }
+                  className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-medium transition ${
+                    form.platforms[platform.key].enabled
+                      ? 'bg-brand-500 text-ink-950'
+                      : 'bg-mist-100 text-mist-500 dark:bg-ink-800 dark:text-mist-300'
+                  }`}
+                >
+                  {form.platforms[platform.key].enabled ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <div className="space-y-2">
+                  <Text>Status</Text>
+                  <SearchableSelect
+                    value={form.platforms[platform.key].status}
+                    onChange={(value) =>
+                      onChange('platforms', {
+                        ...form.platforms,
+                        [platform.key]: {
+                          ...form.platforms[platform.key],
+                          status: value,
+                        },
+                      })
+                    }
+                    options={platformStatusOptions}
+                    placeholder="Select launch status"
+                    searchPlaceholder="Search launch status..."
+                    emptyMessage="No launch status found."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Text>Launch URL</Text>
+                  <Input
+                    value={form.platforms[platform.key].url}
+                    placeholder={`https://${platform.key === 'web' ? 'app.example.com' : 'example.com'}`}
+                    onChange={(event) =>
+                      onChange('platforms', {
+                        ...form.platforms,
+                        [platform.key]: {
+                          ...form.platforms[platform.key],
+                          url: event.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
 
@@ -651,23 +757,6 @@ function AppForm({
                 value={form.socialLinks[field.key]}
                 placeholder={`https://${field.label.toLowerCase()}.com/...`}
                 onChange={(event) => onLinksChange('socialLinks', field.key, event.target.value)}
-              />
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="creai-card rounded-3xl p-6">
-        <Title>Store links</Title>
-        <Text className="mt-2">Badges will only render on the detail page when the related link exists.</Text>
-        <div className="mt-6 space-y-4">
-          {storeFieldOptions.map((field) => (
-            <div key={field.key} className="space-y-2">
-              <Text>{field.label}</Text>
-              <Input
-                value={form.storeLinks[field.key]}
-                placeholder={`Paste the ${field.label} URL`}
-                onChange={(event) => onLinksChange('storeLinks', field.key, event.target.value)}
               />
             </div>
           ))}
@@ -773,6 +862,7 @@ export default function AdminWorkspace({ route }) {
     bannerEyebrow: 'CREAI directory',
     bannerTitle: 'Explore CREAI products in one place',
     bannerDescription: 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+    bannerImageUrl: '',
   })
   const [createForm, setCreateForm] = useState(createEmptyAppForm())
   const [editForm, setEditForm] = useState(createEmptyAppForm())
@@ -790,7 +880,10 @@ export default function AdminWorkspace({ route }) {
   const dashboardMetrics = useMemo(() => {
     return {
       totalApps: apps.length,
-      publishedApps: apps.filter((app) => app.status === 'published').length,
+      webEnabledApps: apps.filter((app) => app.platforms?.web?.enabled).length,
+      iosEnabledApps: apps.filter((app) => app.platforms?.ios?.enabled).length,
+      androidEnabledApps: apps.filter((app) => app.platforms?.android?.enabled).length,
+      livePlatforms: apps.reduce((total, app) => total + getEnabledPlatforms(app).filter(([, platform]) => platform.status === 'live').length, 0),
       totalCategories: categories.length,
       recentActivity: activity.length,
     }
@@ -1109,7 +1202,7 @@ export default function AdminWorkspace({ route }) {
               <TableHead>
                 <TableRow>
                   <TableHeaderCell>App</TableHeaderCell>
-                  <TableHeaderCell>Store status</TableHeaderCell>
+                  <TableHeaderCell>Platforms</TableHeaderCell>
                   <TableHeaderCell>Updated</TableHeaderCell>
                 </TableRow>
               </TableHead>
@@ -1118,9 +1211,17 @@ export default function AdminWorkspace({ route }) {
                   <TableRow key={app.id}>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>
-                      <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
-                        {getStoreStatusMeta(app.status).label}
-                      </Badge>
+                      <div className="flex flex-wrap gap-2">
+                        {getEnabledPlatforms(app).map(([key, platform]) => {
+                          const meta = getPlatformMeta(key)
+                          const statusMeta = getPlatformStatusMeta(platform.status)
+                          return (
+                            <Badge key={key} color={statusMeta.color} className={statusMeta.className} icon={meta?.icon}>
+                              {meta?.shortLabel || meta?.label || key}
+                            </Badge>
+                          )
+                        })}
+                      </div>
                     </TableCell>
                     <TableCell>{formatDate(app.updatedAt)}</TableCell>
                   </TableRow>
@@ -1174,7 +1275,7 @@ export default function AdminWorkspace({ route }) {
         return (
           <Card className="creai-card rounded-3xl p-6">
             <Title>Recent activity</Title>
-            <Text className="mt-2">Detailed log of banner edits, category creation, app updates, store status changes, and metadata edits.</Text>
+            <Text className="mt-2">Detailed log of banner edits, category creation, app updates, and per-platform launch changes.</Text>
             <div className="mt-6 space-y-4">
               {activity.map((item) => <ActivityEntry key={item.id} item={item} />)}
             </div>
@@ -1190,16 +1291,27 @@ export default function AdminWorkspace({ route }) {
                 <Title className="mt-2">{dashboardMetrics.totalApps}</Title>
               </Card>
               <Card className="creai-card rounded-3xl">
-                <Text>Store live</Text>
-                <Title className="mt-2">{dashboardMetrics.publishedApps}</Title>
+                <Text>Web-enabled</Text>
+                <Title className="mt-2">{dashboardMetrics.webEnabledApps}</Title>
+              </Card>
+              <Card className="creai-card rounded-3xl">
+                <Text>iOS-enabled</Text>
+                <Title className="mt-2">{dashboardMetrics.iosEnabledApps}</Title>
+              </Card>
+              <Card className="creai-card rounded-3xl">
+                <Text>Android-enabled</Text>
+                <Title className="mt-2">{dashboardMetrics.androidEnabledApps}</Title>
+              </Card>
+            </Grid>
+
+            <Grid numItemsLg={2} className="gap-4">
+              <Card className="creai-card rounded-3xl">
+                <Text>Live platforms</Text>
+                <Title className="mt-2">{dashboardMetrics.livePlatforms}</Title>
               </Card>
               <Card className="creai-card rounded-3xl">
                 <Text>Categories</Text>
                 <Title className="mt-2">{dashboardMetrics.totalCategories}</Title>
-              </Card>
-              <Card className="creai-card rounded-3xl">
-                <Text>Activity items</Text>
-                <Title className="mt-2">{dashboardMetrics.recentActivity}</Title>
               </Card>
             </Grid>
 
@@ -1212,7 +1324,7 @@ export default function AdminWorkspace({ route }) {
                     <TableRow>
                       <TableHeaderCell>App</TableHeaderCell>
                       <TableHeaderCell>Categories</TableHeaderCell>
-                      <TableHeaderCell>Store</TableHeaderCell>
+                      <TableHeaderCell>Platforms</TableHeaderCell>
                       <TableHeaderCell>Updated</TableHeaderCell>
                     </TableRow>
                   </TableHead>
@@ -1222,9 +1334,17 @@ export default function AdminWorkspace({ route }) {
                         <TableCell>{app.name}</TableCell>
                         <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
                         <TableCell>
-                          <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
-                            {getStoreStatusMeta(app.status).shortLabel}
-                          </Badge>
+                          <div className="flex flex-wrap gap-2">
+                            {getEnabledPlatforms(app).map(([key, platform]) => {
+                              const meta = getPlatformMeta(key)
+                              const statusMeta = getPlatformStatusMeta(platform.status)
+                              return (
+                                <Badge key={key} color={statusMeta.color} className={statusMeta.className} icon={meta?.icon}>
+                                  {meta?.shortLabel || meta?.label || key}
+                                </Badge>
+                              )
+                            })}
+                          </div>
                         </TableCell>
                         <TableCell>{formatDate(app.updatedAt)}</TableCell>
                       </TableRow>
@@ -1261,7 +1381,7 @@ export default function AdminWorkspace({ route }) {
           <div className="flex h-full flex-col gap-6">
             <div className="space-y-5">
               <WorkspaceBrand label="Admin" value={<AdminOptionsMenu onSignOut={handleSignOut} />} />
-              <Text>Manage categories, products, publishing state, and activity from one catalog workspace.</Text>
+              <Text>Manage categories, products, platform launches, and activity from one catalog workspace.</Text>
             </div>
 
             <NavTree groups={navGroups} currentPath={route.path} />
@@ -1367,12 +1487,23 @@ export default function AdminWorkspace({ route }) {
                                   <Text>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</Text>
                                 </div>
                               </div>
-                              <Badge color={getStoreStatusMeta(app.status).color} className={getStoreStatusMeta(app.status).className}>
-                                {getStoreStatusMeta(app.status).shortLabel}
+                              <Badge color={getEnabledPlatforms(app).some(([, platform]) => platform.status === 'live') ? 'lime' : 'gray'} className={getEnabledPlatforms(app).some(([, platform]) => platform.status === 'live') ? 'creai-badge' : ''}>
+                                {getEnabledPlatforms(app).length ? `${getEnabledPlatforms(app).length} platform` : 'No platform'}
                               </Badge>
                             </div>
 
                             <Text className="mt-4 min-h-[44px]">{app.shortDescription || 'No short description added yet.'}</Text>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {getEnabledPlatforms(app).map(([key, platform]) => {
+                                const meta = getPlatformMeta(key)
+                                const statusMeta = getPlatformStatusMeta(platform.status)
+                                return (
+                                  <Badge key={key} color={statusMeta.color} className={statusMeta.className} icon={meta?.icon}>
+                                    {meta?.shortLabel || meta?.label || key}
+                                  </Badge>
+                                )
+                              })}
+                            </div>
 
                             <div className="mt-5 flex items-center justify-between gap-3">
                               <Text>{formatDate(app.updatedAt)}</Text>

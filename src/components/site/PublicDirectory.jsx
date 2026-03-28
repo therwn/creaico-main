@@ -19,14 +19,17 @@ import {
 } from '@tremor/react'
 import {
   RiApps2Line,
+  RiComputerLine,
   RiAppsLine,
   RiFolderOpenLine,
+  RiAppleFill,
   RiSearchLine,
   RiShapesLine,
-  RiStore2Line,
+  RiAndroidLine,
   RiTimeLine,
 } from '@remixicon/react'
 import { fetchApps, fetchWorkspaceSettings } from '../../lib/app-data'
+import { getPlatformMeta, getPlatformStatusMeta } from '../../lib/app-options'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import Input from '../ui/Input'
 import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
@@ -37,8 +40,9 @@ import AppDetailView from './AppDetailView'
 
 const availabilityOptions = [
   { value: 'all', label: 'All availability' },
-  { value: 'store', label: 'Store ready' },
-  { value: 'social', label: 'Social ready' },
+  { value: 'web', label: 'Web enabled' },
+  { value: 'mobile', label: 'Mobile enabled' },
+  { value: 'live', label: 'Any live platform' },
 ]
 
 function formatDate(value) {
@@ -52,6 +56,10 @@ function formatDate(value) {
 
 function hasLinks(group) {
   return Object.values(group ?? {}).some(Boolean)
+}
+
+function getEnabledPlatforms(app) {
+  return Object.entries(app.platforms ?? {}).filter(([, platform]) => platform?.enabled)
 }
 
 export default function PublicDirectory({ publicRoot = '/', detailSlug = null }) {
@@ -118,7 +126,8 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
         app.category?.name,
         ...(app.categories ?? []).map((category) => category.name),
         ...(app.stacks ?? []),
-        ...(app.frameworks ?? []),
+        ...(app.webTechnologies ?? []),
+        ...(app.mobileTechnologies ?? []),
       ]
         .filter(Boolean)
         .join(' ')
@@ -126,8 +135,9 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
 
       if (searchQuery.trim() && !searchable.includes(searchQuery.trim().toLowerCase())) return false
       if (selectedCategory !== 'all' && !(app.categories ?? []).some((category) => category.id === selectedCategory)) return false
-      if (availabilityFilter === 'store' && !hasLinks(app.storeLinks)) return false
-      if (availabilityFilter === 'social' && !hasLinks(app.socialLinks)) return false
+      if (availabilityFilter === 'web' && !app.platforms?.web?.enabled) return false
+      if (availabilityFilter === 'mobile' && !((app.platforms?.ios?.enabled) || (app.platforms?.android?.enabled))) return false
+      if (availabilityFilter === 'live' && !getEnabledPlatforms(app).some(([, platform]) => platform.status === 'live')) return false
       return true
     })
   }, [apps, availabilityFilter, searchQuery, selectedCategory])
@@ -136,8 +146,9 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
     return {
       total: apps.length,
       categories: categories.length,
-      storeReady: apps.filter((app) => hasLinks(app.storeLinks)).length,
-      socialReady: apps.filter((app) => hasLinks(app.socialLinks)).length,
+      webEnabled: apps.filter((app) => app.platforms?.web?.enabled).length,
+      iosEnabled: apps.filter((app) => app.platforms?.ios?.enabled).length,
+      androidEnabled: apps.filter((app) => app.platforms?.android?.enabled).length,
     }
   }, [apps, categories.length])
 
@@ -268,12 +279,16 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                       <Metric>{loading ? '...' : metrics.categories}</Metric>
                     </Card>
                     <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
-                      <Text>Store-ready apps</Text>
-                      <Metric>{loading ? '...' : metrics.storeReady}</Metric>
+                      <Text>Web-enabled apps</Text>
+                      <Metric>{loading ? '...' : metrics.webEnabled}</Metric>
                     </Card>
                     <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
-                      <Text>Social-ready apps</Text>
-                      <Metric>{loading ? '...' : metrics.socialReady}</Metric>
+                      <Text>iOS-enabled apps</Text>
+                      <Metric>{loading ? '...' : metrics.iosEnabled}</Metric>
+                    </Card>
+                    <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
+                      <Text>Android-enabled apps</Text>
+                      <Metric>{loading ? '...' : metrics.androidEnabled}</Metric>
                     </Card>
                   </Grid>
 
@@ -328,8 +343,8 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                         <TableRow>
                           <TableHeaderCell>Product</TableHeaderCell>
                           <TableHeaderCell>Categories</TableHeaderCell>
-                          <TableHeaderCell>Store</TableHeaderCell>
-                          <TableHeaderCell>Readiness</TableHeaderCell>
+                          <TableHeaderCell>Platforms</TableHeaderCell>
+                          <TableHeaderCell>Launch state</TableHeaderCell>
                           <TableHeaderCell>Updated</TableHeaderCell>
                         </TableRow>
                       </TableHead>
@@ -356,12 +371,26 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                               </div>
                             </TableCell>
                             <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
-                            <TableCell>{app.status === 'published' ? 'Store live' : 'Store pending'}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                {hasLinks(app.storeLinks) ? <Badge icon={RiStore2Line}>Store</Badge> : null}
-                                {hasLinks(app.socialLinks) ? <Badge icon={RiApps2Line} color="gray">Social</Badge> : null}
-                                {!hasLinks(app.storeLinks) && !hasLinks(app.socialLinks) ? <Text>Metadata only</Text> : null}
+                                {getEnabledPlatforms(app).length ? getEnabledPlatforms(app).map(([key, platform]) => {
+                                  const meta = getPlatformMeta(key)
+                                  const statusMeta = getPlatformStatusMeta(platform.status)
+                                  return (
+                                    <Badge key={key} color={statusMeta.color} className={statusMeta.className} icon={meta?.icon}>
+                                      {meta?.shortLabel || meta?.label || key}
+                                    </Badge>
+                                  )
+                                }) : <Text>Metadata only</Text>}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {getEnabledPlatforms(app).some(([, platform]) => platform.status === 'live') ? (
+                                  <Badge color="lime" className="creai-badge">Live on platform</Badge>
+                                ) : (
+                                  <Badge color="gray">Not live yet</Badge>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>{formatDate(app.updatedAt)}</TableCell>

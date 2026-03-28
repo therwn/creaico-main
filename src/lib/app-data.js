@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from './supabase'
+import { createEmptyPlatformState } from './app-options'
 
 function countLinks(group) {
   return Object.values(group ?? {}).filter(Boolean).length
@@ -25,12 +26,18 @@ function formatArrayValue(value) {
 function formatChangeValue(field, value) {
   switch (field) {
     case 'stacks':
-    case 'frameworks':
+    case 'web_technologies':
+    case 'mobile_technologies':
     case 'category_ids':
       return formatArrayValue(value)
     case 'social_links':
     case 'store_links':
       return summarizeLinkKeys(value)
+    case 'platforms':
+      return Object.entries(value ?? {})
+        .filter(([, platform]) => platform?.enabled)
+        .map(([key, platform]) => `${key}:${platform.status || 'draft'}`)
+        .join(', ') || 'empty'
     case 'description':
     case 'short_description':
       return formatScalarValue(value).slice(0, 120)
@@ -66,6 +73,67 @@ async function fetchCategoriesByIds(supabase, ids) {
   return buildCategoryMap(data)
 }
 
+function clonePlatform(platform) {
+  return {
+    enabled: Boolean(platform?.enabled),
+    status: platform?.status || 'draft',
+    url: platform?.url || '',
+  }
+}
+
+function normalizeExternalUrl(value) {
+  const trimmed = value?.trim?.() ?? value
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://${String(trimmed).replace(/^\/+/, '')}`
+}
+
+function normalizePlatforms(row) {
+  const rawPlatforms = row?.platforms ?? {}
+  const fallbackStatus = row?.status === 'published' ? 'live' : row?.status || 'draft'
+  const legacyStoreLinks = row?.store_links ?? {}
+
+  const nextPlatforms = {
+    ios: clonePlatform(rawPlatforms.ios),
+    android: clonePlatform(rawPlatforms.android),
+    web: clonePlatform(rawPlatforms.web),
+  }
+
+  const legacyMap = {
+    ios: legacyStoreLinks.app_store,
+    android: legacyStoreLinks.google_play,
+    web: legacyStoreLinks.web_app,
+  }
+
+  Object.entries(legacyMap).forEach(([key, legacyUrl]) => {
+    if (!nextPlatforms[key].url && legacyUrl) {
+      nextPlatforms[key].url = normalizeExternalUrl(legacyUrl)
+    }
+    if (!rawPlatforms?.[key] && legacyUrl) {
+      nextPlatforms[key].enabled = true
+      nextPlatforms[key].status = fallbackStatus
+    }
+  })
+
+  Object.keys(nextPlatforms).forEach((key) => {
+    const platform = nextPlatforms[key]
+    if (platform.url) {
+      platform.url = normalizeExternalUrl(platform.url)
+      if (!platform.enabled) platform.enabled = true
+    }
+  })
+
+  return nextPlatforms
+}
+
+function countLivePlatforms(platforms) {
+  return Object.values(platforms ?? {}).filter((platform) => platform?.enabled && platform?.status === 'live').length
+}
+
+function countEnabledPlatforms(platforms) {
+  return Object.values(platforms ?? {}).filter((platform) => platform?.enabled).length
+}
+
 function summarizeAppRecord(row) {
   if (!row) return {}
 
@@ -75,16 +143,20 @@ function summarizeAppRecord(row) {
       ? [row.category_id]
       : []
 
+  const platforms = normalizePlatforms(row)
+
   return {
     name: row.name,
     slug: row.slug,
-    status: row.status,
     categoryIds,
     categoryCount: categoryIds.length,
     stackCount: Array.isArray(row.stacks) ? row.stacks.length : 0,
-    frameworkCount: Array.isArray(row.frameworks) ? row.frameworks.length : 0,
+    webTechnologyCount: Array.isArray(row.web_technologies) ? row.web_technologies.length : 0,
+    mobileTechnologyCount: Array.isArray(row.mobile_technologies) ? row.mobile_technologies.length : 0,
     socialCount: countLinks(row.social_links),
-    storeCount: countLinks(row.store_links),
+    platformCount: countEnabledPlatforms(platforms),
+    livePlatformCount: countLivePlatforms(platforms),
+    platforms,
   }
 }
 
@@ -92,15 +164,15 @@ function buildChangedFields(previous, next) {
   const fields = [
     ['name', previous?.name, next?.name],
     ['slug', previous?.slug, next?.slug],
-    ['status', previous?.status, next?.status],
     ['category_ids', previous?.category_ids ?? (previous?.category_id ? [previous.category_id] : []), next?.category_ids ?? (next?.category_id ? [next.category_id] : [])],
     ['description', previous?.description, next?.description],
     ['short_description', previous?.short_description, next?.short_description],
     ['accent_color', previous?.accent_color, next?.accent_color],
     ['stacks', previous?.stacks ?? [], next?.stacks ?? []],
-    ['frameworks', previous?.frameworks ?? [], next?.frameworks ?? []],
+    ['web_technologies', previous?.web_technologies ?? [], next?.web_technologies ?? []],
+    ['mobile_technologies', previous?.mobile_technologies ?? [], next?.mobile_technologies ?? []],
+    ['platforms', normalizePlatforms(previous), normalizePlatforms(next)],
     ['social_links', previous?.social_links ?? {}, next?.social_links ?? {}],
-    ['store_links', previous?.store_links ?? {}, next?.store_links ?? {}],
     ['logo_url', previous?.logo_url ?? null, next?.logo_url ?? null],
   ]
 
@@ -130,6 +202,8 @@ function normalizeApp(row, categoryMap = new Map()) {
     categories.push(row.category)
   }
 
+  const platforms = normalizePlatforms(row)
+
   return {
     id: row.id,
     slug: row.slug,
@@ -142,10 +216,10 @@ function normalizeApp(row, categoryMap = new Map()) {
     logoUrl: row.logo_url ?? '',
     accentColor: row.accent_color ?? '#c2ff29',
     stacks: Array.isArray(row.stacks) ? row.stacks : [],
-    frameworks: Array.isArray(row.frameworks) ? row.frameworks : [],
+    webTechnologies: Array.isArray(row.web_technologies) ? row.web_technologies : [],
+    mobileTechnologies: Array.isArray(row.mobile_technologies) ? row.mobile_technologies : [],
     socialLinks: row.social_links ?? {},
-    storeLinks: row.store_links ?? {},
-    status: row.status ?? 'draft',
+    platforms,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -160,13 +234,8 @@ function normalizeWorkspaceSettings(row) {
   }
 }
 
-export async function fetchApps() {
-  const supabase = getSupabaseBrowserClient()
-  if (!supabase) return []
-
-  const { data, error } = await supabase
-    .from('apps')
-    .select(`
+function appSelectQuery() {
+  return `
       id,
       slug,
       name,
@@ -176,7 +245,9 @@ export async function fetchApps() {
       logo_url,
       accent_color,
       stacks,
-      frameworks,
+      web_technologies,
+      mobile_technologies,
+      platforms,
       social_links,
       store_links,
       status,
@@ -187,7 +258,16 @@ export async function fetchApps() {
         name,
         slug
       )
-    `)
+    `
+}
+
+export async function fetchApps() {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return []
+
+  const { data, error } = await supabase
+    .from('apps')
+    .select(appSelectQuery())
     .order('updated_at', { ascending: false })
 
   if (error) throw error
@@ -202,28 +282,7 @@ export async function fetchAppBySlug(slug) {
 
   const { data, error } = await supabase
     .from('apps')
-    .select(`
-      id,
-      slug,
-      name,
-      short_description,
-      description,
-      category_ids,
-      logo_url,
-      accent_color,
-      stacks,
-      frameworks,
-      social_links,
-      store_links,
-      status,
-      created_at,
-      updated_at,
-      category:app_categories (
-        id,
-        name,
-        slug
-      )
-    `)
+    .select(appSelectQuery())
     .eq('slug', slug)
     .maybeSingle()
 
@@ -253,31 +312,7 @@ export async function fetchAdminSnapshot() {
 
   const [{ data: apps, error: appsError }, { data: categories, error: categoriesError }, { data: activity, error: activityError }, { data: settings, error: settingsError }] =
     await Promise.all([
-      supabase
-        .from('apps')
-        .select(`
-          id,
-          slug,
-          name,
-          short_description,
-          description,
-          category_ids,
-          logo_url,
-          accent_color,
-          stacks,
-          frameworks,
-          social_links,
-          store_links,
-          status,
-          created_at,
-          updated_at,
-          category:app_categories (
-            id,
-            name,
-            slug
-          )
-        `)
-        .order('updated_at', { ascending: false }),
+      supabase.from('apps').select(appSelectQuery()).order('updated_at', { ascending: false }),
       supabase.from('app_categories').select('id, name, slug, created_at').order('name', { ascending: true }),
       supabase
         .from('app_activity')
@@ -385,28 +420,7 @@ export async function createAppRecord(payload, actorEmail) {
   const { data, error } = await supabase
     .from('apps')
     .insert(payload)
-    .select(`
-      id,
-      slug,
-      name,
-      short_description,
-      description,
-      logo_url,
-      category_ids,
-      accent_color,
-      stacks,
-      frameworks,
-      social_links,
-      store_links,
-      status,
-      created_at,
-      updated_at,
-      category:app_categories (
-        id,
-        name,
-        slug
-      )
-    `)
+    .select(appSelectQuery())
     .single()
 
   if (error) throw error
@@ -432,9 +446,7 @@ export async function updateAppRecord(id, payload, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select(
-      'id, name, slug, short_description, description, category_id, category_ids, logo_url, accent_color, stacks, frameworks, social_links, store_links, status',
-    )
+    .select('id, name, slug, short_description, description, category_id, category_ids, logo_url, accent_color, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 
@@ -444,32 +456,12 @@ export async function updateAppRecord(id, payload, actorEmail) {
     .from('apps')
     .update(payload)
     .eq('id', id)
-    .select(`
-      id,
-      slug,
-      name,
-      short_description,
-      description,
-      logo_url,
-      category_ids,
-      accent_color,
-      stacks,
-      frameworks,
-      social_links,
-      store_links,
-      status,
-      created_at,
-      updated_at,
-      category:app_categories (
-        id,
-        name,
-        slug
-      )
-    `)
+    .select(appSelectQuery())
     .single()
 
   if (error) throw error
 
+  const changes = buildChangedFields(previous, payload)
   await recordActivity({
     action: 'updated',
     entityType: 'app',
@@ -477,9 +469,8 @@ export async function updateAppRecord(id, payload, actorEmail) {
     actorEmail,
     details: {
       ...summarizeAppRecord(data),
-      previousStatus: previous.status,
-      changes: buildChangedFields(previous, payload),
-      changedFields: buildChangedFields(previous, payload).map((item) => item.field),
+      changes,
+      changedFields: changes.map((item) => item.field),
       message: `Updated ${data.name}`,
     },
   })
@@ -494,7 +485,7 @@ export async function deleteAppRecord(id, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select('id, name, slug, category_id, category_ids, stacks, frameworks, social_links, store_links, status')
+    .select('id, name, slug, category_id, category_ids, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 
