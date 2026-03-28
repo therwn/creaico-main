@@ -797,76 +797,78 @@ function AppForm({
 
 function BannerSettingsCard({ form, onChange, onSave, loading }) {
   return (
-    <Card className="creai-card rounded-3xl p-6">
-      <div className="space-y-2">
-        <Title>Directory banner</Title>
-        <Text>Control the banner that appears above the catalog grid on the public directory.</Text>
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+    <div className="space-y-6">
+      <Card className="creai-card rounded-3xl p-6">
         <div className="space-y-2">
-          <Text>Eyebrow</Text>
-          <Input
-            value={form.bannerEyebrow}
-            placeholder="CREAI directory"
-            onChange={(event) => onChange('bannerEyebrow', event.target.value)}
+          <Title>Directory banner</Title>
+          <Text>Control the banner that appears above the catalog grid on the public directory.</Text>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="space-y-2">
+            <Text>Eyebrow</Text>
+            <Input
+              value={form.bannerEyebrow}
+              placeholder="CREAI directory"
+              onChange={(event) => onChange('bannerEyebrow', event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Text>Title</Text>
+            <Input
+              value={form.bannerTitle}
+              placeholder="Explore CREAI products in one place"
+              onChange={(event) => onChange('bannerTitle', event.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <Text>Description</Text>
+          <Textarea
+            rows={4}
+            value={form.bannerDescription}
+            placeholder="Short supporting description for the public directory banner."
+            onChange={(event) => onChange('bannerDescription', event.target.value)}
           />
         </div>
-        <div className="space-y-2">
-          <Text>Title</Text>
+
+        <div className="mt-4 space-y-2">
+          <Text>Banner image URL</Text>
           <Input
-            value={form.bannerTitle}
-            placeholder="Explore CREAI products in one place"
-            onChange={(event) => onChange('bannerTitle', event.target.value)}
+            value={form.bannerImageUrl}
+            placeholder="https://..."
+            onChange={(event) => onChange('bannerImageUrl', event.target.value)}
           />
         </div>
-      </div>
 
-      <div className="mt-4 space-y-2">
-        <Text>Description</Text>
-        <Textarea
-          rows={4}
-          value={form.bannerDescription}
-          placeholder="Short supporting description for the public directory banner."
-          onChange={(event) => onChange('bannerDescription', event.target.value)}
-        />
-      </div>
-
-      <div className="mt-4 space-y-2">
-        <Text>Banner image URL</Text>
-        <Input
-          value={form.bannerImageUrl}
-          placeholder="https://..."
-          onChange={(event) => onChange('bannerImageUrl', event.target.value)}
-        />
-      </div>
-
-      <div className="mt-6 overflow-hidden rounded-3xl border border-mist-200/80 dark:border-ink-700">
-        <div className="relative h-[220px] w-full bg-mist-100 dark:bg-ink-900">
-          {form.bannerImageUrl ? (
-            <img src={form.bannerImageUrl} alt={form.bannerTitle || 'Directory banner preview'} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(163,230,35,0.35),_transparent_34%),linear-gradient(135deg,_#0A0A0B_0%,_#111113_55%,_#1A1B1E_100%)]">
-              <img src="/creailogo.svg" alt="CREAI" className="h-16 w-auto opacity-90" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-5">
-            <div className="max-w-2xl space-y-2">
-              <Badge color="lime" className="creai-badge">{form.bannerEyebrow || 'CREAI directory'}</Badge>
-              <Title className="!text-white">{form.bannerTitle || 'Explore CREAI products in one place'}</Title>
-              <Text className="!text-mist-200">{form.bannerDescription || 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.'}</Text>
+        <div className="mt-6 overflow-hidden rounded-3xl border border-mist-200/80 dark:border-ink-700">
+          <div className="relative h-[220px] w-full bg-mist-100 dark:bg-ink-900">
+            {form.bannerImageUrl ? (
+              <img src={form.bannerImageUrl} alt={form.bannerTitle || 'Directory banner preview'} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(163,230,35,0.35),_transparent_34%),linear-gradient(135deg,_#0A0A0B_0%,_#111113_55%,_#1A1B1E_100%)]">
+                <img src="/creailogo.svg" alt="CREAI" className="h-16 w-auto opacity-90" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5">
+              <div className="max-w-2xl space-y-2">
+                <Badge color="lime" className="creai-badge">{form.bannerEyebrow || 'CREAI directory'}</Badge>
+                <Title className="!text-white">{form.bannerTitle || 'Explore CREAI products in one place'}</Title>
+                <Text className="!text-mist-200">{form.bannerDescription || 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.'}</Text>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="mt-6 flex justify-end">
+      <div className="flex justify-end">
         <Button loading={loading} className="creai-button-primary rounded-2xl" onClick={onSave}>
-          Save banner
+          Add Banner
         </Button>
       </div>
-    </Card>
+    </div>
   )
 }
 
