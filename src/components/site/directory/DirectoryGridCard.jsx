@@ -5,11 +5,10 @@ import { Badge, Button, Card, Text, Title } from '@tremor/react'
 import { RiArrowRightUpLine } from '@remixicon/react'
 import { getPlatformMeta, getPlatformStatusMeta, getTechOption } from '../../../lib/app-options'
 
-function formatDate(value) {
-  if (!value) return 'Recently'
+function formatMonthYear(value) {
+  if (!value) return 'Pending'
   return new Date(value).toLocaleDateString('en-US', {
     month: 'short',
-    day: 'numeric',
     year: 'numeric',
   })
 }
@@ -72,7 +71,7 @@ export default function DirectoryGridCard({ app }) {
       </div>
 
       <div className="mt-auto flex items-end justify-between gap-4 pt-6">
-        <Text>{formatDate(app.updatedAt)}</Text>
+        <Text>{formatMonthYear(app.startedAt || app.createdAt)}</Text>
         <Link href={`/apps/${app.slug}`}>
           <Button size="xs" icon={RiArrowRightUpLine} variant="secondary" className="creai-button-secondary">
             Open

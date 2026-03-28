@@ -87,6 +87,15 @@ function normalizeExternalUrl(value) {
   return `https://${String(trimmed).replace(/^\/+/, '')}`
 }
 
+function normalizeMonthDate(value) {
+  if (!value) return null
+  const stringValue = String(value).trim()
+  if (!stringValue) return null
+  if (/^\d{4}-\d{2}$/.test(stringValue)) return `${stringValue}-01`
+  if (/^\d{4}-\d{2}-\d{2}$/.test(stringValue)) return stringValue
+  return null
+}
+
 function normalizePlatforms(row) {
   const rawPlatforms = row?.platforms ?? {}
   const fallbackStatus = row?.status === 'published' ? 'live' : row?.status || 'draft'
@@ -185,6 +194,8 @@ function buildChangedFields(previous, next) {
     ['category_ids', previous?.category_ids ?? (previous?.category_id ? [previous.category_id] : []), next?.category_ids ?? (next?.category_id ? [next.category_id] : [])],
     ['description', previous?.description, next?.description],
     ['short_description', previous?.short_description, next?.short_description],
+    ['started_at', previous?.started_at ?? null, next?.started_at ?? null],
+    ['launched_at', previous?.launched_at ?? null, next?.launched_at ?? null],
     ['accent_color', previous?.accent_color, next?.accent_color],
     ['github_repository', previous?.github_repository ?? '', next?.github_repository ?? ''],
     ['stacks', previous?.stacks ?? [], next?.stacks ?? []],
@@ -229,6 +240,8 @@ function normalizeApp(row, categoryMap = new Map()) {
     name: row.name,
     shortDescription: row.short_description ?? '',
     description: row.description ?? '',
+    startedAt: normalizeMonthDate(row.started_at) ?? normalizeMonthDate(row.created_at),
+    launchedAt: normalizeMonthDate(row.launched_at),
     category: categories[0] ?? row.category ?? null,
     categories,
     categoryIds,
@@ -261,6 +274,8 @@ function appSelectQuery() {
       name,
       short_description,
       description,
+      started_at,
+      launched_at,
       category_ids,
       logo_url,
       accent_color,
@@ -467,7 +482,7 @@ export async function updateAppRecord(id, payload, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select('id, name, slug, short_description, description, category_id, category_ids, logo_url, accent_color, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
+    .select('id, name, slug, short_description, description, started_at, launched_at, category_id, category_ids, logo_url, accent_color, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 
@@ -506,7 +521,7 @@ export async function deleteAppRecord(id, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select('id, name, slug, category_id, category_ids, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
+    .select('id, name, slug, started_at, launched_at, category_id, category_ids, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 

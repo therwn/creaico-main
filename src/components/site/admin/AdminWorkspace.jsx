@@ -139,6 +139,19 @@ function normalizeExternalUrl(value) {
   return `https://${trimmed.replace(/^\/+/, '')}`
 }
 
+function normalizeMonthValue(value) {
+  const trimmed = value?.trim?.() ?? value
+  if (!trimmed) return null
+  if (/^\d{4}-\d{2}$/.test(String(trimmed))) return `${trimmed}-01`
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(trimmed))) return String(trimmed)
+  return null
+}
+
+function monthInputValue(value) {
+  const normalized = normalizeMonthValue(value)
+  return normalized ? normalized.slice(0, 7) : ''
+}
+
 function getEnabledPlatforms(app) {
   return Object.entries(app?.platforms ?? {}).filter(([, platform]) => platform?.enabled)
 }
@@ -147,6 +160,8 @@ function humanizeFieldName(value) {
   const labels = {
     short_description: 'short description',
     description: 'description',
+    started_at: 'started at',
+    launched_at: 'launch date',
     accent_color: 'accent color',
     github_repository: 'GitHub repository',
     social_links: 'social links',
@@ -335,6 +350,8 @@ function appPayloadFromForm(form, logoUrl) {
     name: form.name.trim(),
     short_description: form.shortDescription.trim(),
     description: form.description.trim(),
+    started_at: normalizeMonthValue(form.startedAt),
+    launched_at: normalizeMonthValue(form.launchedAt),
     category_id: form.categoryIds[0] || null,
     category_ids: form.categoryIds,
     logo_url: logoUrl || form.logoUrl || null,
@@ -361,6 +378,8 @@ function hydrateForm(app) {
     slug: app.slug ?? '',
     shortDescription: app.shortDescription ?? '',
     description: app.description ?? '',
+    startedAt: monthInputValue(app.startedAt),
+    launchedAt: monthInputValue(app.launchedAt),
     categoryIds: app.categoryIds ?? (app.category?.id ? [app.category.id] : []),
     stacks: app.stacks ?? [],
     webTechnologies: app.webTechnologies ?? [],
@@ -570,6 +589,25 @@ function AppForm({
             placeholder="Expanded product explanation, use case, and outcome."
             onChange={(event) => onChange('description', event.target.value)}
           />
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="space-y-2">
+            <Text>Started at</Text>
+            <Input
+              type="month"
+              value={form.startedAt}
+              onChange={(event) => onChange('startedAt', event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Text>Launch date</Text>
+            <Input
+              type="month"
+              value={form.launchedAt}
+              onChange={(event) => onChange('launchedAt', event.target.value)}
+            />
+          </div>
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">

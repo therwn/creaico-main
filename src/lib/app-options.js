@@ -145,6 +145,8 @@ export function createEmptyAppForm() {
     slug: '',
     shortDescription: '',
     description: '',
+    startedAt: '',
+    launchedAt: '',
     categoryIds: [],
     stacks: [],
     webTechnologies: [],

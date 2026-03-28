@@ -60,10 +60,9 @@ function normalizeGitHubRepository(value) {
 }
 
 function formatDate(value) {
-  if (!value) return 'Recently updated'
+  if (!value) return 'Pending'
   return new Date(value).toLocaleDateString('en-US', {
     month: 'short',
-    day: 'numeric',
     year: 'numeric',
   })
 }
@@ -284,7 +283,10 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
                   </div>
                   <Title>{app.name}</Title>
                   <Text>{app.shortDescription}</Text>
-                  <Text>{formatDate(app.updatedAt)}</Text>
+                  <div className="flex flex-wrap gap-4 text-sm text-mist-500 dark:text-mist-400">
+                    <Text>Started: {formatDate(app.startedAt || app.createdAt)}</Text>
+                    <Text>Launch: {formatDate(app.launchedAt)}</Text>
+                  </div>
                 </div>
               </div>
 
