@@ -18,12 +18,14 @@ export default function DirectoryGridCard({ app }) {
   const livePlatforms = enabledPlatforms.filter(([, platform]) => platform?.status === 'live')
   const categoryLabel = app.categories?.map((category) => category.name).join(', ') || app.category?.name || 'Uncategorized'
   const allTechnologies = [...(app.stacks ?? []), ...(app.webTechnologies ?? []), ...(app.mobileTechnologies ?? [])]
+  const visibleTechnologies = allTechnologies.slice(0, 4)
+  const hiddenTechnologyCount = Math.max(allTechnologies.length - visibleTechnologies.length, 0)
 
   return (
-    <Card className="creai-card flex h-full flex-col rounded-3xl border border-mist-200/80 p-6 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
+    <Card className="creai-card flex h-full flex-col rounded-3xl border border-mist-200/80 p-4 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
       <div className="flex items-start justify-between gap-3">
         {app.logoUrl ? (
-          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">
+          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">
             <img
               src={app.logoUrl}
               alt={`${app.name} logo`}
@@ -32,7 +34,7 @@ export default function DirectoryGridCard({ app }) {
           </div>
         ) : (
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-semibold text-ink-950"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-semibold text-ink-950"
             style={{ backgroundColor: app.accentColor || '#c2ff29' }}
           >
             {app.name.slice(0, 2).toUpperCase()}
@@ -43,14 +45,24 @@ export default function DirectoryGridCard({ app }) {
         </Badge>
       </div>
 
-      <div className="mt-5 space-y-1.5">
-        <Title>{app.name}</Title>
+      <div className="mt-4 space-y-1">
+        <Title className="leading-tight">{app.name}</Title>
         <Text>{categoryLabel}</Text>
       </div>
 
-      <Text className="mt-4 min-h-[56px]">{app.shortDescription || 'No short description added yet.'}</Text>
+      <Text
+        className="mt-3 text-sm"
+        style={{
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {app.shortDescription || 'No short description added yet.'}
+      </Text>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         {enabledPlatforms.map(([key, platform]) => {
           const meta = getPlatformMeta(key)
           const statusMeta = getPlatformStatusMeta(platform.status)
@@ -60,7 +72,7 @@ export default function DirectoryGridCard({ app }) {
             </Badge>
           )
         })}
-        {allTechnologies.map((item) => {
+        {visibleTechnologies.map((item) => {
           const meta = getTechOption(item)
           return (
             <Badge key={item} color="gray" icon={meta?.icon}>
@@ -68,10 +80,11 @@ export default function DirectoryGridCard({ app }) {
             </Badge>
           )
         })}
+        {hiddenTechnologyCount ? <Badge color="gray">+{hiddenTechnologyCount} more</Badge> : null}
       </div>
 
-      <div className="mt-auto flex items-end justify-between gap-4 pt-6">
-        <Text>{formatMonthYear(app.startedAt || app.createdAt)}</Text>
+      <div className="mt-auto flex items-end justify-between gap-4 pt-4">
+        <Text className="text-xs">{formatMonthYear(app.startedAt || app.createdAt)}</Text>
         <Link href={`/apps/${app.slug}`}>
           <Button size="xs" icon={RiArrowRightUpLine} variant="secondary" className="creai-button-secondary">
             Open
