@@ -150,6 +150,7 @@ export function createEmptyAppForm() {
     webTechnologies: [],
     mobileTechnologies: [],
     accentColor: '#c2ff29',
+    githubRepository: '',
     platforms: {
       ios: createEmptyPlatformState(),
       android: createEmptyPlatformState(),

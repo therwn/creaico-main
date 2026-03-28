@@ -6,7 +6,6 @@ import {
   Badge,
   Callout,
   Card,
-  Grid,
   Metric,
   Table,
   TableBody,
@@ -269,7 +268,7 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                     </div>
                   </div>
 
-                  <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
                       <Text>Total apps</Text>
                       <Metric>{loading ? '...' : metrics.total}</Metric>
@@ -290,7 +289,7 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                       <Text>Android-enabled apps</Text>
                       <Metric>{loading ? '...' : metrics.androidEnabled}</Metric>
                     </Card>
-                  </Grid>
+                  </div>
 
                   <Card className="creai-card overflow-hidden rounded-[2rem] border border-mist-200/80 p-0 dark:border-ink-700">
                     <div className="relative h-[350px] w-full overflow-hidden bg-mist-100 dark:bg-ink-900">

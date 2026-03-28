@@ -142,6 +142,7 @@ function humanizeFieldName(value) {
     short_description: 'short description',
     description: 'description',
     accent_color: 'accent color',
+    github_repository: 'GitHub repository',
     social_links: 'social links',
     platforms: 'platform launches',
     logo_url: 'logo',
@@ -332,6 +333,7 @@ function appPayloadFromForm(form, logoUrl) {
     category_ids: form.categoryIds,
     logo_url: logoUrl || form.logoUrl || null,
     accent_color: form.accentColor || '#c2ff29',
+    github_repository: form.githubRepository.trim() || null,
     stacks: form.stacks,
     frameworks: form.mobileTechnologies,
     web_technologies: form.webTechnologies,
@@ -358,6 +360,7 @@ function hydrateForm(app) {
     webTechnologies: app.webTechnologies ?? [],
     mobileTechnologies: app.mobileTechnologies ?? [],
     accentColor: app.accentColor ?? '#c2ff29',
+    githubRepository: app.githubRepository ?? '',
     platforms: {
       ios: { enabled: Boolean(app.platforms?.ios?.enabled), status: app.platforms?.ios?.status ?? 'draft', url: app.platforms?.ios?.url ?? '' },
       android: { enabled: Boolean(app.platforms?.android?.enabled), status: app.platforms?.android?.status ?? 'draft', url: app.platforms?.android?.url ?? '' },
@@ -522,6 +525,9 @@ function AppForm({
     keywords: [category.slug],
   }))
 
+  const hasWebPlatform = Boolean(form.platforms?.web?.enabled)
+  const hasMobilePlatform = Boolean(form.platforms?.ios?.enabled || form.platforms?.android?.enabled)
+
   return (
     <div className="space-y-6">
       <Card className="creai-card rounded-3xl p-6">
@@ -595,60 +601,15 @@ function AppForm({
           </div>
         </div>
 
-      </Card>
-
-      <Card className="creai-card rounded-3xl p-6">
-        <Title>Shared stack</Title>
-        <Text className="mt-2">Choose the backend, infra, and product stack shared across every platform.</Text>
-
-        <div className="mt-6 space-y-2">
-          <Text>Stacks</Text>
-          <SearchableSelect
-            multi
-            value={form.stacks}
-            onChange={(value) => onChange('stacks', value)}
-            options={stackOptions}
-            placeholder="Select stacks"
-            searchPlaceholder="Search stacks..."
-            emptyMessage="No stack matched."
+        <div className="mt-4 space-y-2">
+          <Text>GitHub repository</Text>
+          <Input
+            value={form.githubRepository}
+            placeholder="owner/repo or https://github.com/owner/repo"
+            onChange={(event) => onChange('githubRepository', event.target.value)}
           />
         </div>
-      </Card>
 
-      <Card className="creai-card rounded-3xl p-6">
-        <Title>Web technologies</Title>
-        <Text className="mt-2">Select the technologies powering the web experience.</Text>
-
-        <div className="mt-6 space-y-2">
-          <Text>Web technologies</Text>
-          <SearchableSelect
-            multi
-            value={form.webTechnologies}
-            onChange={(value) => onChange('webTechnologies', value)}
-            options={webTechnologyOptions}
-            placeholder="Select web technologies"
-            searchPlaceholder="Search web technologies..."
-            emptyMessage="No web technology matched."
-          />
-        </div>
-      </Card>
-
-      <Card className="creai-card rounded-3xl p-6">
-        <Title>Mobile technologies</Title>
-        <Text className="mt-2">Select the technologies used in iOS and Android builds.</Text>
-
-        <div className="mt-6 space-y-2">
-          <Text>Mobile technologies</Text>
-          <SearchableSelect
-            multi
-            value={form.mobileTechnologies}
-            onChange={(value) => onChange('mobileTechnologies', value)}
-            options={mobileTechnologyOptions}
-            placeholder="Select mobile technologies"
-            searchPlaceholder="Search mobile technologies..."
-            emptyMessage="No mobile technology matched."
-          />
-        </div>
       </Card>
 
       <Card className="creai-card rounded-3xl p-6">
@@ -725,6 +686,64 @@ function AppForm({
           ))}
         </div>
       </Card>
+
+      <Card className="creai-card rounded-3xl p-6">
+        <Title>Shared stack</Title>
+        <Text className="mt-2">Choose the backend, infra, and product stack shared across every platform.</Text>
+
+        <div className="mt-6 space-y-2">
+          <Text>Stacks</Text>
+          <SearchableSelect
+            multi
+            value={form.stacks}
+            onChange={(value) => onChange('stacks', value)}
+            options={stackOptions}
+            placeholder="Select stacks"
+            searchPlaceholder="Search stacks..."
+            emptyMessage="No stack matched."
+          />
+        </div>
+      </Card>
+
+      {hasWebPlatform ? (
+        <Card className="creai-card rounded-3xl p-6">
+          <Title>Web technologies</Title>
+          <Text className="mt-2">Select the technologies powering the web experience.</Text>
+
+          <div className="mt-6 space-y-2">
+            <Text>Web technologies</Text>
+            <SearchableSelect
+              multi
+              value={form.webTechnologies}
+              onChange={(value) => onChange('webTechnologies', value)}
+              options={webTechnologyOptions}
+              placeholder="Select web technologies"
+              searchPlaceholder="Search web technologies..."
+              emptyMessage="No web technology matched."
+            />
+          </div>
+        </Card>
+      ) : null}
+
+      {hasMobilePlatform ? (
+        <Card className="creai-card rounded-3xl p-6">
+          <Title>Mobile technologies</Title>
+          <Text className="mt-2">Select the technologies used in iOS and Android builds.</Text>
+
+          <div className="mt-6 space-y-2">
+            <Text>Mobile technologies</Text>
+            <SearchableSelect
+              multi
+              value={form.mobileTechnologies}
+              onChange={(value) => onChange('mobileTechnologies', value)}
+              options={mobileTechnologyOptions}
+              placeholder="Select mobile technologies"
+              searchPlaceholder="Search mobile technologies..."
+              emptyMessage="No mobile technology matched."
+            />
+          </div>
+        </Card>
+      ) : null}
 
       <Card className="creai-card rounded-3xl p-6">
         <Title>Brand assets</Title>

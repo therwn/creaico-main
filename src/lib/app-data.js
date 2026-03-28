@@ -1,5 +1,4 @@
 import { getSupabaseBrowserClient } from './supabase'
-import { createEmptyPlatformState } from './app-options'
 
 function countLinks(group) {
   return Object.values(group ?? {}).filter(Boolean).length
@@ -126,6 +125,24 @@ function normalizePlatforms(row) {
   return nextPlatforms
 }
 
+function normalizeGitHubRepository(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return ''
+
+  const directMatch = trimmed.match(/^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)$/)
+  if (directMatch) return `${directMatch[1]}/${directMatch[2]}`
+
+  try {
+    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`)
+    if (!url.hostname.includes('github.com')) return ''
+    const [owner, repo] = url.pathname.replace(/^\/+/, '').split('/')
+    if (!owner || !repo) return ''
+    return `${owner}/${repo.replace(/\.git$/i, '')}`
+  } catch {
+    return ''
+  }
+}
+
 function countLivePlatforms(platforms) {
   return Object.values(platforms ?? {}).filter((platform) => platform?.enabled && platform?.status === 'live').length
 }
@@ -154,6 +171,7 @@ function summarizeAppRecord(row) {
     webTechnologyCount: Array.isArray(row.web_technologies) ? row.web_technologies.length : 0,
     mobileTechnologyCount: Array.isArray(row.mobile_technologies) ? row.mobile_technologies.length : 0,
     socialCount: countLinks(row.social_links),
+    githubRepository: normalizeGitHubRepository(row.github_repository ?? row.social_links?.github ?? ''),
     platformCount: countEnabledPlatforms(platforms),
     livePlatformCount: countLivePlatforms(platforms),
     platforms,
@@ -168,6 +186,7 @@ function buildChangedFields(previous, next) {
     ['description', previous?.description, next?.description],
     ['short_description', previous?.short_description, next?.short_description],
     ['accent_color', previous?.accent_color, next?.accent_color],
+    ['github_repository', previous?.github_repository ?? '', next?.github_repository ?? ''],
     ['stacks', previous?.stacks ?? [], next?.stacks ?? []],
     ['web_technologies', previous?.web_technologies ?? [], next?.web_technologies ?? []],
     ['mobile_technologies', previous?.mobile_technologies ?? [], next?.mobile_technologies ?? []],
@@ -215,6 +234,7 @@ function normalizeApp(row, categoryMap = new Map()) {
     categoryIds,
     logoUrl: row.logo_url ?? '',
     accentColor: row.accent_color ?? '#c2ff29',
+    githubRepository: normalizeGitHubRepository(row.github_repository ?? row.social_links?.github ?? ''),
     stacks: Array.isArray(row.stacks) ? row.stacks : [],
     webTechnologies: Array.isArray(row.web_technologies) ? row.web_technologies : [],
     mobileTechnologies: Array.isArray(row.mobile_technologies) ? row.mobile_technologies : [],
@@ -244,6 +264,7 @@ function appSelectQuery() {
       category_ids,
       logo_url,
       accent_color,
+      github_repository,
       stacks,
       web_technologies,
       mobile_technologies,
@@ -446,7 +467,7 @@ export async function updateAppRecord(id, payload, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select('id, name, slug, short_description, description, category_id, category_ids, logo_url, accent_color, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
+    .select('id, name, slug, short_description, description, category_id, category_ids, logo_url, accent_color, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 
@@ -485,7 +506,7 @@ export async function deleteAppRecord(id, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select('id, name, slug, category_id, category_ids, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
+    .select('id, name, slug, category_id, category_ids, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 

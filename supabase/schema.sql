@@ -17,6 +17,7 @@ create table if not exists public.apps (
   category_ids uuid[] not null default '{}',
   logo_url text,
   accent_color text not null default '#c2ff29',
+  github_repository text,
   stacks text[] not null default '{}',
   frameworks text[] not null default '{}',
   web_technologies text[] not null default '{}',

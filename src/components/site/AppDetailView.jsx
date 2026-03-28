@@ -14,6 +14,7 @@ import {
 } from '@tremor/react'
 import {
   RiArrowLeftLine,
+  RiGitCommitLine,
   RiGithubLine,
   RiGlobalLine,
   RiInstagramLine,
@@ -39,6 +40,23 @@ function normalizeExternalUrl(value) {
   if (!trimmed) return ''
   if (/^https?:\/\//i.test(trimmed)) return trimmed
   return `https://${trimmed.replace(/^\/+/, '')}`
+}
+
+function normalizeGitHubRepository(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return ''
+  const directMatch = trimmed.match(/^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)$/)
+  if (directMatch) return `${directMatch[1]}/${directMatch[2]}`
+
+  try {
+    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`)
+    if (!url.hostname.includes('github.com')) return ''
+    const [owner, repo] = url.pathname.replace(/^\/+/, '').split('/')
+    if (!owner || !repo) return ''
+    return `${owner}/${repo.replace(/\.git$/i, '')}`
+  } catch {
+    return ''
+  }
 }
 
 function formatDate(value) {
@@ -106,6 +124,9 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
   const [app, setApp] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [commits, setCommits] = useState([])
+  const [commitsLoading, setCommitsLoading] = useState(false)
+  const [commitsError, setCommitsError] = useState('')
 
   useEffect(() => {
     if (!hasSupabaseEnv || !slug) {
@@ -142,6 +163,53 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
   const enabledPlatforms = useMemo(() => {
     return Object.entries(app?.platforms ?? {}).filter(([, platform]) => platform?.enabled)
   }, [app?.platforms])
+
+  const hasWebPlatform = Boolean(app?.platforms?.web?.enabled)
+  const hasMobilePlatform = Boolean(app?.platforms?.ios?.enabled || app?.platforms?.android?.enabled)
+  const githubRepository = useMemo(() => normalizeGitHubRepository(app?.githubRepository ?? app?.socialLinks?.github ?? ''), [app?.githubRepository, app?.socialLinks?.github])
+
+  useEffect(() => {
+    if (!githubRepository) {
+      setCommits([])
+      setCommitsError('')
+      setCommitsLoading(false)
+      return
+    }
+
+    let isActive = true
+    const controller = new AbortController()
+    setCommitsLoading(true)
+    setCommitsError('')
+
+    fetch(`https://api.github.com/repos/${githubRepository}/commits?per_page=5`, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/vnd.github+json',
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(response.status === 404 ? 'GitHub repository not found.' : 'Unable to load recent commits.')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (!isActive) return
+        setCommits(Array.isArray(data) ? data : [])
+      })
+      .catch((reason) => {
+        if (!isActive || reason.name === 'AbortError') return
+        setCommitsError(reason.message || 'Unable to load recent commits.')
+      })
+      .finally(() => {
+        if (isActive) setCommitsLoading(false)
+      })
+
+    return () => {
+      isActive = false
+      controller.abort()
+    }
+  }, [githubRepository])
 
   if (!hasSupabaseEnv) {
     return (
@@ -253,19 +321,65 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
               </div>
             </Card>
 
-            <Card className="creai-card rounded-3xl p-6">
-              <Title>Web technologies</Title>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {app.webTechnologies.length ? app.webTechnologies.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No web technologies added.</Text>}
-              </div>
-            </Card>
+            {hasWebPlatform ? (
+              <Card className="creai-card rounded-3xl p-6">
+                <Title>Web technologies</Title>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {app.webTechnologies.length ? app.webTechnologies.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No web technologies added.</Text>}
+                </div>
+              </Card>
+            ) : null}
 
-            <Card className="creai-card rounded-3xl p-6">
-              <Title>Mobile technologies</Title>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {app.mobileTechnologies.length ? app.mobileTechnologies.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No mobile technologies added.</Text>}
-              </div>
-            </Card>
+            {hasMobilePlatform ? (
+              <Card className="creai-card rounded-3xl p-6">
+                <Title>Mobile technologies</Title>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {app.mobileTechnologies.length ? app.mobileTechnologies.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No mobile technologies added.</Text>}
+                </div>
+              </Card>
+            ) : null}
+
+            {githubRepository ? (
+              <Card className="creai-card rounded-3xl p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <Title>Recent commits</Title>
+                  <a href={`https://github.com/${githubRepository}`} target="_blank" rel="noreferrer">
+                    <Button variant="secondary" icon={RiGithubLine} size="xs" className="creai-button-secondary">
+                      {githubRepository}
+                    </Button>
+                  </a>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {commitsLoading ? <Text>Loading recent commits...</Text> : null}
+                  {!commitsLoading && commitsError ? <Text>{commitsError}</Text> : null}
+                  {!commitsLoading && !commitsError && !commits.length ? <Text>No recent commits found.</Text> : null}
+                  {!commitsLoading && !commitsError
+                    ? commits.map((commit) => (
+                        <a
+                          key={commit.sha}
+                          href={commit.html_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block rounded-2xl border border-mist-200/80 p-3 transition hover:border-mist-300 dark:border-ink-700 dark:hover:border-ink-600"
+                        >
+                          <div className="flex items-start gap-3">
+                            <RiGitCommitLine className="mt-0.5 h-4 w-4 flex-none text-mist-500 dark:text-mist-400" />
+                            <div className="min-w-0 space-y-1">
+                              <Text className="truncate font-medium text-ink-950 dark:text-mist-200">
+                                {commit.commit?.message?.split('\n')[0] || commit.sha.slice(0, 7)}
+                              </Text>
+                              <Text className="text-xs text-mist-500 dark:text-mist-400">
+                                {(commit.commit?.author?.name || commit.author?.login || 'Unknown author')} · {formatDate(commit.commit?.author?.date)}
+                              </Text>
+                            </div>
+                          </div>
+                        </a>
+                      ))
+                    : null}
+                </div>
+              </Card>
+            ) : null}
           </div>
 
           <div className="lg:col-span-3">
