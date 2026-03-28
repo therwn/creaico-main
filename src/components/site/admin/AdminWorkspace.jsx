@@ -9,7 +9,6 @@ import {
   Button,
   Callout,
   Card,
-  CategoryBar,
   Flex,
   Grid,
   Table,
@@ -67,6 +66,7 @@ import {
 import { getSupabaseBrowserClient, hasSupabaseEnv } from '../../../lib/supabase'
 import Input from '../../ui/Input'
 import SearchableSelect from '../../ui/SearchableSelect'
+import CategoryBar from '../../ui/CategoryBar'
 import ThemeToggle from '../ThemeToggle'
 import SetupState from '../SetupState'
 import WorkspaceBrand from '../WorkspaceBrand'

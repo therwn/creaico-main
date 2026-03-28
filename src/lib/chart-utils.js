@@ -29,6 +29,24 @@ export const chartColors = {
     fill: 'fill-amber-500',
     text: 'text-amber-500',
   },
+  violet: {
+    bg: 'bg-violet-500',
+    stroke: 'stroke-violet-500',
+    fill: 'fill-violet-500',
+    text: 'text-violet-500',
+  },
+  cyan: {
+    bg: 'bg-cyan-500',
+    stroke: 'stroke-cyan-500',
+    fill: 'fill-cyan-500',
+    text: 'text-cyan-500',
+  },
+  pink: {
+    bg: 'bg-pink-500',
+    stroke: 'stroke-pink-500',
+    fill: 'fill-pink-500',
+    text: 'text-pink-500',
+  },
   red: {
     bg: 'bg-red-500',
     stroke: 'stroke-red-500',
