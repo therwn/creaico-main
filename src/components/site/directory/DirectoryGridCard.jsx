@@ -16,9 +16,13 @@ function formatMonthYear(value) {
 export default function DirectoryGridCard({ app }) {
   const enabledPlatforms = Object.entries(app.platforms ?? {}).filter(([, platform]) => platform?.enabled)
   const livePlatforms = enabledPlatforms.filter(([, platform]) => platform?.status === 'live')
-  const categoryLabel = app.categories?.map((category) => category.name).join(', ') || app.category?.name || 'Uncategorized'
+  const categoryLabels = app.categories?.map((category) => category.name) || (app.category?.name ? [app.category.name] : ['Uncategorized'])
   const allTechnologies = [...(app.stacks ?? []), ...(app.webTechnologies ?? []), ...(app.mobileTechnologies ?? [])]
-  const visibleTechnologies = allTechnologies.slice(0, 4)
+  const visibleCategories = categoryLabels.slice(0, 2)
+  const hiddenCategoryCount = Math.max(categoryLabels.length - visibleCategories.length, 0)
+  const visiblePlatforms = enabledPlatforms.slice(0, 2)
+  const hiddenPlatformCount = Math.max(enabledPlatforms.length - visiblePlatforms.length, 0)
+  const visibleTechnologies = allTechnologies.slice(0, 2)
   const hiddenTechnologyCount = Math.max(allTechnologies.length - visibleTechnologies.length, 0)
 
   return (
@@ -45,11 +49,19 @@ export default function DirectoryGridCard({ app }) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
               <Title className="truncate leading-tight">{app.name}</Title>
-              <Text className="truncate">{categoryLabel}</Text>
             </div>
             <Badge color={livePlatforms.length ? 'lime' : 'gray'} className={livePlatforms.length ? 'creai-badge' : ''}>
               {livePlatforms.length ? `${livePlatforms.length} live` : `${enabledPlatforms.length || 0} platform`}
             </Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {visibleCategories.map((category) => (
+              <Badge key={category} color="gray">
+                {category}
+              </Badge>
+            ))}
+            {hiddenCategoryCount ? <Badge color="gray">+{hiddenCategoryCount}</Badge> : null}
           </div>
 
           <Text
@@ -65,7 +77,7 @@ export default function DirectoryGridCard({ app }) {
           </Text>
 
           <div className="flex flex-wrap gap-2">
-            {enabledPlatforms.map(([key, platform]) => {
+            {visiblePlatforms.map(([key, platform]) => {
               const meta = getPlatformMeta(key)
               const statusMeta = getPlatformStatusMeta(platform.status)
               return (
@@ -74,6 +86,7 @@ export default function DirectoryGridCard({ app }) {
                 </Badge>
               )
             })}
+            {hiddenPlatformCount ? <Badge color="gray">+{hiddenPlatformCount}</Badge> : null}
             {visibleTechnologies.map((item) => {
               const meta = getTechOption(item)
               return (
