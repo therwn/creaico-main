@@ -59,10 +59,19 @@ function normalizeGitHubRepository(value) {
   }
 }
 
-function formatDate(value) {
+function formatMonthYear(value) {
   if (!value) return 'Pending'
   return new Date(value).toLocaleDateString('en-US', {
     month: 'short',
+    year: 'numeric',
+  })
+}
+
+function formatCommitDate(value) {
+  if (!value) return 'Pending'
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
   })
 }
@@ -284,8 +293,8 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
                   <Title>{app.name}</Title>
                   <Text>{app.shortDescription}</Text>
                   <div className="flex flex-wrap gap-4 text-sm text-mist-500 dark:text-mist-400">
-                    <Text>Started: {formatDate(app.startedAt || app.createdAt)}</Text>
-                    <Text>Launch: {formatDate(app.launchedAt)}</Text>
+                    <Text>Started: {formatMonthYear(app.startedAt || app.createdAt)}</Text>
+                    <Text>Launch: {formatMonthYear(app.launchedAt)}</Text>
                   </div>
                 </div>
               </div>
@@ -372,7 +381,7 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
                                 {commit.commit?.message?.split('\n')[0] || commit.sha.slice(0, 7)}
                               </Text>
                               <Text className="text-xs text-mist-500 dark:text-mist-400">
-                                {(commit.commit?.author?.name || commit.author?.login || 'Unknown author')} · {formatDate(commit.commit?.author?.date)}
+                                {(commit.commit?.author?.name || commit.author?.login || 'Unknown author')} · {formatCommitDate(commit.commit?.author?.date)}
                               </Text>
                             </div>
                           </div>
