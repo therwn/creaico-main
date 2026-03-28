@@ -78,10 +78,10 @@ export default {
             emphasis: '#182112',
           },
           border: {
-            DEFAULT: '#dde5d5',
+            DEFAULT: '#EBECF5',
           },
           ring: {
-            DEFAULT: '#d4e0cc',
+            DEFAULT: '#EBECF5',
           },
           content: {
             subtle: '#7e8977',
@@ -107,10 +107,10 @@ export default {
             emphasis: '#e6eadf',
           },
           border: {
-            DEFAULT: '#1d2319',
+            DEFAULT: '#26272B',
           },
           ring: {
-            DEFAULT: '#222a1e',
+            DEFAULT: '#26272B',
           },
           content: {
             subtle: '#899283',

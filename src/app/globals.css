@@ -61,6 +61,11 @@ a {
     border-color: #ebecf5 !important;
   }
 
+  .creai-workspace-shell .tremor-Card-root {
+    border-color: #ebecf5 !important;
+    --tw-ring-color: #ebecf5 !important;
+  }
+
   .dark .creai-workspace-shell :is(
     [class*='border-mist-200'],
     [class*='border-mist-300'],
@@ -70,6 +75,11 @@ a {
     [class*='border-ink-800']
   ) {
     border-color: #26272b !important;
+  }
+
+  .dark .creai-workspace-shell .tremor-Card-root {
+    border-color: #26272b !important;
+    --tw-ring-color: #26272b !important;
   }
 
   .creai-scrollbar {
