@@ -23,19 +23,6 @@ a {
 }
 
 @layer components {
-  .creai-workspace-shell :is(
-    .tremor-Card-root,
-    .creai-card,
-    [class*='border-mist-200'],
-    [class*='border-mist-300'],
-    [class*='border-mist-400'],
-    [class*='border-ink-600'],
-    [class*='border-ink-700'],
-    [class*='border-ink-800']
-  ):not(button):not(a):not(input):not(textarea):not(select) {
-    border-width: 1.5px !important;
-  }
-
   .creai-badge {
     @apply !border-brand-200/80 !bg-brand-100 !text-ink-950 dark:!border-brand-600/60 dark:!bg-brand-500 dark:!text-ink-950;
   }
@@ -56,6 +43,7 @@ a {
   .creai-card {
     background-color: #fbfbfd !important;
     border-color: #ebecf5 !important;
+    border-width: 1.5px !important;
   }
 
   .dark .creai-card {
@@ -76,6 +64,7 @@ a {
 
   .creai-workspace-shell .tremor-Card-root {
     border-color: #ebecf5 !important;
+    border-width: 1.5px !important;
     --tw-ring-shadow: 0 0 #0000 !important;
     --tw-ring-color: #ebecf5 !important;
     box-shadow: var(--tw-shadow) !important;
@@ -94,6 +83,7 @@ a {
 
   .dark .creai-workspace-shell .tremor-Card-root {
     border-color: #26272b !important;
+    border-width: 1.5px !important;
     --tw-ring-shadow: 0 0 #0000 !important;
     --tw-ring-color: #26272b !important;
     box-shadow: var(--tw-shadow) !important;
