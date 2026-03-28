@@ -8,9 +8,6 @@ import {
   Card,
   Grid,
   Metric,
-  Tab,
-  TabGroup,
-  TabList,
   Table,
   TableBody,
   TableCell,
@@ -25,7 +22,6 @@ import {
   RiAppsLine,
   RiFolderOpenLine,
   RiGlobalLine,
-  RiPulseLine,
   RiSearchLine,
   RiShapesLine,
   RiStore2Line,
@@ -38,11 +34,6 @@ import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
 import ThemeToggle from './ThemeToggle'
 import SetupState from './SetupState'
 import WorkspaceBrand from './WorkspaceBrand'
-
-const directoryTabs = [
-  { value: 'active', label: 'Active' },
-  { value: 'directory', label: 'Directory' },
-]
 
 const availabilityOptions = [
   { value: 'all', label: 'All availability' },
@@ -69,12 +60,12 @@ export default function PublicDirectory() {
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [directoryTab, setDirectoryTab] = useState('directory')
   const [availabilityFilter, setAvailabilityFilter] = useState('all')
   const [settings, setSettings] = useState({
     bannerEyebrow: 'CREAI directory',
     bannerTitle: 'Explore CREAI products in one place',
     bannerDescription: 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+    bannerImageUrl: '',
   })
 
   useEffect(() => {
@@ -135,12 +126,11 @@ export default function PublicDirectory() {
 
       if (searchQuery.trim() && !searchable.includes(searchQuery.trim().toLowerCase())) return false
       if (selectedCategory !== 'all' && !(app.categories ?? []).some((category) => category.id === selectedCategory)) return false
-      if (directoryTab === 'active' && !hasLinks(app.storeLinks) && !hasLinks(app.socialLinks)) return false
       if (availabilityFilter === 'store' && !hasLinks(app.storeLinks)) return false
       if (availabilityFilter === 'social' && !hasLinks(app.socialLinks)) return false
       return true
     })
-  }, [apps, availabilityFilter, directoryTab, searchQuery, selectedCategory])
+  }, [apps, availabilityFilter, searchQuery, selectedCategory])
 
   const metrics = useMemo(() => {
     return {
@@ -151,8 +141,7 @@ export default function PublicDirectory() {
     }
   }, [apps, categories.length])
 
-  const highlightedCategories = categories.slice(0, 5)
-  const activeCount = apps.filter((app) => hasLinks(app.storeLinks) || hasLinks(app.socialLinks)).length
+  const highlightedCategories = useMemo(() => categories.slice(0, 5), [categories])
 
   if (!hasSupabaseEnv) {
     return (
@@ -169,7 +158,7 @@ export default function PublicDirectory() {
         <div className="flex min-h-[calc(100vh-2.5rem)] flex-col lg:flex-row">
           <aside className="flex w-full flex-col gap-6 border-b border-mist-200/80 bg-mist-50/70 p-5 dark:border-ink-700 dark:bg-ink-900/70 lg:h-[calc(100vh-2.5rem)] lg:w-[280px] lg:flex-none lg:border-b-0 lg:border-r lg:overflow-hidden">
             <div className="flex h-full flex-col gap-5">
-              <WorkspaceBrand label="Directory" value={<Badge color="lime" className="creai-badge">{metrics.total}</Badge>} />
+              <WorkspaceBrand label="App Directory" value={<Badge color="lime" className="creai-badge">{metrics.total}</Badge>} />
 
               <div>
                 <Input
@@ -186,36 +175,14 @@ export default function PublicDirectory() {
                   <div className="space-y-1">
                     <button
                       type="button"
-                      onClick={() => {
-                        setDirectoryTab('directory')
-                        setAvailabilityFilter('all')
-                      }}
-                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                        directoryTab === 'directory'
-                          ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                          : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                      }`}
+                      onClick={() => setAvailabilityFilter('all')}
+                      className="flex w-full items-center justify-between rounded-2xl bg-white px-3 py-2 text-left text-sm text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200"
                     >
                       <span className="flex items-center gap-3">
                         <RiFolderOpenLine className="h-4 w-4" />
-                        Directory
+                        App Directory
                       </span>
                       <Badge color="gray">{metrics.total}</Badge>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDirectoryTab('active')}
-                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                        directoryTab === 'active'
-                          ? 'bg-white text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200'
-                          : 'text-mist-500 hover:bg-white dark:text-mist-300 dark:hover:bg-ink-800'
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <RiPulseLine className="h-4 w-4" />
-                        Active
-                      </span>
-                      <Badge color="gray">{activeCount}</Badge>
                     </button>
                     <button
                       type="button"
@@ -299,24 +266,13 @@ export default function PublicDirectory() {
               <div className="space-y-6">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
                   <div className="space-y-3">
-                    <Title>Available apps</Title>
+                    <Title>App Directory</Title>
                     <Text>
                       Explore CREAI-built products through a cleaner directory surface with searchable entries,
                       category filters, and product cards.
                     </Text>
                   </div>
                 </div>
-
-                <TabGroup
-                  index={directoryTabs.findIndex((item) => item.value === directoryTab)}
-                  onIndexChange={(index) => setDirectoryTab(directoryTabs[index]?.value ?? 'directory')}
-                >
-                  <TabList variant="line" color="gray">
-                    {directoryTabs.map((item) => (
-                      <Tab key={item.value}>{item.label}</Tab>
-                    ))}
-                  </TabList>
-                </TabGroup>
               </div>
 
               <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
@@ -338,11 +294,27 @@ export default function PublicDirectory() {
                 </Card>
               </Grid>
 
-              <Card className="rounded-[2rem] border border-mist-200/80 bg-gradient-to-br from-white to-mist-50/80 p-6 dark:border-ink-700 dark:from-ink-900 dark:to-ink-950">
-                <div className="max-w-3xl space-y-3">
-                  <Badge color="lime" className="creai-badge">{settings.bannerEyebrow}</Badge>
-                  <Title>{settings.bannerTitle}</Title>
-                  <Text>{settings.bannerDescription}</Text>
+              <Card className="overflow-hidden rounded-[2rem] border border-mist-200/80 p-0 dark:border-ink-700">
+                <div className="relative h-[350px] w-full overflow-hidden bg-mist-100 dark:bg-ink-900">
+                  {settings.bannerImageUrl ? (
+                    <img
+                      src={settings.bannerImageUrl}
+                      alt={settings.bannerTitle}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(163,230,35,0.35),_transparent_34%),linear-gradient(135deg,_#0A0A0B_0%,_#111113_55%,_#1A1B1E_100%)]">
+                      <img src="/creailogo.svg" alt="CREAI" className="h-24 w-auto opacity-90" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-6 lg:p-8">
+                    <div className="max-w-3xl space-y-3">
+                      <Badge color="lime" className="creai-badge">{settings.bannerEyebrow}</Badge>
+                      <Title className="!text-white">{settings.bannerTitle}</Title>
+                      <Text className="!text-mist-200">{settings.bannerDescription}</Text>
+                    </div>
+                  </div>
                 </div>
               </Card>
 

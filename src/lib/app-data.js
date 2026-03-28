@@ -156,6 +156,7 @@ function normalizeWorkspaceSettings(row) {
     bannerEyebrow: row?.banner_eyebrow ?? 'CREAI directory',
     bannerTitle: row?.banner_title ?? 'Explore CREAI products in one place',
     bannerDescription: row?.banner_description ?? 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+    bannerImageUrl: row?.banner_image_url ?? '',
   }
 }
 
@@ -238,7 +239,7 @@ export async function fetchWorkspaceSettings() {
 
   const { data, error } = await supabase
     .from('workspace_settings')
-    .select('banner_eyebrow, banner_title, banner_description')
+    .select('banner_eyebrow, banner_title, banner_description, banner_image_url')
     .eq('id', 'directory')
     .maybeSingle()
 
@@ -285,7 +286,7 @@ export async function fetchAdminSnapshot() {
         .limit(50),
       supabase
         .from('workspace_settings')
-        .select('banner_eyebrow, banner_title, banner_description')
+        .select('banner_eyebrow, banner_title, banner_description, banner_image_url')
         .eq('id', 'directory')
         .maybeSingle(),
     ])
@@ -317,10 +318,11 @@ export async function upsertWorkspaceSettings(payload) {
         banner_eyebrow: payload.bannerEyebrow?.trim() || null,
         banner_title: payload.bannerTitle?.trim() || null,
         banner_description: payload.bannerDescription?.trim() || null,
+        banner_image_url: payload.bannerImageUrl?.trim() || null,
       },
       { onConflict: 'id' },
     )
-    .select('banner_eyebrow, banner_title, banner_description')
+    .select('banner_eyebrow, banner_title, banner_description, banner_image_url')
     .single()
 
   if (error) throw error

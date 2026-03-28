@@ -718,6 +718,35 @@ function BannerSettingsCard({ form, onChange, onSave, loading }) {
         />
       </div>
 
+      <div className="mt-4 space-y-2">
+        <Text>Banner image URL</Text>
+        <Input
+          value={form.bannerImageUrl}
+          placeholder="https://..."
+          onChange={(event) => onChange('bannerImageUrl', event.target.value)}
+        />
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-3xl border border-mist-200/80 dark:border-ink-700">
+        <div className="relative h-[220px] w-full bg-mist-100 dark:bg-ink-900">
+          {form.bannerImageUrl ? (
+            <img src={form.bannerImageUrl} alt={form.bannerTitle || 'Directory banner preview'} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(163,230,35,0.35),_transparent_34%),linear-gradient(135deg,_#0A0A0B_0%,_#111113_55%,_#1A1B1E_100%)]">
+              <img src="/creailogo.svg" alt="CREAI" className="h-16 w-auto opacity-90" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-5">
+            <div className="max-w-2xl space-y-2">
+              <Badge color="lime" className="creai-badge">{form.bannerEyebrow || 'CREAI directory'}</Badge>
+              <Title className="!text-white">{form.bannerTitle || 'Explore CREAI products in one place'}</Title>
+              <Text className="!text-mist-200">{form.bannerDescription || 'Discover live apps, browse the stack, and open every product profile from a single catalog surface.'}</Text>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-6 flex justify-end">
         <Button loading={loading} className="creai-button-primary rounded-2xl" onClick={onSave}>
           Save banner

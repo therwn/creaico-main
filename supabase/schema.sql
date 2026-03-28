@@ -41,6 +41,7 @@ create table if not exists public.workspace_settings (
   banner_eyebrow text,
   banner_title text,
   banner_description text,
+  banner_image_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -132,12 +133,13 @@ to authenticated
 using (true)
 with check (true);
 
-insert into public.workspace_settings (id, banner_eyebrow, banner_title, banner_description)
+insert into public.workspace_settings (id, banner_eyebrow, banner_title, banner_description, banner_image_url)
 values (
   'directory',
   'CREAI directory',
   'Explore CREAI products in one place',
-  'Discover live apps, browse the stack, and open every product profile from a single catalog surface.'
+  'Discover live apps, browse the stack, and open every product profile from a single catalog surface.',
+  null
 )
 on conflict (id) do nothing;
 
