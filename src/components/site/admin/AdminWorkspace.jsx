@@ -1559,7 +1559,8 @@ export default function AdminWorkspace({ route }) {
                   <CategoryBar
                     values={categoryBarData.map((category) => category.total)}
                     colors={categoryBarData.map((category) => category.color)}
-                    className="mx-auto max-w-2xl"
+                    showLabels={false}
+                    className="w-full"
                   />
                   <div className="space-y-3">
                     {categoryBarData.map((category) => (
@@ -1725,7 +1726,8 @@ export default function AdminWorkspace({ route }) {
                   <CategoryBar
                     values={categoryBarData.map((category) => category.total)}
                     colors={categoryBarData.map((category) => category.color)}
-                    className="max-w-2xl"
+                    showLabels={false}
+                    className="w-full"
                   />
                   <div className="space-y-3">
                     {categoryBarData.map((category) => (
