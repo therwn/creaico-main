@@ -19,7 +19,7 @@ export default function DirectoryGridCard({ app }) {
   const categoryLabel = app.categories?.map((category) => category.name).join(', ') || app.category?.name || 'Uncategorized'
 
   return (
-    <Card className="rounded-3xl border border-mist-200/80 p-6 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
+    <Card className="creai-card rounded-3xl border border-mist-200/80 p-6 transition hover:-translate-y-0.5 hover:border-mist-300 hover:shadow-soft dark:border-ink-700/80 dark:hover:border-ink-600 dark:hover:shadow-soft-dark">
       <div className="flex items-start justify-between gap-3">
         {app.logoUrl ? (
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-mist-200/80 bg-white p-2 dark:border-ink-700/80 dark:bg-ink-900">

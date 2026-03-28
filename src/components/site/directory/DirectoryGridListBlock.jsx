@@ -25,7 +25,7 @@ export default function DirectoryGridListBlock({
   ]
 
   return (
-    <Card className="rounded-[2rem] p-6">
+    <Card className="creai-card rounded-[2rem] p-6">
       <div className="flex flex-col gap-4 border-b border-mist-200/80 pb-6 dark:border-ink-700 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-2">
           <Title>Available apps</Title>
@@ -70,7 +70,7 @@ export default function DirectoryGridListBlock({
           ))}
         </Grid>
       ) : (
-        <Card className="mt-6 rounded-3xl border border-dashed border-mist-300 bg-mist-50/80 p-10 text-center dark:border-ink-700 dark:bg-ink-900/60">
+        <Card className="creai-card mt-6 rounded-3xl border border-dashed border-mist-300 p-10 text-center dark:border-ink-700">
           <Text>No apps match the current filters yet.</Text>
         </Card>
       )}

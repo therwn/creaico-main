@@ -6,7 +6,7 @@ import { RiAlertLine, RiSettings3Line } from '@remixicon/react'
 export default function SetupState({ title, description }) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full rounded-3xl border border-mist-200/80 bg-white/90 p-8 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/85 dark:shadow-soft-dark">
+      <Card className="creai-card w-full rounded-3xl border border-mist-200/80 p-8 shadow-soft dark:border-ink-700/80 dark:shadow-soft-dark">
         <div className="space-y-3">
           <Title>{title}</Title>
           <Text>{description}</Text>

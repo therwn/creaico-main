@@ -357,7 +357,7 @@ function hydrateForm(app) {
 
 function EmptyCard({ title, description }) {
   return (
-    <Card className="rounded-3xl border border-dashed border-mist-300 bg-mist-50/80 p-8 dark:border-ink-700 dark:bg-ink-900/60">
+    <Card className="creai-card rounded-3xl border border-dashed border-mist-300 p-8 dark:border-ink-700">
       <Title>{title}</Title>
       <Text className="mt-2">{description}</Text>
     </Card>
@@ -443,7 +443,7 @@ function DeleteAppDialog({ open, onOpenChange, appName, onConfirm, loading }) {
 function LoginView({ credentials, onChange, onSubmit, error, loading }) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full rounded-3xl border border-mist-200/80 bg-white/90 p-8 shadow-soft dark:border-ink-700/80 dark:bg-ink-900/85 dark:shadow-soft-dark">
+      <Card className="creai-card w-full rounded-3xl border border-mist-200/80 p-8 shadow-soft dark:border-ink-700/80 dark:shadow-soft-dark">
         <div className="space-y-3 text-center">
           <Badge color="lime" className="creai-badge">CREAI Admin</Badge>
           <Title>Sign in to manage the app catalog</Title>
@@ -504,7 +504,7 @@ function AppForm({
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-3xl p-6">
+      <Card className="creai-card rounded-3xl p-6">
         <div className="space-y-2">
           <Title>{title}</Title>
           <Text>Shape the app metadata, store launch state, and public-facing touchpoints.</Text>
@@ -588,7 +588,7 @@ function AppForm({
 
       </Card>
 
-      <Card className="rounded-3xl p-6">
+      <Card className="creai-card rounded-3xl p-6">
         <Title>Product stack</Title>
         <Text className="mt-2">Select the stack and iOS-focused frameworks used in the app.</Text>
 
@@ -620,7 +620,7 @@ function AppForm({
         </div>
       </Card>
 
-      <Card className="rounded-3xl p-6">
+      <Card className="creai-card rounded-3xl p-6">
         <Title>Brand assets</Title>
         <Text className="mt-2">Upload a single product logo for the directory and detail page.</Text>
         <div className="mt-6 space-y-3">
@@ -640,7 +640,7 @@ function AppForm({
         </div>
       </Card>
 
-      <Card className="rounded-3xl p-6">
+      <Card className="creai-card rounded-3xl p-6">
         <Title>Social links</Title>
         <Text className="mt-2">These links appear in the app detail header only if they are filled in.</Text>
         <div className="mt-6 space-y-4">
@@ -657,7 +657,7 @@ function AppForm({
         </div>
       </Card>
 
-      <Card className="rounded-3xl p-6">
+      <Card className="creai-card rounded-3xl p-6">
         <Title>Store links</Title>
         <Text className="mt-2">Badges will only render on the detail page when the related link exists.</Text>
         <div className="mt-6 space-y-4">
@@ -683,7 +683,7 @@ function AppForm({
 
 function BannerSettingsCard({ form, onChange, onSave, loading }) {
   return (
-    <Card className="rounded-3xl p-6">
+    <Card className="creai-card rounded-3xl p-6">
       <div className="space-y-2">
         <Title>Directory banner</Title>
         <Text>Control the banner that appears above the catalog grid on the public directory.</Text>
@@ -1079,7 +1079,7 @@ export default function AdminWorkspace({ route }) {
   if (authLoading) {
     return (
       <div className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-12 sm:px-6 lg:px-8">
-        <Card className="w-full rounded-3xl p-8">
+        <Card className="creai-card w-full rounded-3xl p-8">
           <Text>Checking your admin session...</Text>
         </Card>
       </div>
@@ -1102,7 +1102,7 @@ export default function AdminWorkspace({ route }) {
     switch (view.section) {
       case 'recent-updates':
         return (
-          <Card className="rounded-3xl p-6">
+          <Card className="creai-card rounded-3xl p-6">
             <Title>Recent updates</Title>
             <Text className="mt-2">Latest app changes recorded in the workspace.</Text>
             <Table className="mt-6">
@@ -1131,7 +1131,7 @@ export default function AdminWorkspace({ route }) {
         )
       case 'categories':
         return (
-          <Card className="rounded-3xl p-6">
+          <Card className="creai-card rounded-3xl p-6">
             <Title>Categories</Title>
             <Text className="mt-2">Every category currently available to the app creation flow.</Text>
             <div className="mt-6 flex flex-wrap gap-2">
@@ -1144,14 +1144,14 @@ export default function AdminWorkspace({ route }) {
       case 'quick-actions':
         return (
           <Grid numItemsLg={3} className="gap-4">
-            <Card className="rounded-3xl p-6">
+            <Card className="creai-card rounded-3xl p-6">
               <Title>Create a new app</Title>
               <Text className="mt-2">Open the app creation form and add a new product entry.</Text>
               <Link href="/admin/add" className="mt-6 inline-flex">
                 <Button icon={RiAddCircleLine} className="creai-button-primary">Go to Add a New App</Button>
               </Link>
             </Card>
-            <Card className="rounded-3xl p-6">
+            <Card className="creai-card rounded-3xl p-6">
               <Title>Update an existing app</Title>
               <Text className="mt-2">Review the table of existing entries and edit one in place.</Text>
               <Link href="/admin/update" className="mt-6 inline-flex">
@@ -1160,7 +1160,7 @@ export default function AdminWorkspace({ route }) {
                 </Button>
               </Link>
             </Card>
-            <Card className="rounded-3xl p-6">
+            <Card className="creai-card rounded-3xl p-6">
               <Title>Edit the public banner</Title>
               <Text className="mt-2">Open the dashboard overview to manage the banner shown above the catalog grid.</Text>
               <Link href="/admin/dashboard" className="mt-6 inline-flex">
@@ -1172,7 +1172,7 @@ export default function AdminWorkspace({ route }) {
       case 'recent-activity':
       case 'activity-timeline':
         return (
-          <Card className="rounded-3xl p-6">
+          <Card className="creai-card rounded-3xl p-6">
             <Title>Recent activity</Title>
             <Text className="mt-2">Detailed log of banner edits, category creation, app updates, store status changes, and metadata edits.</Text>
             <div className="mt-6 space-y-4">
@@ -1185,26 +1185,26 @@ export default function AdminWorkspace({ route }) {
         return (
           <div className="space-y-6">
             <Grid numItemsLg={4} className="gap-4">
-              <Card className="rounded-3xl">
+              <Card className="creai-card rounded-3xl">
                 <Text>Total apps</Text>
                 <Title className="mt-2">{dashboardMetrics.totalApps}</Title>
               </Card>
-              <Card className="rounded-3xl">
+              <Card className="creai-card rounded-3xl">
                 <Text>Store live</Text>
                 <Title className="mt-2">{dashboardMetrics.publishedApps}</Title>
               </Card>
-              <Card className="rounded-3xl">
+              <Card className="creai-card rounded-3xl">
                 <Text>Categories</Text>
                 <Title className="mt-2">{dashboardMetrics.totalCategories}</Title>
               </Card>
-              <Card className="rounded-3xl">
+              <Card className="creai-card rounded-3xl">
                 <Text>Activity items</Text>
                 <Title className="mt-2">{dashboardMetrics.recentActivity}</Title>
               </Card>
             </Grid>
 
             <Grid numItemsLg={3} className="gap-6">
-              <Card className="rounded-3xl p-6 lg:col-span-2">
+              <Card className="creai-card rounded-3xl p-6 lg:col-span-2">
                 <Title>Recently updated apps</Title>
                 <Text className="mt-2">Quick operational snapshot of the latest apps touched in the workspace.</Text>
                 <Table className="mt-6">
@@ -1233,7 +1233,7 @@ export default function AdminWorkspace({ route }) {
                 </Table>
               </Card>
 
-              <Card className="rounded-3xl p-6">
+              <Card className="creai-card rounded-3xl p-6">
                 <Title>Recent activity</Title>
                 <Text className="mt-2">Latest actions across apps, categories, and banner settings.</Text>
                 <div className="mt-4 space-y-3">
@@ -1301,7 +1301,7 @@ export default function AdminWorkspace({ route }) {
 
             {notice ? (
               <div className="fixed right-6 top-6 z-50 max-w-sm">
-                <Card className="rounded-2xl border border-brand-200/80 bg-white/95 p-4 shadow-soft dark:border-brand-700/70 dark:bg-ink-900/95 dark:shadow-soft-dark">
+                <Card className="creai-card rounded-2xl border border-brand-200/80 p-4 shadow-soft dark:border-brand-700/70 dark:shadow-soft-dark">
                   <div className="flex items-start gap-3">
                     <Badge color="lime" className="creai-badge">Saved</Badge>
                     <Text>{notice}</Text>
@@ -1317,7 +1317,7 @@ export default function AdminWorkspace({ route }) {
             ) : null}
 
             {loadingSnapshot ? (
-              <Card className="rounded-3xl p-6">
+              <Card className="creai-card rounded-3xl p-6">
                 <Text>Loading admin data...</Text>
               </Card>
             ) : null}
@@ -1341,13 +1341,13 @@ export default function AdminWorkspace({ route }) {
             {!loadingSnapshot && view.page === 'update' ? (
               <div className="space-y-6">
                 {!view.appId ? (
-                  <Card className="rounded-3xl p-6">
+                  <Card className="creai-card rounded-3xl p-6">
                     <Title>Manage apps</Title>
                     <Text className="mt-2">Open an app card to move into its dedicated edit screen.</Text>
                     {apps.length ? (
                       <Grid numItemsMd={2} numItemsLg={3} className="mt-6 gap-4">
                         {apps.map((app) => (
-                          <Card key={app.id} className="rounded-3xl border border-mist-200/80 p-5 dark:border-ink-700/80">
+                          <Card key={app.id} className="creai-card rounded-3xl border border-mist-200/80 p-5 dark:border-ink-700/80">
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-3">
                                 {app.logoUrl ? (

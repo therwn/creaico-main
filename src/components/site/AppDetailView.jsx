@@ -148,7 +148,7 @@ export default function AppDetailView({ slug, publicRoot }) {
         </div>
 
         {loading ? (
-          <Card className="rounded-3xl p-8">
+          <Card className="creai-card rounded-3xl p-8">
             <Text>Loading app details...</Text>
           </Card>
         ) : null}
@@ -161,7 +161,7 @@ export default function AppDetailView({ slug, publicRoot }) {
 
         {!loading && app ? (
           <Grid numItemsLg={3} className="gap-6">
-            <Card className="rounded-3xl p-6 lg:col-span-2">
+            <Card className="creai-card rounded-3xl p-6 lg:col-span-2">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex items-start gap-4">
                   {app.logoUrl ? (
@@ -237,21 +237,21 @@ export default function AppDetailView({ slug, publicRoot }) {
             </Card>
 
             <div className="space-y-6">
-              <Card className="rounded-3xl p-6">
+              <Card className="creai-card rounded-3xl p-6">
                 <Title>Stack</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {app.stacks.length ? app.stacks.map((item) => <TechBadge key={item} value={item} />) : <Text>No stack tags added.</Text>}
                 </div>
               </Card>
 
-              <Card className="rounded-3xl p-6">
+              <Card className="creai-card rounded-3xl p-6">
                 <Title>Frameworks</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {app.frameworks.length ? app.frameworks.map((item) => <TechBadge key={item} value={item} color="gray" />) : <Text>No framework tags added.</Text>}
                 </div>
               </Card>
 
-              <Card className="rounded-3xl p-6">
+              <Card className="creai-card rounded-3xl p-6">
                 <Title>Availability</Title>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Badge color={socialLinks.length ? 'gray' : 'gray'}>{socialLinks.length ? 'Social ready' : 'No social links'}</Badge>

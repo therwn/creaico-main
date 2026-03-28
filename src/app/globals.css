@@ -32,4 +32,12 @@ a {
   .creai-button-secondary {
     @apply !border-mist-300 !bg-white !text-ink-950 hover:!border-mist-400 hover:!bg-mist-50 dark:!border-ink-700 dark:!bg-ink-900 dark:!text-mist-200 dark:hover:!border-ink-600 dark:hover:!bg-ink-800;
   }
+
+  .creai-card {
+    background-color: #fbfbfd !important;
+  }
+
+  .dark .creai-card {
+    background-color: #0f0f10 !important;
+  }
 }

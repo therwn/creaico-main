@@ -276,25 +276,25 @@ export default function PublicDirectory() {
               </div>
 
               <Grid numItemsSm={2} numItemsLg={4} className="gap-4">
-                <Card decoration="top" decorationColor="lime" className="rounded-3xl">
+                <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
                   <Text>Total apps</Text>
                   <Metric>{loading ? '...' : metrics.total}</Metric>
                 </Card>
-                <Card decoration="top" decorationColor="lime" className="rounded-3xl">
+                <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
                   <Text>Categories</Text>
                   <Metric>{loading ? '...' : metrics.categories}</Metric>
                 </Card>
-                <Card decoration="top" decorationColor="lime" className="rounded-3xl">
+                <Card decoration="top" decorationColor="lime" className="creai-card rounded-3xl">
                   <Text>Store-ready apps</Text>
                   <Metric>{loading ? '...' : metrics.storeReady}</Metric>
                 </Card>
-                <Card decoration="top" decorationColor="slate" className="rounded-3xl">
+                <Card decoration="top" decorationColor="slate" className="creai-card rounded-3xl">
                   <Text>Social-ready apps</Text>
                   <Metric>{loading ? '...' : metrics.socialReady}</Metric>
                 </Card>
               </Grid>
 
-              <Card className="overflow-hidden rounded-[2rem] border border-mist-200/80 p-0 dark:border-ink-700">
+              <Card className="creai-card overflow-hidden rounded-[2rem] border border-mist-200/80 p-0 dark:border-ink-700">
                 <div className="relative h-[350px] w-full overflow-hidden bg-mist-100 dark:bg-ink-900">
                   {settings.bannerImageUrl ? (
                     <img
@@ -329,7 +329,7 @@ export default function PublicDirectory() {
                 availabilityOptions={availabilityOptions}
               />
 
-              <Card className="rounded-[2rem] p-6">
+              <Card className="creai-card rounded-[2rem] p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="space-y-2">
                     <Title>Recently updated</Title>
