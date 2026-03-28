@@ -1160,20 +1160,10 @@ export default function AdminWorkspace({ route }) {
   }, [activity.length, apps, categories.length])
 
   const categoryInsights = useMemo(() => {
-    const counts = categories.map((category) => {
-      const total = apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length
-      return {
+    return categories
+      .map((category) => ({
         ...category,
-        total,
-      }
-    })
-
-    const grandTotal = counts.reduce((sum, item) => sum + item.total, 0)
-
-    return counts
-      .map((item) => ({
-        ...item,
-        percent: grandTotal > 0 ? Math.round((item.total / grandTotal) * 100) : 0,
+        total: apps.filter((app) => (app.categories ?? []).some((item) => item.id === category.id)).length,
       }))
       .sort((left, right) => right.total - left.total)
   }, [apps, categories])
@@ -1571,17 +1561,14 @@ export default function AdminWorkspace({ route }) {
                     colors={categoryBarData.map((category) => category.color)}
                     className="mx-auto max-w-2xl"
                   />
-                  <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-3">
                     {categoryBarData.map((category) => (
-                      <div key={category.id} className="flex items-center justify-between gap-3 rounded-2xl border border-mist-200/80 p-4 dark:border-ink-700">
+                      <div key={category.id} className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <span className={`h-3 w-3 rounded-full ${categoryDotClassMap[category.color] || categoryDotClassMap.gray}`} />
-                          <div className="space-y-1">
-                            <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
-                            <Text>{category.total} app{category.total === 1 ? '' : 's'}</Text>
-                          </div>
+                          <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
                         </div>
-                        <Badge color="gray">{category.percent}%</Badge>
+                        <Text>{category.total}</Text>
                       </div>
                     ))}
                   </div>
@@ -1747,10 +1734,7 @@ export default function AdminWorkspace({ route }) {
                           <span className={`h-3 w-3 rounded-full ${categoryDotClassMap[category.color] || categoryDotClassMap.gray}`} />
                           <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Text>{category.total}</Text>
-                          <Badge color="gray">{category.percent}%</Badge>
-                        </div>
+                        <Text>{category.total}</Text>
                       </div>
                     ))}
                   </div>
