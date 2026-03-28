@@ -32,15 +32,22 @@ a {
   }
 
   .creai-button-secondary {
-    @apply !border-mist-300 !bg-white !text-ink-950 hover:!border-mist-400 hover:!bg-mist-50 dark:!border-ink-700 dark:!bg-ink-900 dark:!text-mist-200 dark:hover:!border-ink-600 dark:hover:!bg-ink-800;
+    border-color: #ebecf5 !important;
+    @apply !bg-white !text-ink-950 hover:!bg-mist-50 dark:!bg-ink-900 dark:!text-mist-200 dark:hover:!bg-ink-800;
+  }
+
+  .dark .creai-button-secondary {
+    border-color: #26272b !important;
   }
 
   .creai-card {
     background-color: #fbfbfd !important;
+    border-color: #ebecf5 !important;
   }
 
   .dark .creai-card {
     background-color: #0f0f10 !important;
+    border-color: #26272b !important;
   }
 
   .creai-scrollbar {

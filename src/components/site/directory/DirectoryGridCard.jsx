@@ -10,8 +10,8 @@ function Chip({ icon: Icon, label, subtle = false }) {
     <span
       className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm ${
         subtle
-          ? 'border-white/10 bg-white/5 text-white/90'
-          : 'border-white/10 bg-white/10 text-white'
+          ? 'border-[#26272B] bg-white/5 text-white/90'
+          : 'border-[#26272B] bg-white/10 text-white'
       }`}
     >
       {Icon ? (
@@ -40,7 +40,7 @@ export default function DirectoryGridCard({ app }) {
   const fullPlatformLabel = hiddenPlatformCount ? `${platformLabel} • +${hiddenPlatformCount}` : platformLabel
 
   return (
-    <Card className="flex h-full flex-col rounded-[2rem] border border-white/5 bg-[#111113] p-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition hover:-translate-y-0.5 hover:border-white/10 dark:bg-[#111113]">
+    <Card className="flex h-full flex-col rounded-[2rem] border border-[#26272B] bg-[#111113] p-5 text-white shadow-[0_18px_40px_rgba(0,0,0,0.22)] transition hover:shadow-[0_22px_48px_rgba(0,0,0,0.28)] dark:bg-[#111113]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           {app.logoUrl ? (
@@ -61,10 +61,10 @@ export default function DirectoryGridCard({ app }) {
           )}
 
           <div className="min-w-0 space-y-2 pt-1">
-            <Title className="truncate !text-[2rem] !font-medium !tracking-[-0.04em] !text-white">
+            <Title className="truncate !text-[1.6rem] !font-medium !tracking-[-0.04em] !text-white">
               {app.name}
             </Title>
-            <Text className="!text-lg !text-white/45">{fullPlatformLabel}</Text>
+            <Text className="!text-base !text-white/45">{fullPlatformLabel}</Text>
           </div>
         </div>
 
@@ -77,9 +77,9 @@ export default function DirectoryGridCard({ app }) {
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+      <div className="mt-8 space-y-6">
         <div className="space-y-3">
-          <Text className="!text-xl !font-medium !text-white">Category</Text>
+          <Text className="!text-lg !font-medium !text-white">Category</Text>
           <div className="flex flex-wrap gap-3">
             {visibleCategories.map((category) => (
               <Chip key={category} label={category} />
@@ -89,7 +89,7 @@ export default function DirectoryGridCard({ app }) {
         </div>
 
         <div className="space-y-3">
-          <Text className="!text-xl !font-medium !text-white">Tech</Text>
+          <Text className="!text-lg !font-medium !text-white">Tech</Text>
           <div className="flex flex-wrap gap-3">
             {visibleTechnologies.map((item) => {
               const meta = getTechOption(item)
