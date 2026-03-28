@@ -241,6 +241,15 @@ function ActivityEntry({ item, compact = false }) {
   )
 }
 
+const categoryDotClassMap = {
+  lime: 'bg-lime-500',
+  violet: 'bg-violet-500',
+  amber: 'bg-amber-500',
+  cyan: 'bg-cyan-500',
+  pink: 'bg-pink-500',
+  gray: 'bg-gray-400',
+}
+
 function NavTree({ groups, currentPath }) {
   return (
     <div className="space-y-5">
@@ -1169,6 +1178,17 @@ export default function AdminWorkspace({ route }) {
       .sort((left, right) => right.total - left.total)
   }, [apps, categories])
 
+  const categoryBarData = useMemo(() => {
+    const palette = ['lime', 'violet', 'amber', 'cyan', 'pink', 'gray']
+    return categoryInsights
+      .filter((category) => category.total > 0)
+      .slice(0, 6)
+      .map((category, index) => ({
+        ...category,
+        color: palette[index] || 'gray',
+      }))
+  }, [categoryInsights])
+
   const supabase = hasSupabaseEnv ? getSupabaseBrowserClient() : null
 
   useEffect(() => {
@@ -1544,25 +1564,27 @@ export default function AdminWorkspace({ route }) {
             <Card className="creai-card rounded-3xl p-6">
               <Title>Category distribution</Title>
               <Text className="mt-2">Visual share of every category across the current app inventory.</Text>
-              {categoryInsights.length ? (
-                <div className="mt-6 space-y-4">
-                  {categoryInsights.map((category) => (
-                    <div key={category.id} className="space-y-2 rounded-2xl border border-mist-200/80 p-4 dark:border-ink-700">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="space-y-1">
-                          <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
-                          <Text>{category.total} app{category.total === 1 ? '' : 's'}</Text>
+              {categoryBarData.length ? (
+                <div className="mt-6 space-y-6">
+                  <CategoryBar
+                    values={categoryBarData.map((category) => category.total)}
+                    colors={categoryBarData.map((category) => category.color)}
+                    className="mx-auto max-w-2xl"
+                  />
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {categoryBarData.map((category) => (
+                      <div key={category.id} className="flex items-center justify-between gap-3 rounded-2xl border border-mist-200/80 p-4 dark:border-ink-700">
+                        <div className="flex items-center gap-3">
+                          <span className={`h-3 w-3 rounded-full ${categoryDotClassMap[category.color] || categoryDotClassMap.gray}`} />
+                          <div className="space-y-1">
+                            <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
+                            <Text>{category.total} app{category.total === 1 ? '' : 's'}</Text>
+                          </div>
                         </div>
                         <Badge color="gray">{category.percent}%</Badge>
                       </div>
-                      <CategoryBar
-                        values={[category.percent, Math.max(100 - category.percent, 0)]}
-                        colors={['lime', 'gray']}
-                        showLabels={false}
-                        showAnimation
-                      />
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="mt-6 flex flex-wrap gap-2">
@@ -1709,25 +1731,31 @@ export default function AdminWorkspace({ route }) {
                   <Title>Category mix</Title>
                   <Text>Quick read on how the current product inventory is distributed by category.</Text>
                 </div>
-                <Badge color="gray">{categoryInsights.length} categories</Badge>
+                <Badge color="gray">{categoryBarData.length} categories</Badge>
               </div>
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                {categoryInsights.slice(0, 6).map((category) => (
-                  <div key={category.id} className="space-y-2 rounded-2xl border border-mist-200/80 p-4 dark:border-ink-700">
-                    <div className="flex items-center justify-between gap-3">
-                      <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
-                      <Badge color="gray">{category.total}</Badge>
-                    </div>
-                    <CategoryBar
-                      values={[category.percent, Math.max(100 - category.percent, 0)]}
-                      colors={['lime', 'gray']}
-                      showLabels={false}
-                      showAnimation
-                    />
+              {categoryBarData.length ? (
+                <div className="mt-6 space-y-5">
+                  <CategoryBar
+                    values={categoryBarData.map((category) => category.total)}
+                    colors={categoryBarData.map((category) => category.color)}
+                    className="max-w-2xl"
+                  />
+                  <div className="space-y-3">
+                    {categoryBarData.map((category) => (
+                      <div key={category.id} className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className={`h-3 w-3 rounded-full ${categoryDotClassMap[category.color] || categoryDotClassMap.gray}`} />
+                          <Text className="font-medium text-ink-950 dark:text-mist-200">{category.name}</Text>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Text>{category.total}</Text>
+                          <Badge color="gray">{category.percent}%</Badge>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                {!categoryInsights.length ? <Text>No category data yet.</Text> : null}
-              </div>
+                </div>
+              ) : <Text className="mt-6">No category data yet.</Text>}
             </Card>
           </div>
         )
