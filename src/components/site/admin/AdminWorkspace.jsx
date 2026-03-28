@@ -50,7 +50,9 @@ import {
   uploadLogo,
 } from '../../../lib/app-data'
 import {
+  createEmptyChangelogEntry,
   createEmptyAppForm,
+  createEmptyTeamMember,
   dashboardSections,
   getPlatformMeta,
   getPlatformStatusMeta,
@@ -160,6 +162,7 @@ function humanizeFieldName(value) {
   const labels = {
     short_description: 'short description',
     description: 'description',
+    current_version: 'current version',
     started_at: 'started at',
     launched_at: 'launch date',
     accent_color: 'accent color',
@@ -171,6 +174,8 @@ function humanizeFieldName(value) {
     stacks: 'stacks',
     web_technologies: 'web technologies',
     mobile_technologies: 'mobile technologies',
+    changelog: 'changelog',
+    team_members: 'team members',
     slug: 'slug',
     name: 'name',
   }
@@ -197,9 +202,12 @@ function ActivityEntry({ item, compact = false }) {
         <div className="flex flex-wrap gap-2">
           {details.name ? <Badge color="gray">{details.name}</Badge> : null}
           {details.slug ? <Badge color="gray">slug: {details.slug}</Badge> : null}
+          {details.currentVersion ? <Badge color="gray">version: {details.currentVersion}</Badge> : null}
           {typeof details.stackCount === 'number' ? <Badge color="gray">stacks: {details.stackCount}</Badge> : null}
           {typeof details.webTechnologyCount === 'number' ? <Badge color="gray">web tech: {details.webTechnologyCount}</Badge> : null}
           {typeof details.mobileTechnologyCount === 'number' ? <Badge color="gray">mobile tech: {details.mobileTechnologyCount}</Badge> : null}
+          {typeof details.changelogCount === 'number' ? <Badge color="gray">releases: {details.changelogCount}</Badge> : null}
+          {typeof details.teamMemberCount === 'number' ? <Badge color="gray">team: {details.teamMemberCount}</Badge> : null}
           {typeof details.socialCount === 'number' ? <Badge color="gray">social: {details.socialCount}</Badge> : null}
           {typeof details.platformCount === 'number' ? <Badge color="gray">platforms: {details.platformCount}</Badge> : null}
           {typeof details.livePlatformCount === 'number' ? <Badge color="gray">live: {details.livePlatformCount}</Badge> : null}
@@ -334,6 +342,26 @@ function validateAppForm(form, apps = [], currentId = null) {
 }
 
 function appPayloadFromForm(form, logoUrl) {
+  const changelog = (form.changelog ?? [])
+    .map((entry) => ({
+      version: entry.version.trim(),
+      releaseDate: entry.releaseDate || '',
+      notes: String(entry.notes ?? '')
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    }))
+    .filter((entry) => entry.version || entry.releaseDate || entry.notes.length)
+
+  const teamMembers = (form.teamMembers ?? [])
+    .map((member) => ({
+      name: member.name.trim(),
+      role: member.role.trim(),
+      avatar: normalizeExternalUrl(member.avatar),
+      link: normalizeExternalUrl(member.link),
+    }))
+    .filter((member) => member.name || member.role || member.avatar || member.link)
+
   const normalizedPlatforms = Object.fromEntries(
     Object.entries(form.platforms).map(([key, platform]) => [
       key,
@@ -350,6 +378,7 @@ function appPayloadFromForm(form, logoUrl) {
     name: form.name.trim(),
     short_description: form.shortDescription.trim(),
     description: form.description.trim(),
+    current_version: form.currentVersion.trim() || null,
     started_at: normalizeMonthValue(form.startedAt),
     launched_at: normalizeMonthValue(form.launchedAt),
     category_id: form.categoryIds[0] || null,
@@ -361,6 +390,8 @@ function appPayloadFromForm(form, logoUrl) {
     frameworks: form.mobileTechnologies,
     web_technologies: form.webTechnologies,
     mobile_technologies: form.mobileTechnologies,
+    changelog,
+    team_members: teamMembers,
     platforms: normalizedPlatforms,
     social_links: sanitizeLinks(form.socialLinks),
     store_links: {
@@ -378,12 +409,28 @@ function hydrateForm(app) {
     slug: app.slug ?? '',
     shortDescription: app.shortDescription ?? '',
     description: app.description ?? '',
+    currentVersion: app.currentVersion ?? '',
     startedAt: monthInputValue(app.startedAt),
     launchedAt: monthInputValue(app.launchedAt),
     categoryIds: app.categoryIds ?? (app.category?.id ? [app.category.id] : []),
     stacks: app.stacks ?? [],
     webTechnologies: app.webTechnologies ?? [],
     mobileTechnologies: app.mobileTechnologies ?? [],
+    changelog: app.changelog?.length
+      ? app.changelog.map((entry) => ({
+          version: entry.version ?? '',
+          releaseDate: entry.releaseDate ?? '',
+          notes: Array.isArray(entry.notes) ? entry.notes.join('\n') : '',
+        }))
+      : [createEmptyChangelogEntry()],
+    teamMembers: app.teamMembers?.length
+      ? app.teamMembers.map((member) => ({
+          name: member.name ?? '',
+          role: member.role ?? '',
+          avatar: member.avatar ?? '',
+          link: member.link ?? '',
+        }))
+      : [createEmptyTeamMember()],
     accentColor: app.accentColor ?? '#c2ff29',
     githubRepository: app.githubRepository ?? '',
     platforms: {
@@ -539,6 +586,9 @@ function AppForm({
   onCreateCategory,
   onChange,
   onLinksChange,
+  onListChange,
+  onAddListItem,
+  onRemoveListItem,
   onSubmit,
   submitLabel,
   loading,
@@ -593,6 +643,14 @@ function AppForm({
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="space-y-2">
+            <Text>Current version</Text>
+            <Input
+              value={form.currentVersion}
+              placeholder="v1.4.0"
+              onChange={(event) => onChange('currentVersion', event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
             <Text>Started at</Text>
             <Input
               type="month"
@@ -600,7 +658,7 @@ function AppForm({
               onChange={(event) => onChange('startedAt', event.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 lg:col-start-2">
             <Text>Launch date</Text>
             <Input
               type="month"
@@ -788,6 +846,143 @@ function AppForm({
           </div>
         </Card>
       ) : null}
+
+      <Card className="creai-card rounded-3xl p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-2">
+            <Title>Version + changelog</Title>
+            <Text>Track the current version and highlight notable releases in the public product profile.</Text>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="creai-button-secondary rounded-2xl"
+            onClick={() => onAddListItem('changelog')}
+          >
+            Add changelog entry
+          </Button>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          {form.changelog.map((entry, index) => (
+            <div key={`changelog-${index}`} className="rounded-3xl border border-mist-200/80 p-4 dark:border-ink-700">
+              <div className="flex items-center justify-between gap-3">
+                <Text className="font-medium">Release {index + 1}</Text>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="creai-button-secondary rounded-2xl"
+                  onClick={() => onRemoveListItem('changelog', index)}
+                >
+                  Remove
+                </Button>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <Text>Version</Text>
+                  <Input
+                    value={entry.version}
+                    placeholder="v1.4.0"
+                    onChange={(event) => onListChange('changelog', index, 'version', event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Text>Release date</Text>
+                  <Input
+                    type="date"
+                    value={entry.releaseDate}
+                    onChange={(event) => onListChange('changelog', index, 'releaseDate', event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <Text>Release notes</Text>
+                <Textarea
+                  rows={4}
+                  value={entry.notes}
+                  placeholder="One update per line"
+                  onChange={(event) => onListChange('changelog', index, 'notes', event.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="creai-card rounded-3xl p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-2">
+            <Title>Team members / creator credits</Title>
+            <Text>Show the people behind the product directly in the app detail experience.</Text>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="creai-button-secondary rounded-2xl"
+            onClick={() => onAddListItem('teamMembers')}
+          >
+            Add team member
+          </Button>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          {form.teamMembers.map((member, index) => (
+            <div key={`team-${index}`} className="rounded-3xl border border-mist-200/80 p-4 dark:border-ink-700">
+              <div className="flex items-center justify-between gap-3">
+                <Text className="font-medium">Member {index + 1}</Text>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="creai-button-secondary rounded-2xl"
+                  onClick={() => onRemoveListItem('teamMembers', index)}
+                >
+                  Remove
+                </Button>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <Text>Name</Text>
+                  <Input
+                    value={member.name}
+                    placeholder="Ada Lovelace"
+                    onChange={(event) => onListChange('teamMembers', index, 'name', event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Text>Role</Text>
+                  <Input
+                    value={member.role}
+                    placeholder="Product design"
+                    onChange={(event) => onListChange('teamMembers', index, 'role', event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <Text>Avatar URL</Text>
+                  <Input
+                    value={member.avatar}
+                    placeholder="https://..."
+                    onChange={(event) => onListChange('teamMembers', index, 'avatar', event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Text>Profile link</Text>
+                  <Input
+                    value={member.link}
+                    placeholder="https://..."
+                    onChange={(event) => onListChange('teamMembers', index, 'link', event.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card className="creai-card rounded-3xl p-6">
         <Title>Brand assets</Title>
@@ -1044,6 +1239,32 @@ export default function AdminWorkspace({ route }) {
     }))
   }
 
+  const updateListState = (setter, key, index, field, value) => {
+    setter((current) => ({
+      ...current,
+      [key]: current[key].map((item, itemIndex) => (
+        itemIndex === index ? { ...item, [field]: value } : item
+      )),
+    }))
+  }
+
+  const appendListState = (setter, key, factory) => {
+    setter((current) => ({
+      ...current,
+      [key]: [...current[key], factory()],
+    }))
+  }
+
+  const removeListState = (setter, key, index, factory) => {
+    setter((current) => {
+      const nextItems = current[key].filter((_, itemIndex) => itemIndex !== index)
+      return {
+        ...current,
+        [key]: nextItems.length ? nextItems : [factory()],
+      }
+    })
+  }
+
   function openCategoryDialog(target) {
     setCategoryTarget(target)
     setCategoryDialogValue('')
@@ -1267,6 +1488,7 @@ export default function AdminWorkspace({ route }) {
               <TableHead>
                 <TableRow>
                   <TableHeaderCell>App</TableHeaderCell>
+                  <TableHeaderCell>Version</TableHeaderCell>
                   <TableHeaderCell>Platforms</TableHeaderCell>
                   <TableHeaderCell>Updated</TableHeaderCell>
                 </TableRow>
@@ -1275,6 +1497,7 @@ export default function AdminWorkspace({ route }) {
                 {apps.slice(0, 10).map((app) => (
                   <TableRow key={app.id}>
                     <TableCell>{app.name}</TableCell>
+                    <TableCell>{app.currentVersion || 'Pending'}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-2">
                         {getEnabledPlatforms(app).map(([key, platform]) => {
@@ -1394,6 +1617,7 @@ export default function AdminWorkspace({ route }) {
                   <TableHead>
                     <TableRow>
                       <TableHeaderCell>App</TableHeaderCell>
+                      <TableHeaderCell>Version</TableHeaderCell>
                       <TableHeaderCell>Categories</TableHeaderCell>
                       <TableHeaderCell>Platforms</TableHeaderCell>
                       <TableHeaderCell>Updated</TableHeaderCell>
@@ -1403,6 +1627,7 @@ export default function AdminWorkspace({ route }) {
                     {apps.slice(0, 6).map((app) => (
                       <TableRow key={app.id}>
                         <TableCell>{app.name}</TableCell>
+                        <TableCell>{app.currentVersion || 'Pending'}</TableCell>
                         <TableCell>{app.categories?.map((category) => category.name).join(', ') || 'Uncategorized'}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-2">
@@ -1522,6 +1747,9 @@ export default function AdminWorkspace({ route }) {
                 onCreateCategory={() => openCategoryDialog('create')}
                 onChange={(key, value) => updateFormState(setCreateForm, key, value)}
                 onLinksChange={(group, key, value) => updateNestedLinkState(setCreateForm, group, key, value)}
+                onListChange={(key, index, field, value) => updateListState(setCreateForm, key, index, field, value)}
+                onAddListItem={(key) => appendListState(setCreateForm, key, key === 'changelog' ? createEmptyChangelogEntry : createEmptyTeamMember)}
+                onRemoveListItem={(key, index) => removeListState(setCreateForm, key, index, key === 'changelog' ? createEmptyChangelogEntry : createEmptyTeamMember)}
                 onSubmit={handleCreateApp}
                 submitLabel="Create app"
                 loading={operationLoading}
@@ -1563,6 +1791,7 @@ export default function AdminWorkspace({ route }) {
                             </div>
 
                             <Text className="mt-4 min-h-[44px]">{app.shortDescription || 'No short description added yet.'}</Text>
+                            {app.currentVersion ? <Badge color="gray" className="mt-4">Version {app.currentVersion}</Badge> : null}
                             <div className="mt-4 flex flex-wrap gap-2">
                               {getEnabledPlatforms(app).map(([key, platform]) => {
                                 const meta = getPlatformMeta(key)
@@ -1616,6 +1845,9 @@ export default function AdminWorkspace({ route }) {
                       onCreateCategory={() => openCategoryDialog('edit')}
                       onChange={(key, value) => updateFormState(setEditForm, key, value)}
                       onLinksChange={(group, key, value) => updateNestedLinkState(setEditForm, group, key, value)}
+                      onListChange={(key, index, field, value) => updateListState(setEditForm, key, index, field, value)}
+                      onAddListItem={(key) => appendListState(setEditForm, key, key === 'changelog' ? createEmptyChangelogEntry : createEmptyTeamMember)}
+                      onRemoveListItem={(key, index) => removeListState(setEditForm, key, index, key === 'changelog' ? createEmptyChangelogEntry : createEmptyTeamMember)}
                       onSubmit={handleUpdateApp}
                       submitLabel="Save changes"
                       loading={operationLoading}

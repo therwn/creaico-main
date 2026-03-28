@@ -19,6 +19,7 @@ import {
   RiGlobalLine,
   RiInstagramLine,
   RiLinkedinLine,
+  RiTeamLine,
   RiTwitterXLine,
 } from '@remixicon/react'
 import { fetchAppBySlug } from '../../lib/app-data'
@@ -68,6 +69,15 @@ function formatMonthYear(value) {
 }
 
 function formatCommitDate(value) {
+  if (!value) return 'Pending'
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function formatDisplayDate(value) {
   if (!value) return 'Pending'
   return new Date(value).toLocaleDateString('en-US', {
     month: 'short',
@@ -276,6 +286,7 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
                 )}
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-2">
+                    {app.currentVersion ? <Badge color="gray">Version {app.currentVersion}</Badge> : null}
                     {(app.categories?.length ? app.categories : [app.category].filter(Boolean)).map((category) => (
                       <Badge key={category.id || category.name} color="lime" className="creai-badge">{category.name}</Badge>
                     ))}
@@ -391,9 +402,88 @@ export default function AppDetailView({ slug, publicRoot, embedded = false }) {
                 </div>
               </Card>
             ) : null}
+
+            {app.teamMembers?.length ? (
+              <Card className="creai-card rounded-3xl p-6">
+                <div className="flex items-center gap-2">
+                  <RiTeamLine className="h-4 w-4 text-mist-500 dark:text-mist-400" />
+                  <Title>Creator credits</Title>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {app.teamMembers.map((member) => {
+                    const initials = (member.name || member.role || '?')
+                      .split(' ')
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((item) => item[0])
+                      .join('')
+                      .toUpperCase()
+
+                    const content = (
+                      <div className="flex items-center gap-3 rounded-2xl border border-mist-200/80 p-3 dark:border-ink-700">
+                        {member.avatar ? (
+                          <img src={member.avatar} alt={member.name || 'Team member'} className="h-11 w-11 rounded-2xl object-cover" />
+                        ) : (
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-mist-100 text-sm font-semibold text-ink-950 dark:bg-ink-800 dark:text-mist-100">
+                            {initials}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <Text className="font-medium text-ink-950 dark:text-mist-200">{member.name || 'Unnamed contributor'}</Text>
+                          <Text>{member.role || 'Role pending'}</Text>
+                        </div>
+                      </div>
+                    )
+
+                    return member.link ? (
+                      <a key={`${member.name}-${member.role}`} href={member.link} target="_blank" rel="noreferrer" className="block">
+                        {content}
+                      </a>
+                    ) : (
+                      <div key={`${member.name}-${member.role}`}>{content}</div>
+                    )
+                  })}
+                </div>
+              </Card>
+            ) : null}
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="space-y-6 lg:col-span-3">
+            <Card className="creai-card rounded-3xl p-6">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-2">
+                  <Title>Version + changelog</Title>
+                  <Text>Release history for the current product record.</Text>
+                </div>
+                {app.currentVersion ? <Badge color="gray">Current version {app.currentVersion}</Badge> : null}
+              </div>
+
+              {app.changelog?.length ? (
+                <div className="mt-6 space-y-4">
+                  {app.changelog.map((entry, index) => (
+                    <details key={`${entry.version}-${entry.releaseDate}-${index}`} className="group rounded-3xl border border-mist-200/80 p-4 dark:border-ink-700" open={index === 0}>
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <Text className="font-medium text-ink-950 dark:text-mist-200">{entry.version || 'Unversioned release'}</Text>
+                          <Text>{formatDisplayDate(entry.releaseDate)}</Text>
+                        </div>
+                        <Badge color="gray">{entry.notes?.length || 0} notes</Badge>
+                      </summary>
+                      <div className="mt-4 space-y-2">
+                        {entry.notes?.length ? entry.notes.map((note) => (
+                          <Text key={note}>• {note}</Text>
+                        )) : <Text>No release notes added.</Text>}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6 rounded-3xl border border-dashed border-mist-300 p-6 dark:border-ink-700">
+                  <Text>No changelog entries have been added yet.</Text>
+                </div>
+              )}
+            </Card>
+
             <Title>Platform launch surface</Title>
             <Text className="mt-2">Launch status and links for every enabled platform.</Text>
             <Grid numItemsLg={3} className="mt-6 gap-6">

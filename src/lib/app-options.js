@@ -123,6 +123,14 @@ export const socialFieldOptions = [
   { key: 'linkedin', label: 'LinkedIn' },
 ]
 
+export const sortOptions = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'alphabetical', label: 'A–Z' },
+  { value: 'reverse-alphabetical', label: 'Z–A' },
+  { value: 'recently-launched', label: 'Recently launched' },
+]
+
 export const dashboardSections = [
   { value: 'overview', label: 'Overview', href: '/admin/dashboard' },
   { value: 'recent-updates', label: 'Recent Updates', href: '/admin/dashboard/recent-updates' },
@@ -139,18 +147,38 @@ export function createEmptyPlatformState() {
   }
 }
 
+export function createEmptyTeamMember() {
+  return {
+    name: '',
+    role: '',
+    avatar: '',
+    link: '',
+  }
+}
+
+export function createEmptyChangelogEntry() {
+  return {
+    version: '',
+    releaseDate: '',
+    notes: '',
+  }
+}
+
 export function createEmptyAppForm() {
   return {
     name: '',
     slug: '',
     shortDescription: '',
     description: '',
+    currentVersion: '',
     startedAt: '',
     launchedAt: '',
     categoryIds: [],
     stacks: [],
     webTechnologies: [],
     mobileTechnologies: [],
+    changelog: [createEmptyChangelogEntry()],
+    teamMembers: [createEmptyTeamMember()],
     accentColor: '#c2ff29',
     githubRepository: '',
     platforms: {

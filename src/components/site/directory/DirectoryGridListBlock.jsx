@@ -9,11 +9,15 @@ export default function DirectoryGridListBlock({
   error,
   categories,
   filteredApps,
+  sortedApps,
   selectedCategory,
   setSelectedCategory,
   availabilityFilter,
   setAvailabilityFilter,
   availabilityOptions,
+  selectedSort,
+  setSelectedSort,
+  sortOptions,
 }) {
   const categoryOptions = [
     { value: 'all', label: 'All categories', icon: RiFilter3Line },
@@ -31,7 +35,7 @@ export default function DirectoryGridListBlock({
           <Title>Available apps</Title>
           <Text>Grid list directory shell prepared for Tremor Blocks based catalog views.</Text>
         </div>
-        <div className="grid w-full gap-3 md:grid-cols-2 xl:w-auto xl:min-w-[420px]">
+        <div className="grid w-full gap-3 md:grid-cols-3 xl:w-auto xl:min-w-[640px]">
           <div className="space-y-2">
             <Text className="font-medium">Category</Text>
             <SearchableSelect
@@ -54,6 +58,18 @@ export default function DirectoryGridListBlock({
               emptyMessage="No availability option found."
             />
           </div>
+          <div className="space-y-2">
+            <Text className="font-medium">Sort</Text>
+            <SearchableSelect
+              value={selectedSort}
+              onChange={setSelectedSort}
+              options={sortOptions}
+              placeholder="Newest"
+              searchPlaceholder="Search sort options..."
+              emptyMessage="No sort option found."
+              searchable={false}
+            />
+          </div>
         </div>
       </div>
 
@@ -63,9 +79,9 @@ export default function DirectoryGridListBlock({
         </Callout>
       ) : null}
 
-      {filteredApps.length ? (
+      {sortedApps.length ? (
         <Grid numItemsMd={2} numItemsLg={4} className="mt-6 gap-4 [&>*]:h-full">
-          {filteredApps.map((app) => (
+          {sortedApps.map((app) => (
             <DirectoryGridCard key={app.id} app={app} />
           ))}
         </Grid>

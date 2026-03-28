@@ -29,6 +29,14 @@ function formatChangeValue(field, value) {
     case 'mobile_technologies':
     case 'category_ids':
       return formatArrayValue(value)
+    case 'team_members':
+      return Array.isArray(value) && value.length
+        ? value.map((item) => `${item.name || 'Unknown'} (${item.role || 'Role pending'})`).join('; ')
+        : 'empty'
+    case 'changelog':
+      return Array.isArray(value) && value.length
+        ? value.map((item) => `${item.version || 'Unversioned'}${item.releaseDate ? ` @ ${item.releaseDate}` : ''}`).join('; ')
+        : 'empty'
     case 'social_links':
     case 'store_links':
       return summarizeLinkKeys(value)
@@ -152,6 +160,32 @@ function normalizeGitHubRepository(value) {
   }
 }
 
+function normalizeTeamMember(member) {
+  if (!member) return null
+  return {
+    name: String(member.name ?? '').trim(),
+    role: String(member.role ?? '').trim(),
+    avatar: normalizeExternalUrl(member.avatar ?? ''),
+    link: normalizeExternalUrl(member.link ?? ''),
+  }
+}
+
+function normalizeChangelogEntry(entry) {
+  if (!entry) return null
+  const notes = Array.isArray(entry.notes)
+    ? entry.notes.map((item) => String(item ?? '').trim()).filter(Boolean)
+    : String(entry.notes ?? '')
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean)
+
+  return {
+    version: String(entry.version ?? '').trim(),
+    releaseDate: normalizeMonthDate(entry.releaseDate) || (String(entry.releaseDate ?? '').match(/^\d{4}-\d{2}-\d{2}$/) ? String(entry.releaseDate) : ''),
+    notes,
+  }
+}
+
 function countLivePlatforms(platforms) {
   return Object.values(platforms ?? {}).filter((platform) => platform?.enabled && platform?.status === 'live').length
 }
@@ -174,11 +208,14 @@ function summarizeAppRecord(row) {
   return {
     name: row.name,
     slug: row.slug,
+    currentVersion: row.current_version ?? '',
     categoryIds,
     categoryCount: categoryIds.length,
     stackCount: Array.isArray(row.stacks) ? row.stacks.length : 0,
     webTechnologyCount: Array.isArray(row.web_technologies) ? row.web_technologies.length : 0,
     mobileTechnologyCount: Array.isArray(row.mobile_technologies) ? row.mobile_technologies.length : 0,
+    changelogCount: Array.isArray(row.changelog) ? row.changelog.length : 0,
+    teamMemberCount: Array.isArray(row.team_members) ? row.team_members.length : 0,
     socialCount: countLinks(row.social_links),
     githubRepository: normalizeGitHubRepository(row.github_repository ?? row.social_links?.github ?? ''),
     platformCount: countEnabledPlatforms(platforms),
@@ -194,6 +231,7 @@ function buildChangedFields(previous, next) {
     ['category_ids', previous?.category_ids ?? (previous?.category_id ? [previous.category_id] : []), next?.category_ids ?? (next?.category_id ? [next.category_id] : [])],
     ['description', previous?.description, next?.description],
     ['short_description', previous?.short_description, next?.short_description],
+    ['current_version', previous?.current_version ?? '', next?.current_version ?? ''],
     ['started_at', previous?.started_at ?? null, next?.started_at ?? null],
     ['launched_at', previous?.launched_at ?? null, next?.launched_at ?? null],
     ['accent_color', previous?.accent_color, next?.accent_color],
@@ -201,6 +239,8 @@ function buildChangedFields(previous, next) {
     ['stacks', previous?.stacks ?? [], next?.stacks ?? []],
     ['web_technologies', previous?.web_technologies ?? [], next?.web_technologies ?? []],
     ['mobile_technologies', previous?.mobile_technologies ?? [], next?.mobile_technologies ?? []],
+    ['changelog', previous?.changelog ?? [], next?.changelog ?? []],
+    ['team_members', previous?.team_members ?? [], next?.team_members ?? []],
     ['platforms', normalizePlatforms(previous), normalizePlatforms(next)],
     ['social_links', previous?.social_links ?? {}, next?.social_links ?? {}],
     ['logo_url', previous?.logo_url ?? null, next?.logo_url ?? null],
@@ -240,6 +280,7 @@ function normalizeApp(row, categoryMap = new Map()) {
     name: row.name,
     shortDescription: row.short_description ?? '',
     description: row.description ?? '',
+    currentVersion: row.current_version ?? '',
     startedAt: normalizeMonthDate(row.started_at) ?? normalizeMonthDate(row.created_at),
     launchedAt: normalizeMonthDate(row.launched_at),
     category: categories[0] ?? row.category ?? null,
@@ -251,6 +292,12 @@ function normalizeApp(row, categoryMap = new Map()) {
     stacks: Array.isArray(row.stacks) ? row.stacks : [],
     webTechnologies: Array.isArray(row.web_technologies) ? row.web_technologies : [],
     mobileTechnologies: Array.isArray(row.mobile_technologies) ? row.mobile_technologies : [],
+    changelog: Array.isArray(row.changelog)
+      ? row.changelog.map(normalizeChangelogEntry).filter(Boolean)
+      : [],
+    teamMembers: Array.isArray(row.team_members)
+      ? row.team_members.map(normalizeTeamMember).filter((member) => member && (member.name || member.role || member.link || member.avatar))
+      : [],
     socialLinks: row.social_links ?? {},
     platforms,
     createdAt: row.created_at,
@@ -274,6 +321,7 @@ function appSelectQuery() {
       name,
       short_description,
       description,
+      current_version,
       started_at,
       launched_at,
       category_ids,
@@ -283,6 +331,8 @@ function appSelectQuery() {
       stacks,
       web_technologies,
       mobile_technologies,
+      changelog,
+      team_members,
       platforms,
       social_links,
       store_links,
@@ -482,7 +532,7 @@ export async function updateAppRecord(id, payload, actorEmail) {
 
   const { data: previous, error: previousError } = await supabase
     .from('apps')
-    .select('id, name, slug, short_description, description, started_at, launched_at, category_id, category_ids, logo_url, accent_color, github_repository, stacks, web_technologies, mobile_technologies, platforms, social_links, store_links, status')
+    .select('id, name, slug, short_description, description, current_version, started_at, launched_at, category_id, category_ids, logo_url, accent_color, github_repository, stacks, web_technologies, mobile_technologies, changelog, team_members, platforms, social_links, store_links, status')
     .eq('id', id)
     .single()
 

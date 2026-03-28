@@ -28,7 +28,7 @@ import {
   RiTimeLine,
 } from '@remixicon/react'
 import { fetchApps, fetchWorkspaceSettings } from '../../lib/app-data'
-import { getPlatformMeta, getPlatformStatusMeta } from '../../lib/app-options'
+import { getPlatformMeta, getPlatformStatusMeta, sortOptions } from '../../lib/app-options'
 import { hasSupabaseEnv } from '../../lib/supabase'
 import Input from '../ui/Input'
 import DirectoryGridListBlock from './directory/DirectoryGridListBlock'
@@ -68,6 +68,7 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [availabilityFilter, setAvailabilityFilter] = useState('all')
+  const [selectedSort, setSelectedSort] = useState('newest')
   const [settings, setSettings] = useState({
     bannerEyebrow: 'CREAI directory',
     bannerTitle: 'Explore CREAI products in one place',
@@ -141,6 +142,34 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
     })
   }, [apps, availabilityFilter, searchQuery, selectedCategory])
 
+  const sortedApps = useMemo(() => {
+    const nextApps = [...filteredApps]
+
+    const getDateValue = (value) => {
+      if (!value) return 0
+      const timestamp = new Date(value).getTime()
+      return Number.isNaN(timestamp) ? 0 : timestamp
+    }
+
+    nextApps.sort((left, right) => {
+      switch (selectedSort) {
+        case 'oldest':
+          return getDateValue(left.startedAt || left.createdAt) - getDateValue(right.startedAt || right.createdAt)
+        case 'alphabetical':
+          return left.name.localeCompare(right.name)
+        case 'reverse-alphabetical':
+          return right.name.localeCompare(left.name)
+        case 'recently-launched':
+          return getDateValue(right.launchedAt) - getDateValue(left.launchedAt)
+        case 'newest':
+        default:
+          return getDateValue(right.startedAt || right.createdAt) - getDateValue(left.startedAt || left.createdAt)
+      }
+    })
+
+    return nextApps
+  }, [filteredApps, selectedSort])
+
   const metrics = useMemo(() => {
     return {
       total: apps.length,
@@ -190,6 +219,7 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                       onClick={() => {
                         setSelectedCategory('all')
                         setAvailabilityFilter('all')
+                        setSelectedSort('newest')
                       }}
                       className="flex w-full items-center justify-between rounded-2xl bg-white px-3 py-2 text-left text-sm text-ink-950 shadow-sm dark:bg-ink-800 dark:text-mist-200"
                     >
@@ -319,11 +349,15 @@ export default function PublicDirectory({ publicRoot = '/', detailSlug = null })
                     error={error}
                     categories={categories}
                     filteredApps={filteredApps}
+                    sortedApps={sortedApps}
                     selectedCategory={selectedCategory}
                     setSelectedCategory={setSelectedCategory}
                     availabilityFilter={availabilityFilter}
                     setAvailabilityFilter={setAvailabilityFilter}
                     availabilityOptions={availabilityOptions}
+                    selectedSort={selectedSort}
+                    setSelectedSort={setSelectedSort}
+                    sortOptions={sortOptions}
                   />
 
                   <Card className="creai-card rounded-[2rem] p-6">
