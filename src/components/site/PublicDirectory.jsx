@@ -23,6 +23,7 @@ import {
   RiFolderOpenLine,
   RiSearchLine,
   RiShapesLine,
+  RiStore2Line,
   RiTimeLine,
 } from '@remixicon/react'
 import { fetchApps, fetchWorkspaceSettings } from '../../lib/app-data'
