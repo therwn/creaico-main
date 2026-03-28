@@ -5,6 +5,8 @@
 html,
 body {
   min-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -39,5 +41,45 @@ a {
 
   .dark .creai-card {
     background-color: #0f0f10 !important;
+  }
+
+  .creai-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(163, 230, 35, 0.45) transparent;
+  }
+
+  .creai-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .creai-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .creai-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(163, 230, 35, 0.42);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .creai-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(163, 230, 35, 0.6);
+    background-clip: padding-box;
+  }
+
+  .dark .creai-scrollbar {
+    scrollbar-color: rgba(231, 232, 242, 0.22) transparent;
+  }
+
+  .dark .creai-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(231, 232, 242, 0.2);
+    background-clip: padding-box;
+  }
+
+  .dark .creai-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(231, 232, 242, 0.32);
+    background-clip: padding-box;
   }
 }
